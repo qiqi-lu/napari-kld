@@ -28,12 +28,17 @@ References:
 
 Replace code below according to your needs.
 """
+
 from typing import TYPE_CHECKING
 
 from magicgui import magic_factory
 from magicgui.widgets import CheckBox, Container, create_widget
 from qtpy.QtWidgets import QHBoxLayout, QPushButton, QWidget
 from skimage.util import img_as_float
+
+import napari_kld.methods as methods
+
+# import numpy as np
 
 if TYPE_CHECKING:
     import napari
@@ -47,6 +52,13 @@ def threshold_autogenerate_widget(
     threshold: "float",
 ) -> "napari.types.LabelsData":
     return img_as_float(img) > threshold
+
+
+def rl_deconv_widget(
+    img: "napari.types.ImageData",
+) -> "napari.types.ImageData":
+    img_deconv = methods.rl_deconv(img)
+    return img_deconv
 
 
 # the magic_factory decorator lets us customize aspects of our widget

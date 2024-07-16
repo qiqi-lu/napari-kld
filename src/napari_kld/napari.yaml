@@ -1,9 +1,10 @@
 name: napari-kld
 display_name: Kernel Learning Deconvolution
 # use 'hidden' to remove plugin from napari hub search results
-visibility: public
+# visibility: public
+visibility: hidden
 # see https://napari.org/stable/plugins/manifest.html for valid categories
-categories: ["Annotation", "Segmentation", "Acquisition"]
+categories: ["Image Processing"]
 contributions:
   commands:
     - id: napari-kld.get_reader
@@ -30,6 +31,10 @@ contributions:
     - id: napari-kld.make_qwidget
       python_name: napari_kld:ExampleQWidget
       title: Make example QWidget
+    - id: napari-kld.rldeconv_widhet
+      python_name: napari_kld:rl_deconv_widget
+      title: Richardson-Lucy deconvolution
+
   readers:
     - command: napari-kld.get_reader
       accepts_directories: false
@@ -50,8 +55,14 @@ contributions:
       display_name: Container Threshold
     - command: napari-kld.make_magic_widget
       display_name: Magic Threshold
-    - command: napari-kld.make_function_widget
-      autogenerate: true
-      display_name: Autogenerate Threshold
+
+    - command: napari-kld.make_function_widget # same as command.id above
+      autogenerate: true # autogenetate the widget
+      display_name: Autogenerate Threshold # widget name
+
     - command: napari-kld.make_qwidget
       display_name: Example QWidget
+
+    - command: napari-kld.rldeconv_widhet
+      autogenerate: true
+      display_name: RL Deconvolution
