@@ -7,6 +7,8 @@
 [![codecov](https://codecov.io/gh/qiqi-lu/napari-kld/branch/main/graph/badge.svg)](https://codecov.io/gh/qiqi-lu/napari-kld)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-kld)](https://napari-hub.org/plugins/napari-kld)
 
+<font color="Red"> This plugin is not completed. <font>
+
 Kernel learning deconvolution (KLD) is a rapid deconvolution algorithm for fluorescence microscopic image, which learns the forward and backward kernels in Richardson-Lucy Deconvolution (KLD) from paired low-/high-resolution images.
 
 ----------------------------------
