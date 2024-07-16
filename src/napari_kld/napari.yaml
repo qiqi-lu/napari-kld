@@ -31,9 +31,14 @@ contributions:
     - id: napari-kld.make_qwidget
       python_name: napari_kld:ExampleQWidget
       title: Make example QWidget
+
     - id: napari-kld.rldeconv_widhet
       python_name: napari_kld:rl_deconv_widget
       title: Richardson-Lucy deconvolution
+
+    - id: napari-kld.rldwidget
+      python_name: napari_kld:RLDwidget
+      title: RL Deconvolution
 
   readers:
     - command: napari-kld.get_reader
@@ -65,4 +70,7 @@ contributions:
 
     - command: napari-kld.rldeconv_widhet
       autogenerate: true
+      display_name: RL Deconvolution1
+
+    - command: napari-kld.rldwidget
       display_name: RL Deconvolution

@@ -8,6 +8,7 @@ from ._sample_data import make_sample_data
 from ._widget import (
     ExampleQWidget,
     ImageThreshold,
+    RLDwidget,
     rl_deconv_widget,
     threshold_autogenerate_widget,
     threshold_magic_widget,
@@ -24,6 +25,7 @@ __all__ = (
     "threshold_autogenerate_widget",
     "threshold_magic_widget",
     "rl_deconv_widget",
+    "RLDwidget",
 )
 # The meaning of __all__
 # https://docs.python.org/3/tutorial/modules.html#importing-from-a-package

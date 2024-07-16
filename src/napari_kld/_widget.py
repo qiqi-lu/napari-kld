@@ -29,8 +29,7 @@ References:
 Replace code below according to your needs.
 """
 
-from typing import TYPE_CHECKING
-
+import napari
 from magicgui import magic_factory
 from magicgui.widgets import CheckBox, Container, create_widget
 from qtpy.QtWidgets import QHBoxLayout, QPushButton, QWidget
@@ -39,9 +38,6 @@ from skimage.util import img_as_float
 import napari_kld.methods as methods
 
 # import numpy as np
-
-if TYPE_CHECKING:
-    import napari
 
 
 # Uses the `autogenerate: true` flag in the plugin manifest
@@ -138,3 +134,32 @@ class ExampleQWidget(QWidget):
 
     def _on_click(self):
         print("napari has", len(self.viewer.layers), "layers")
+
+
+class RLDwidget(QWidget):
+    def __init__(self, viewer: napari.Viewer):
+        super().__init__()
+        self.viewer = viewer
+
+        self.viewer.layers.events.changed.connect(self._on_layers_change)
+
+        btn = QPushButton("run")
+        btn.clicked.connect(self._on_click)
+
+        self.setLayout(QHBoxLayout())
+        self.layout().addWidget(btn)
+
+    def _on_click(self):
+        print("click")
+
+    def _on_layer_change(self):
+        print("layer change.")
+
+
+if __name__ == "__main__":
+    viewer = napari.Viewer()
+    dock, widget = viewer.window.add_plugin_dock_widget(
+        "napari-kld", "RL Deconvolution"
+    )
+
+    napari.run()
