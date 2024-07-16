@@ -1,13 +1,13 @@
 # napari-kld
 
-[![License BSD-3](https://img.shields.io/pypi/l/napari-kld.svg?color=green)](https://github.com/Southern Medical University/napari-kld/raw/main/LICENSE)
+[![License BSD-3](https://img.shields.io/pypi/l/napari-kld.svg?color=green)](https://github.com/qiqi-lu/napari-kld/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-kld.svg?color=green)](https://pypi.org/project/napari-kld)
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-kld.svg?color=green)](https://python.org)
-[![tests](https://github.com/Southern Medical University/napari-kld/workflows/tests/badge.svg)](https://github.com/Southern Medical University/napari-kld/actions)
-[![codecov](https://codecov.io/gh/Southern Medical University/napari-kld/branch/main/graph/badge.svg)](https://codecov.io/gh/Southern Medical University/napari-kld)
+[![tests](https://github.com/qiqi-lu/napari-kld/workflows/tests/badge.svg)](https://github.com/qiqi-lu/napari-kld/actions)
+[![codecov](https://codecov.io/gh/qiqi-lu/napari-kld/branch/main/graph/badge.svg)](https://codecov.io/gh/qiqi-lu/napari-kld)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-kld)](https://napari-hub.org/plugins/napari-kld)
 
-Kernel learning deconvolution (KLD) is a rapid deconvolution algorithm for fluorescence microscopic image, which learns the forward and backward kernels in Richardson-Lucy Deconvolution (KLD) from paired low-/high-resolution images. 
+Kernel learning deconvolution (KLD) is a rapid deconvolution algorithm for fluorescence microscopic image, which learns the forward and backward kernels in Richardson-Lucy Deconvolution (KLD) from paired low-/high-resolution images.
 
 ----------------------------------
 
