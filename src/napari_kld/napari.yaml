@@ -19,22 +19,6 @@ contributions:
     - id: napari-kld.make_sample_data
       python_name: napari_kld._sample_data:make_sample_data
       title: Load sample data from Kernel Learning Deconvolution
-    - id: napari-kld.make_container_widget
-      python_name: napari_kld:ImageThreshold
-      title: Make threshold Container widget
-    - id: napari-kld.make_magic_widget
-      python_name: napari_kld:threshold_magic_widget
-      title: Make threshold magic widget
-    - id: napari-kld.make_function_widget
-      python_name: napari_kld:threshold_autogenerate_widget
-      title: Make threshold function widget
-    - id: napari-kld.make_qwidget
-      python_name: napari_kld:ExampleQWidget
-      title: Make example QWidget
-
-    - id: napari-kld.rldeconv_widhet
-      python_name: napari_kld:rl_deconv_widget
-      title: Richardson-Lucy deconvolution
 
     - id: napari-kld.rldwidget
       python_name: napari_kld:RLDwidget
@@ -56,21 +40,5 @@ contributions:
       display_name: Kernel Learning Deconvolution
       key: unique_id.1
   widgets:
-    - command: napari-kld.make_container_widget
-      display_name: Container Threshold
-    - command: napari-kld.make_magic_widget
-      display_name: Magic Threshold
-
-    - command: napari-kld.make_function_widget # same as command.id above
-      autogenerate: true # autogenetate the widget
-      display_name: Autogenerate Threshold # widget name
-
-    - command: napari-kld.make_qwidget
-      display_name: Example QWidget
-
-    - command: napari-kld.rldeconv_widhet
-      autogenerate: true
-      display_name: RL Deconvolution1
-
-    - command: napari-kld.rldwidget
-      display_name: RL Deconvolution
+    - command: napari-kld.rldwidget # same as command.id above
+      display_name: RL Deconvolution # widget name
