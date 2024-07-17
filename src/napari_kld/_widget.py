@@ -167,6 +167,20 @@ class RLWorker(QObject):
     def set_method(self, name):
         self._current_method = name
 
+    def set_image(self, image):
+        worker = self._piplines[self._current_method]["worker"]
+        worker.set_image(image)
+
+    def run(self):
+        print("worker run ...")
+        worker = self._piplines[self._current_method]["worker"]
+        worker.run()
+        print("finish")
+        self.finish_signal.emit()
+
+    def current_worker(self):
+        return self._piplines[self._current_method]["worker"]
+
 
 class ProgressObserver(QObject):
     def __init__(self):
@@ -181,7 +195,7 @@ class RLDwidget(QWidget):
         self.viewer.layers.events.removed.connect(self._on_change_layer)
         # self.viewer.layers.events.changed.connect(self._on_change_layer)
 
-        self._thread = (
+        self.thread = (
             QThread()
         )  # To prevent freezing GUIs, https://realpython.com/python-pyqt-qthread/
         self._worker = RLWorker()
@@ -211,7 +225,7 @@ class RLDwidget(QWidget):
         # run button
         self.run_btn = QPushButton("run")
         self.layout().addWidget(self.run_btn, 3, 0, 1, 2)
-        self.run_btn.clicked.connect(self._on_click)
+        self.run_btn.clicked.connect(self._on_click_run)
 
         # load piplines
         rld_trad_widget = WidgetRLDeconvTraditional()
@@ -236,9 +250,14 @@ class RLDwidget(QWidget):
         self._on_change_layer()
         self._on_change_method(self.method_box.currentText())
 
-    def _on_click(self):
+    def _on_click_run(self):
         print("run")
         # widget = self._widgets[self.method_box.currentIndex()]
+        self._worker.set_method(self.method_box.currentText())
+        self._worker.set_image(
+            self.viewer.layers[self.input_raw_data_box.currentText()].data
+        )
+        self.thread.start()
 
     def _on_change_layer(self):
         print("layer change.")
