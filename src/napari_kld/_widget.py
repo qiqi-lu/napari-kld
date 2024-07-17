@@ -32,7 +32,7 @@ Replace code below according to your needs.
 import napari
 from magicgui import magic_factory
 from magicgui.widgets import CheckBox, Container, create_widget
-from qtpy.QtCore import QObject, QThread
+from qtpy.QtCore import QObject, QThread, Signal
 from qtpy.QtWidgets import (
     QComboBox,
     QGridLayout,
@@ -146,10 +146,25 @@ class ExampleQWidget(QWidget):
 
 
 class RLWorker(QObject):
+    finish_signal = Signal()
 
     def __init__(self):
         super().__init__()
-        self._piplines = {}
+        self._piplines = {}  # collect piplines of all methods
+        self._current_method = ""
+
+    def add_pipline(self, label, pipline_widget, pipline_worker):
+        self._piplines.update(
+            {label: {"widget": pipline_widget, "worker": pipline_worker}}
+        )
+
+    def set_method(self, name):
+        self._current_method = name
+
+
+class ProgressObserver(QObject):
+    def __init__(self):
+        super().__init__()
 
 
 class RLDwidget(QWidget):
@@ -163,8 +178,9 @@ class RLDwidget(QWidget):
         self.thread = (
             QThread()
         )  # To prevent freezing GUIs, https://realpython.com/python-pyqt-qthread/
+        self._worker = RLWorker()
+        self._observer = ProgressObserver()
         self._widgets = {}
-        # self._worker  =
 
         self.setLayout(QGridLayout())
 
@@ -186,9 +202,10 @@ class RLDwidget(QWidget):
         parameters_widget.setLayout(self.parameters_layout)
         self.layout().addWidget(parameters_widget, 2, 0, 1, 2)
 
+        # run button
         self.run_btn = QPushButton("run")
-        self.run_btn.clicked.connect(self._on_click)
         self.layout().addWidget(self.run_btn, 3, 0, 1, 2)
+        self.run_btn.clicked.connect(self._on_click)
 
         # init the view
         self._on_change_layer()
@@ -196,6 +213,7 @@ class RLDwidget(QWidget):
 
     def _on_click(self):
         print("run")
+        # widget = self._widgets[self.method_box.currentIndex()]
 
     def _on_change_layer(self):
         print("layer change.")
