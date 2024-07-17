@@ -82,33 +82,50 @@ class RLDwidget(QWidget):
 
         self.setLayout(QGridLayout())
 
+        # ----------------------------------------------------------------------
+        head_widget = QWidget()
+        head_layout = QGridLayout()
+        head_widget.setLayout(head_layout)
+        head_layout.setContentsMargins(0, 0, 0, 0)
+
         # RAW data box
-        self.layout().addWidget(QLabel("Input RAW data"), 0, 0)
+        head_layout.addWidget(QLabel("Input RAW data"), 0, 0)
         self.input_raw_data_box = QComboBox()
-        self.layout().addWidget(self.input_raw_data_box, 0, 1)
+        head_layout.addWidget(self.input_raw_data_box, 0, 1)
+
+        # PSF box
+        head_layout.addWidget(QLabel("PSF"), 1, 0)
+        self.model_box = QComboBox()
+        self.model_box.addItems(["Gaussian", "File"])
+        head_layout.addWidget(self.model_box, 1, 1)
 
         # method
-        self.layout().addWidget(QLabel("Method"), 1, 0)
+        head_layout.addWidget(QLabel("Method"), 2, 0)
         self.method_box = QComboBox()
-        self.layout().addWidget(self.method_box, 1, 1)
+        head_layout.addWidget(self.method_box, 2, 1)
         self.method_box.currentTextChanged.connect(self._on_change_method)
 
+        self.layout().addWidget(head_widget, 0, 0)
+
+        # ----------------------------------------------------------------------
         # method parameters
         parameters_widget = QWidget()
         self.parameters_layout = QVBoxLayout()
         self.parameters_layout.setContentsMargins(0, 0, 0, 0)
         parameters_widget.setLayout(self.parameters_layout)
-        self.layout().addWidget(parameters_widget, 2, 0, 1, 2)
+        self.layout().addWidget(parameters_widget, 1, 0, 1, 2)
 
+        # ----------------------------------------------------------------------
         # run button
         self.run_btn = QPushButton("run")
-        self.layout().addWidget(self.run_btn, 3, 0, 1, 2)
+        self.layout().addWidget(self.run_btn, 2, 0, 1, 2)
         self.run_btn.clicked.connect(self._on_click_run)
 
         # progress bar
         self.progress_bar = QProgressBar()
-        self.layout().addWidget(self.progress_bar, 4, 0, 1, 2)
+        self.layout().addWidget(self.progress_bar, 3, 0, 1, 2)
 
+        # ----------------------------------------------------------------------
         # load piplines
         rld_trad_widget = WidgetRLDeconvTraditional(self.progress_bar)
         rld_trad_worker = WorkerRLDeconvTraditional(
@@ -128,10 +145,12 @@ class RLDwidget(QWidget):
         )
         self.add_pipline("Butterworth", rld_butt_widget, rld_butt_worker)
 
+        # ----------------------------------------------------------------------
         # init the view
         self._on_change_layer()
         self._on_change_method(self.method_box.currentText())
 
+        # ----------------------------------------------------------------------
         # connect thread
         self._worker.moveToThread(self.thread)
         self.thread.started.connect(self._worker.run)
@@ -165,7 +184,7 @@ class RLDwidget(QWidget):
             self.run_btn.setEnabled(True)
 
     def _on_change_method(self, method_name):
-        print("method change.")
+        print(f"method change to {method_name}")
         items = (
             self.parameters_layout.itemAt(i)
             for i in range(self.parameters_layout.count())
@@ -176,6 +195,8 @@ class RLDwidget(QWidget):
                 w.widget().setVisible(True)
             else:
                 w.widget().setVisible(False)
+
+        self.progress_bar.setValue(0)
 
     def add_pipline(self, label, pipline_widget, pipline_worker):
         self._worker.add_pipline(label, pipline_widget, pipline_worker)

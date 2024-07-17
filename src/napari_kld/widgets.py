@@ -68,7 +68,10 @@ class WorkerRLDeconvTraditional(QObject):
         self._out = methods.rl_deconv(self.image, num_iter, self.obsever)
 
     def set_outputs(self):
-        self.viewer.add_image(self._out, name="RLD (Traditional)")
+        self.viewer.add_image(
+            self._out,
+            name=f"deconv_{self.widget.label.lower()}_iter_{self.widget.iteration_box.value()}",
+        )
 
 
 # RLD using Guassian kernel
@@ -86,9 +89,6 @@ class WorkerRLDeconvGaussianl(WorkerRLDeconvTraditional):
         num_iter = self.widget.iteration_box.value()
         self._out = methods.rl_deconv(self.image, num_iter, self.obsever)
 
-    def set_outputs(self):
-        self.viewer.add_image(self._out, name="RLD (Gaussian)")
-
 
 # RLD using Butterworth kernel
 class WidgetRLDeconvButterworth(WidgetRLDeconvTraditional):
@@ -99,6 +99,7 @@ class WidgetRLDeconvButterworth(WidgetRLDeconvTraditional):
         self.layout_grid.addWidget(QLabel("Alpha:"), 1, 0)
         self.alpha_box = QDoubleSpinBox()
         self.alpha_box.setDecimals(5)
+        self.alpha_box.setSingleStep(0.0001)
         self.layout_grid.addWidget(self.alpha_box, 1, 1)
 
 
@@ -111,4 +112,7 @@ class WorkerRLDeconvButterworth(WorkerRLDeconvTraditional):
         self._out = methods.rl_deconv(self.image, num_iter, self.obsever)
 
     def set_outputs(self):
-        self.viewer.add_image(self._out, name="RLD (Butterworth)")
+        self.viewer.add_image(
+            self._out,
+            name=f"deconv_{self.widget.label.lower()}_iter_{self.widget.iteration_box.value()}_alpha_{self.widget.alpha_box.value():.5f}",
+        )
