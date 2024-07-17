@@ -39,8 +39,7 @@ the coverage at least stays the same before you submit a pull request.
 
 ## License
 
-Distributed under the terms of the [BSD-3] license,
-"napari-kld" is free and open source software
+MIT LICENSE
 
 ## Issues
 
