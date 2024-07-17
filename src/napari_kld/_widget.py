@@ -44,9 +44,11 @@ from qtpy.QtWidgets import (
 )
 from skimage.util import img_as_float
 
-import napari_kld.methods as methods
-
-# import numpy as np
+from napari_kld import methods
+from napari_kld.widgets import (
+    WidgetRLDeconvTraditional,
+    WorkerRLDeconvTraditional,
+)
 
 
 # Uses the `autogenerate: true` flag in the plugin manifest
@@ -207,6 +209,13 @@ class RLDwidget(QWidget):
         self.layout().addWidget(self.run_btn, 3, 0, 1, 2)
         self.run_btn.clicked.connect(self._on_click)
 
+        # load piplines
+        rld_trad_widget = WidgetRLDeconvTraditional()
+        rld_trad_worker = WorkerRLDeconvTraditional(
+            self.viewer, rld_trad_widget, self._observer
+        )
+        self.add_pipline("Traditional", rld_trad_widget, rld_trad_worker)
+
         # init the view
         self._on_change_layer()
         # self._on_change_method(self.method_box.currentText())
@@ -228,6 +237,12 @@ class RLDwidget(QWidget):
 
     def _on_change_method(self, method_name):
         print("method change.")
+
+    def add_pipline(self, label, pipline_widget, pipline_worker):
+        self._worker.add_pipline(label, pipline_widget, pipline_worker)
+        self._widgets.update({label: pipline_widget})
+        self.parameters_layout.addWidget(pipline_widget)
+        self.method_box.addItem(label)
 
 
 if __name__ == "__main__":
