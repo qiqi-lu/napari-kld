@@ -1,6 +1,6 @@
 # napari-kld
 
-[![License BSD-3](https://img.shields.io/pypi/l/napari-kld.svg?color=green)](https://github.com/qiqi-lu/napari-kld/raw/main/LICENSE)
+[![License BSD-3](https://img.shields.io/pypi/l/napari-kld.svg?color=green)](https://github.com/qiqi-lu/napari-kld/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-kld.svg?color=green)](https://pypi.org/project/napari-kld)
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-kld.svg?color=green)](https://python.org)
 [![tests](https://github.com/qiqi-lu/napari-kld/workflows/tests/badge.svg)](https://github.com/qiqi-lu/napari-kld/actions)

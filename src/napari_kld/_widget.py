@@ -175,7 +175,7 @@ class RLDwidget(QWidget):
         self.viewer.layers.events.removed.connect(self._on_change_layer)
         # self.viewer.layers.events.changed.connect(self._on_change_layer)
 
-        self.thread = (
+        self._thread = (
             QThread()
         )  # To prevent freezing GUIs, https://realpython.com/python-pyqt-qthread/
         self._worker = RLWorker()
