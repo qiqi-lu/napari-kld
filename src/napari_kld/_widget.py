@@ -32,7 +32,16 @@ Replace code below according to your needs.
 import napari
 from magicgui import magic_factory
 from magicgui.widgets import CheckBox, Container, create_widget
-from qtpy.QtWidgets import QHBoxLayout, QPushButton, QWidget
+from qtpy.QtCore import QObject, QThread
+from qtpy.QtWidgets import (
+    QComboBox,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 from skimage.util import img_as_float
 
 import napari_kld.methods as methods
@@ -136,24 +145,71 @@ class ExampleQWidget(QWidget):
         print("napari has", len(self.viewer.layers), "layers")
 
 
+class RLWorker(QObject):
+
+    def __init__(self):
+        super().__init__()
+        self._piplines = {}
+
+
 class RLDwidget(QWidget):
     def __init__(self, viewer: napari.Viewer):
         super().__init__()
         self.viewer = viewer
+        self.viewer.layers.events.inserted.connect(self._on_change_layer)
+        self.viewer.layers.events.removed.connect(self._on_change_layer)
+        # self.viewer.layers.events.changed.connect(self._on_change_layer)
 
-        self.viewer.layers.events.changed.connect(self._on_layers_change)
+        self.thread = (
+            QThread()
+        )  # To prevent freezing GUIs, https://realpython.com/python-pyqt-qthread/
+        self._widgets = {}
+        # self._worker  =
 
-        btn = QPushButton("run")
-        btn.clicked.connect(self._on_click)
+        self.setLayout(QGridLayout())
 
-        self.setLayout(QHBoxLayout())
-        self.layout().addWidget(btn)
+        # RAW data box
+        self.layout().addWidget(QLabel("Input RAW data"), 0, 0)
+        self.input_raw_data_box = QComboBox()
+        self.layout().addWidget(self.input_raw_data_box, 0, 1)
+
+        # method
+        self.layout().addWidget(QLabel("Method"), 1, 0)
+        self.method_box = QComboBox()
+        self.layout().addWidget(self.method_box, 1, 1)
+        self.method_box.currentTextChanged.connect(self._on_change_method)
+
+        # method parameters
+        parameters_widget = QWidget()
+        self.parameters_layout = QVBoxLayout()
+        self.parameters_layout.setContentsMargins(0, 0, 0, 0)
+        parameters_widget.setLayout(self.parameters_layout)
+        self.layout().addWidget(parameters_widget, 2, 0, 1, 2)
+
+        self.run_btn = QPushButton("run")
+        self.run_btn.clicked.connect(self._on_click)
+        self.layout().addWidget(self.run_btn, 3, 0, 1, 2)
+
+        # init the view
+        self._on_change_layer()
+        # self._on_change_method(self.method_box.currentText())
 
     def _on_click(self):
-        print("click")
+        print("run")
 
-    def _on_layer_change(self):
+    def _on_change_layer(self):
         print("layer change.")
+        self.input_raw_data_box.clear()
+        for layer in self.viewer.layers:
+            if isinstance(layer, napari.layers.Image):
+                self.input_raw_data_box.addItem(layer.name)
+        if self.input_raw_data_box.count() < 1:
+            self.run_btn.setEnabled(False)
+        else:
+            self.run_btn.setEnabled(True)
+
+    def _on_change_method(self, method_name):
+        print("method change.")
 
 
 if __name__ == "__main__":
