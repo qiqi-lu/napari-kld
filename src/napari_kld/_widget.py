@@ -46,7 +46,11 @@ from skimage.util import img_as_float
 
 from napari_kld import methods
 from napari_kld.widgets import (
+    WidgetRLDeconvButterworth,
+    WidgetRLDeconvGaussian,
     WidgetRLDeconvTraditional,
+    WorkerRLDeconvButterworth,
+    WorkerRLDeconvGaussianl,
     WorkerRLDeconvTraditional,
 )
 
@@ -216,9 +220,21 @@ class RLDwidget(QWidget):
         )
         self.add_pipline("Traditional", rld_trad_widget, rld_trad_worker)
 
+        rld_gaus_widget = WidgetRLDeconvGaussian()
+        rld_gaus_worker = WorkerRLDeconvGaussianl(
+            self.viewer, rld_gaus_widget, self._observer
+        )
+        self.add_pipline("Gaussian", rld_gaus_widget, rld_gaus_worker)
+
+        rld_butt_widget = WidgetRLDeconvButterworth()
+        rld_butt_worker = WorkerRLDeconvButterworth(
+            self.viewer, rld_gaus_widget, self._observer
+        )
+        self.add_pipline("Butterworth", rld_butt_widget, rld_butt_worker)
+
         # init the view
         self._on_change_layer()
-        # self._on_change_method(self.method_box.currentText())
+        self._on_change_method(self.method_box.currentText())
 
     def _on_click(self):
         print("run")
@@ -237,6 +253,16 @@ class RLDwidget(QWidget):
 
     def _on_change_method(self, method_name):
         print("method change.")
+        items = (
+            self.parameters_layout.itemAt(i)
+            for i in range(self.parameters_layout.count())
+        )
+
+        for w in items:
+            if w.widget().label == method_name:
+                w.widget().setVisible(True)
+            else:
+                w.widget().setVisible(False)
 
     def add_pipline(self, label, pipline_widget, pipline_worker):
         self._worker.add_pipline(label, pipline_widget, pipline_worker)
