@@ -25,10 +25,13 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "numpy",
+    "numpy==1.26.4",
     "magicgui",
     "qtpy",
     "scikit-image",
+    "torch==2.0",
+    "torchvision",
+    "fft-conv-pytorch",
 ]
 
 [project.optional-dependencies]

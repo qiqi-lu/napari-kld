@@ -18,9 +18,11 @@ from napari_kld.widgets import (
     WidgetRLDeconvButterworth,
     WidgetRLDeconvGaussian,
     WidgetRLDeconvTraditional,
+    WidgetRLDeconvWB,
     WorkerRLDeconvButterworth,
     WorkerRLDeconvGaussianl,
     WorkerRLDeconvTraditional,
+    WorkerRLDeconvWB,
 )
 
 
@@ -92,6 +94,10 @@ class RLWorker(QObject):
         worker = self._piplines[self._current_method]["worker"]
         worker.set_image(image)
 
+    def set_psf_path(self, psf_path):
+        worker = self._piplines[self._current_method]["worker"]
+        worker.set_psf_path(psf_path)
+
     def run(self):
         print("worker run ...")
         worker = self._piplines[self._current_method]["worker"]
@@ -140,7 +146,7 @@ class RLDwidget(QWidget):
         psf_layout.addWidget(QLabel("PSF"), 0, 0)
         self.psf_mode_box = QComboBox()
         self.psf_mode_box.addItems(["Gaussian", "File", "Blind"])
-        self.psf_mode_box.setCurrentText("Gaussian")
+        self.psf_mode_box.setCurrentText("File")
         self.psf_mode_box.currentTextChanged.connect(self._on_mode_psf_change)
         psf_layout.addWidget(self.psf_mode_box, 0, 1)
 
@@ -153,7 +159,7 @@ class RLDwidget(QWidget):
         psf_widget.setLayout(psf_layout)
         head_layout.addWidget(psf_widget, 1, 0, 1, 2)
 
-        self._on_mode_psf_change("Gaussian")
+        self._on_mode_psf_change("File")
 
         # method
         head_layout.addWidget(QLabel("Method"), 2, 0)
@@ -201,6 +207,12 @@ class RLDwidget(QWidget):
         )
         self.add_pipline("Butterworth", rld_butt_widget, rld_butt_worker)
 
+        rld_wb_widget = WidgetRLDeconvWB(self.progress_bar)
+        rld_wb_worker = WorkerRLDeconvWB(
+            self.viewer, rld_wb_widget, self._observer
+        )
+        self.add_pipline("WB", rld_wb_widget, rld_wb_worker)
+
         # ----------------------------------------------------------------------
         # init the view
         self._on_change_layer()
@@ -226,6 +238,7 @@ class RLDwidget(QWidget):
         self._worker.set_image(
             self.viewer.layers[self.input_raw_data_box.currentText()].data
         )
+        self._worker.set_psf_path(self.psf_select.path_edit.text())
         self.thread.start()
 
     def _on_change_layer(self):
