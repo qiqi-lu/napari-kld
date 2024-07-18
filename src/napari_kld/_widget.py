@@ -74,7 +74,7 @@ class ProgressObserver(QObject):
         self.notify_signal.emit(message)
 
 
-class RLWorker(QObject):
+class RLDworker(QObject):
     finish_signal = Signal()
 
     def __init__(self):
@@ -115,12 +115,11 @@ class RLDwidget(QWidget):
         self.viewer = viewer
         self.viewer.layers.events.inserted.connect(self._on_change_layer)
         self.viewer.layers.events.removed.connect(self._on_change_layer)
-        # self.viewer.layers.events.changed.connect(self._on_change_layer)
 
         self.thread = (
             QThread()
         )  # To prevent freezing GUIs, https://realpython.com/python-pyqt-qthread/
-        self._worker = RLWorker()
+        self._worker = RLDworker()
         self._observer = ProgressObserver()
         self._widgets = {}
 
@@ -286,6 +285,34 @@ class RLDwidget(QWidget):
         if mode == "Blind":
             self.psf_select.setVisible(False)
             self.gauss_widget.setVisible(False)
+
+
+class KLDworker(QObject):
+    finish_signal = Signal()
+
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        print("worker run ...")
+        print("finish")
+        self.finish_signal.emit()
+
+
+class KLDwidget(QWidget):
+    def __init__(self, viewer: napari.Viewer):
+        super().__init__()
+        self.viewer = viewer
+        self.viewer.layers.events.inserted.connect(self._on_change_layer)
+        self.viewer.layers.events.removed.connect(self._on_change_layer)
+
+        self.thread = QThread()
+        self._worker = RLDworker()
+        self._observer = ProgressObserver()
+        self._widgets = {}
+
+        self.setLayout(QGridLayout())
+        # ----------------------------------------------------------------------
 
 
 if __name__ == "__main__":
