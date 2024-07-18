@@ -2,8 +2,12 @@ import napari
 from qtpy.QtCore import QObject, QThread, Signal
 from qtpy.QtWidgets import (
     QComboBox,
+    QDoubleSpinBox,
+    QFileDialog,
     QGridLayout,
+    QHBoxLayout,
     QLabel,
+    QLineEdit,
     QProgressBar,
     QPushButton,
     QVBoxLayout,
@@ -18,6 +22,40 @@ from napari_kld.widgets import (
     WorkerRLDeconvGaussianl,
     WorkerRLDeconvTraditional,
 )
+
+
+class FileSelectWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+
+        self.path_edit = QLineEdit()
+        layout.addWidget(self.path_edit)
+        btn_browse = QPushButton("Choose")
+        btn_browse.released.connect(self._on_browse)
+        layout.addWidget(btn_browse)
+
+    def _on_browse(self):
+        file = QFileDialog.getOpenFileName(self, "Open a PSF file", "", "*.*")
+        if file != "":
+            self.path_edit.setText(file[0])
+
+
+class GaussianWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        layout = QGridLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+
+        layout.addWidget(QLabel("Sigma"), 0, 0)
+        self.sigma_box = QDoubleSpinBox()
+        self.sigma_box.setDecimals(5)
+        self.sigma_box.setMinimum(0)
+        self.sigma_box.setSingleStep(0.01)
+        layout.addWidget(self.sigma_box, 0, 1)
 
 
 class ProgressObserver(QObject):
@@ -83,6 +121,7 @@ class RLDwidget(QWidget):
         self.setLayout(QGridLayout())
 
         # ----------------------------------------------------------------------
+        # head widget (including input, PSF, and method selection)
         head_widget = QWidget()
         head_layout = QGridLayout()
         head_widget.setLayout(head_layout)
@@ -94,10 +133,27 @@ class RLDwidget(QWidget):
         head_layout.addWidget(self.input_raw_data_box, 0, 1)
 
         # PSF box
-        head_layout.addWidget(QLabel("PSF"), 1, 0)
-        self.model_box = QComboBox()
-        self.model_box.addItems(["Gaussian", "File"])
-        head_layout.addWidget(self.model_box, 1, 1)
+        psf_widget = QWidget()
+        psf_layout = QGridLayout()
+        psf_layout.setContentsMargins(0, 0, 0, 0)
+
+        psf_layout.addWidget(QLabel("PSF"), 0, 0)
+        self.psf_mode_box = QComboBox()
+        self.psf_mode_box.addItems(["Gaussian", "File", "Blind"])
+        self.psf_mode_box.setCurrentText("Gaussian")
+        self.psf_mode_box.currentTextChanged.connect(self._on_mode_psf_change)
+        psf_layout.addWidget(self.psf_mode_box, 0, 1)
+
+        self.psf_select = FileSelectWidget()
+        psf_layout.addWidget(self.psf_select, 1, 0, 1, 2)
+
+        self.gauss_widget = GaussianWidget()
+        psf_layout.addWidget(self.gauss_widget, 2, 0, 1, 2)
+
+        psf_widget.setLayout(psf_layout)
+        head_layout.addWidget(psf_widget, 1, 0, 1, 2)
+
+        self._on_mode_psf_change("Gaussian")
 
         # method
         head_layout.addWidget(QLabel("Method"), 2, 0)
@@ -105,7 +161,7 @@ class RLDwidget(QWidget):
         head_layout.addWidget(self.method_box, 2, 1)
         self.method_box.currentTextChanged.connect(self._on_change_method)
 
-        self.layout().addWidget(head_widget, 0, 0)
+        self.layout().addWidget(head_widget, 0, 0, 1, 2)
 
         # ----------------------------------------------------------------------
         # method parameters
@@ -206,6 +262,17 @@ class RLDwidget(QWidget):
 
     def _on_progress(self, value):
         self.progress_bar.setValue(value)
+
+    def _on_mode_psf_change(self, mode):
+        if mode == "File":
+            self.psf_select.setVisible(True)
+            self.gauss_widget.setVisible(False)
+        if mode == "Gaussian":
+            self.psf_select.setVisible(False)
+            self.gauss_widget.setVisible(True)
+        if mode == "Blind":
+            self.psf_select.setVisible(False)
+            self.gauss_widget.setVisible(False)
 
 
 if __name__ == "__main__":

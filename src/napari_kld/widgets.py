@@ -11,7 +11,7 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
-from . import methods
+from napari_kld import methods
 
 
 # traditional RLD
