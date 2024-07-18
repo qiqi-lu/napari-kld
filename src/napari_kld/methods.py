@@ -20,11 +20,15 @@ def rl_deconv(
         DCV = dcv.Deconvolution(
             PSF=psf, bp_type="traditional", init="measured"
         )
-        img_deconv = DCV.deconv(img, num_iter=num_iter, domain="fft")
+        img_deconv = DCV.deconv(
+            img, num_iter=num_iter, domain="fft", observer=observer
+        )
 
     if kernel_type == "Gaussian":
         DCV = dcv.Deconvolution(PSF=psf, bp_type="gaussian", init="measured")
-        img_deconv = DCV.deconv(img, num_iter=num_iter, domain="fft")
+        img_deconv = DCV.deconv(
+            img, num_iter=num_iter, domain="fft", observer=observer
+        )
 
     if kernel_type == "Butterworth":
         DCV = dcv.Deconvolution(
@@ -35,7 +39,9 @@ def rl_deconv(
             res_flag=1,
             init="measured",
         )
-        img_deconv = DCV.deconv(img, num_iter=num_iter, domain="fft")
+        img_deconv = DCV.deconv(
+            img, num_iter=num_iter, domain="fft", observer=observer
+        )
 
     if kernel_type == "WB":
         DCV = dcv.Deconvolution(
@@ -47,6 +53,8 @@ def rl_deconv(
             res_flag=1,
             init="measured",
         )
-        img_deconv = DCV.deconv(img, num_iter=num_iter, domain="fft")
+        img_deconv = DCV.deconv(
+            img, num_iter=num_iter, domain="fft", observer=observer
+        )
 
     return img_deconv
