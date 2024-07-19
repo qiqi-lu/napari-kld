@@ -2,12 +2,8 @@ import napari
 from qtpy.QtCore import QObject, QThread, Signal
 from qtpy.QtWidgets import (
     QComboBox,
-    QDoubleSpinBox,
-    QFileDialog,
     QGridLayout,
-    QHBoxLayout,
     QLabel,
-    QLineEdit,
     QProgressBar,
     QPushButton,
     QVBoxLayout,
@@ -15,6 +11,8 @@ from qtpy.QtWidgets import (
 )
 
 from napari_kld.widgets import (
+    WidgetKLDeconvPredict,
+    WidgetKLDeconvTrain,
     WidgetRLDeconvButterworth,
     WidgetRLDeconvGaussian,
     WidgetRLDeconvTraditional,
@@ -24,54 +22,12 @@ from napari_kld.widgets import (
     WorkerRLDeconvTraditional,
     WorkerRLDeconvWB,
 )
-
-
-class FileSelectWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
-
-        self.path_edit = QLineEdit()
-        layout.addWidget(self.path_edit)
-        btn_browse = QPushButton("Choose")
-        btn_browse.released.connect(self._on_browse)
-        layout.addWidget(btn_browse)
-
-    def _on_browse(self):
-        file = QFileDialog.getOpenFileName(self, "Open a PSF file", "", "*.*")
-        if file != "":
-            self.path_edit.setText(file[0])
-
-
-class GaussianWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-        layout = QGridLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
-
-        layout.addWidget(QLabel("Sigma"), 0, 0)
-        self.sigma_box = QDoubleSpinBox()
-        self.sigma_box.setDecimals(5)
-        self.sigma_box.setMinimum(0)
-        self.sigma_box.setSingleStep(0.01)
-        layout.addWidget(self.sigma_box, 0, 1)
-
-
-class ProgressObserver(QObject):
-    progress_signal = Signal(int)
-    notify_signal = Signal(str)
-
-    def __init__(self):
-        super().__init__()
-
-    def progress(self, value):
-        self.progress_signal.emit(value)
-
-    def notify(self, message):
-        self.notify_signal.emit(message)
+from napari_kld.widgets_small import (
+    FileSelectWidget,
+    GaussianWidget,
+    LogBox,
+    ProgressObserver,
+)
 
 
 class RLDworker(QObject):
@@ -300,23 +256,31 @@ class KLDworker(QObject):
 class KLDwidget(QWidget):
     def __init__(self, viewer: napari.Viewer):
         super().__init__()
-        self.viewer = viewer
-        self.viewer.layers.events.inserted.connect(self._on_change_layer)
-        self.viewer.layers.events.removed.connect(self._on_change_layer)
 
         self.thread = QThread()
         self._worker = RLDworker()
         self._observer = ProgressObserver()
         self._widgets = {}
 
-        self.setLayout(QGridLayout())
+        self.setLayout(QVBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
         # ----------------------------------------------------------------------
+        logger = LogBox()
+        logger.set_text("log:")
+        self.layout().addWidget(WidgetKLDeconvTrain(logger=logger))
+        self.layout().addWidget(WidgetKLDeconvPredict(viewer))
+        self.layout().addWidget(logger)
 
 
 if __name__ == "__main__":
     viewer = napari.Viewer()
+
+    # dock, widget = viewer.window.add_plugin_dock_widget(
+    #     "napari-kld", "RL Deconvolution"
+    # )
+
     dock, widget = viewer.window.add_plugin_dock_widget(
-        "napari-kld", "RL Deconvolution"
+        "napari-kld", "KL Deconvolution"
     )
 
     napari.run()

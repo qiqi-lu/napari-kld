@@ -29,7 +29,7 @@ dependencies = [
     "magicgui",
     "qtpy",
     "scikit-image",
-    "torch==2.0",
+    "torch",
     "torchvision",
     "fft-conv-pytorch",
 ]

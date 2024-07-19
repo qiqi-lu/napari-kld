@@ -1,7 +1,13 @@
+import napari_kld.base.deconvolution as dcv
 import numpy as np
 import skimage.io as skio
 
-import napari_kld.base.deconvolution as dcv
+
+def test_func(num_iter=1, observer=None):
+    print("run function")
+    for i in range(5):
+        observer.progress(i + 1)
+        observer.notify(f"deconv {0}")
 
 
 def rl_deconv(

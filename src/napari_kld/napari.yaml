@@ -24,6 +24,10 @@ contributions:
       python_name: napari_kld:RLDwidget
       title: RL Deconvolution
 
+    - id: napari-kld.kldwidget
+      python_name: napari_kld:KLDwidget
+      title: KL Deconvolution
+
   readers:
     - command: napari-kld.get_reader
       accepts_directories: false
@@ -42,3 +46,5 @@ contributions:
   widgets:
     - command: napari-kld.rldwidget # same as command.id above
       display_name: RL Deconvolution # widget name
+    - command: napari-kld.kldwidget
+      display_name: KL Deconvolution
