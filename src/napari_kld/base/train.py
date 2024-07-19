@@ -23,10 +23,15 @@ def train(
     model_name="kernet_fp",
 ):
     # check parameters
-    if data_path == "":
+    if data_path == "" or not os.path.exists(data_path):
+        print("ERROR: data path does not exist.")
         return 0
+
     if output_path == "":
         output_path = os.path.join(data_path, "output")
+    else:
+        if not os.path.exists(output_path):
+            os.makedirs(output_path, exist_ok=True)
 
     if psf_path == "":
         FP_type = "pre-trained"
@@ -34,7 +39,7 @@ def train(
         FP_type = "known"
         # check exist
         if not os.path.exists(psf_path):
-            print("Error: PSF does not exist.")
+            print("ERROR: PSF does not exist.")
             return 0
 
     torch.manual_seed(7)
