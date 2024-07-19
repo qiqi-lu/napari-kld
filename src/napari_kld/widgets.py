@@ -19,6 +19,7 @@ from napari_kld.base import methods
 from napari_kld.widgets_small import (
     DirectorySelectWidget,
     FileSelectWidget,
+    LineBox,
     ProgressObserver,
 )
 
@@ -218,13 +219,8 @@ class WidgetKLDeconvTrain(QGroupBox):
         self.setLayout(grid_layout)
 
         # grid_layout.setContentsMargins(3, 11, 3, 11)
-
-        grid_layout.addWidget(QLabel("Output Directory:"), 0, 0, 1, 1)
-        self.output_directory_widget = DirectorySelectWidget()
-        self.output_directory_widget.path_edit.textChanged.connect(
-            self._on_output_path_change
-        )
-        grid_layout.addWidget(self.output_directory_widget, 0, 1, 1, 2)
+        self.dataset_name_widget = LineBox("Dataset Name")
+        grid_layout.addWidget(self.dataset_name_widget, 0, 0, 1, 3)
 
         grid_layout.addWidget(QLabel("Data Directory:"), 1, 0, 1, 1)
         self.data_directory_widget = DirectorySelectWidget()
@@ -233,17 +229,26 @@ class WidgetKLDeconvTrain(QGroupBox):
         )
         grid_layout.addWidget(self.data_directory_widget, 1, 1, 1, 2)
 
-        grid_layout.addWidget(QLabel("PSF Directory:"), 2, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Output Directory:"), 2, 0, 1, 1)
+        self.output_directory_widget = DirectorySelectWidget()
+        self.output_directory_widget.path_edit.textChanged.connect(
+            self._on_output_path_change
+        )
+        grid_layout.addWidget(self.output_directory_widget, 2, 1, 1, 2)
+
+        grid_layout.addWidget(QLabel("PSF Directory:"), 3, 0, 1, 1)
         self.psf_directory_widget = FileSelectWidget()
         self.psf_directory_widget.path_edit.textChanged.connect(
             self._on_psf_path_change
         )
-        grid_layout.addWidget(self.psf_directory_widget, 2, 1, 1, 2)
+        grid_layout.addWidget(self.psf_directory_widget, 3, 1, 1, 2)
 
         self.fp_widget = WidgetKLDeconvTrainFP(logger=logger)
-        grid_layout.addWidget(self.fp_widget, 3, 0, 1, 3)
+        grid_layout.addWidget(self.fp_widget, 4, 0, 1, 3)
         self.bp_widget = WidgetKLDeconvTrainBP(logger=logger)
-        grid_layout.addWidget(self.bp_widget, 4, 0, 1, 3)
+        grid_layout.addWidget(self.bp_widget, 5, 0, 1, 3)
+
+        grid_layout.addWidget(QWidget(), 1, qtpy.QtCore.Qt.AlignTop)
 
     def _on_psf_path_change(self):
         print("psf path change")
@@ -300,7 +305,12 @@ class WidgetKLDeconvTrainFP(QGroupBox):
             "psf_path": "",
         }
 
-        self.params_dict = {"iteration"}
+        self.params_dict = {
+            "num_iter_rl": 2,
+            "epoch": 100,
+            "ks_z": 1,
+            "ks_xy": 31,
+        }
 
         self._observer = ProgressObserver()
         self._worker = WorkerKLDeconvTrainFP(self._observer)
@@ -311,18 +321,36 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         grid_layout = QGridLayout()
         self.setLayout(grid_layout)
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Iteration (RL):", 0, 0, 1, 1))
+        grid_layout.addWidget(QLabel("Iterations (RL):"), 0, 0, 1, 1)
         self.iteration_box_rl = QSpinBox()
         self.iteration_box_rl.setMinimum(1)
         self.iteration_box_rl.setValue(2)
+        grid_layout.addWidget(self.iteration_box_rl, 0, 1, 1, 2)
+
+        grid_layout.addWidget(QLabel("Epoch"), 1, 0, 1, 1)
+        self.epoch_box = QSpinBox()
+        self.epoch_box.setMinimum(1)
+        self.epoch_box.setMaximum(10000)
+        self.epoch_box.setValue(100)
+        grid_layout.addWidget(self.epoch_box, 1, 1, 1, 2)
+
+        grid_layout.addWidget(QLabel("Kernel Size"), 2, 0, 1, 1)
+        self.ks_box_z = QSpinBox()
+        self.ks_box_z.setMinimum(1)
+        self.ks_box_z.setValue(1)
+        grid_layout.addWidget(self.ks_box_z, 2, 1, 1, 1)
+        self.ks_box_xy = QSpinBox()
+        self.ks_box_xy.setMinimum(1)
+        self.ks_box_xy.setValue(31)
+        grid_layout.addWidget(self.ks_box_xy, 2, 2, 1, 1)
 
         # ----------------------------------------------------------------------
         self.run_btn = QPushButton("run")
-        grid_layout.addWidget(self.run_btn, 4, 0)
+        grid_layout.addWidget(self.run_btn, 4, 0, 1, 2)
         self.run_btn.clicked.connect(self._on_click_run)
 
         self.progress_bar = QProgressBar()
-        grid_layout.addWidget(self.progress_bar, 5, 0)
+        grid_layout.addWidget(self.progress_bar, 5, 0, 1, 2)
 
         # ----------------------------------------------------------------------
         # init

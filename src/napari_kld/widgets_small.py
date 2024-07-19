@@ -99,3 +99,22 @@ class LogBox(QGroupBox):
 
     def clear_text(self):
         self.log_box.clear()
+
+
+class LineBox(QWidget):
+    def __init__(self, name):
+        super().__init__()
+
+        layout = QGridLayout()
+        self.setLayout(layout)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        layout.addWidget(QLabel(name), 0, 0, 1, 1)
+        self.edit_box = QLineEdit()
+        layout.addWidget(self.edit_box, 0, 1, 1, 2)
+
+    def get_text(self):
+        return self.edit_box.text()
+
+    def set_text(self, text):
+        self.edit_box.setText(text)
