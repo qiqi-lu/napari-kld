@@ -222,7 +222,7 @@ class WidgetKLDeconvTrain(QGroupBox):
         self.data_directory_widget.path_edit.textChanged.connect(
             self._on_data_path_change
         )
-        grid_layout.addWidget(self.data_directory_widget, 1, 1, 1, 2)
+        grid_layout.addWidget(self.data_directory_widget, 0, 1, 1, 2)
 
         grid_layout.addWidget(QLabel("Output Directory:"), 1, 0, 1, 1)
         self.output_directory_widget = DirectorySelectWidget()
@@ -248,7 +248,7 @@ class WidgetKLDeconvTrain(QGroupBox):
     def _on_psf_path_change(self):
         print("psf path change")
         psf_path = self.psf_directory_widget.get_path()
-        self.fp_widget.set_directory("psf_path", psf_path)
+        self.fp_widget.update_params_dict({"psf_path": psf_path})
 
         if psf_path != "":
             self.fp_widget.setVisible(False)
@@ -257,14 +257,14 @@ class WidgetKLDeconvTrain(QGroupBox):
 
     def _on_output_path_change(self):
         print("output path change")
-        self.fp_widget.set_directory(
-            "output_path", self.output_directory_widget.get_path()
+        self.fp_widget.update_params_dict(
+            {"output_path": self.output_directory_widget.get_path()}
         )
 
     def _on_data_path_change(self):
         print("data path change")
-        self.fp_widget.set_directory(
-            "data_path", self.data_directory_widget.get_path()
+        self.fp_widget.update_params_dict(
+            {"data_path": self.data_directory_widget.get_path()}
         )
 
         if self.data_directory_widget.get_path() != "":
@@ -301,6 +301,9 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         }
 
         self.params_dict = {
+            "data_path": "",
+            "output_path": "",
+            "psf_path": "",
             "num_iter_rl": 2,
             "epoch": 100,
             "ks_z": 1,
@@ -363,9 +366,6 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         print("run")
         self.thread.start()
 
-    def set_directory(self, name, path):
-        self.directories[name] = path
-
     def enable_run(self, enable):
         self.run_btn.setEnabled(enable)
 
@@ -375,6 +375,9 @@ class WidgetKLDeconvTrainFP(QGroupBox):
     def _on_notify(self, value):
         if self.logger is not None:
             self.logger.set_text(value)
+
+    def update_params_dict(self, path_dict):
+        self.params_dict.update(path_dict)
 
 
 class WidgetKLDeconvTrainBP(QGroupBox):
