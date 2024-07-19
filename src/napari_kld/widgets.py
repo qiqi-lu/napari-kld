@@ -1,4 +1,6 @@
 # the widgets for each methods
+import os
+
 import napari
 import qtpy.QtCore
 from qtpy.QtCore import QObject, QThread, Signal
@@ -257,19 +259,24 @@ class WidgetKLDeconvTrain(QGroupBox):
 
     def _on_output_path_change(self):
         print("output path change")
-        self.fp_widget.update_params_dict(
-            {"output_path": self.output_directory_widget.get_path()}
-        )
+        path = self.output_directory_widget.get_path()
+        self.fp_widget.update_params_dict({"output_path": path})
 
     def _on_data_path_change(self):
         print("data path change")
-        self.fp_widget.update_params_dict(
-            {"data_path": self.data_directory_widget.get_path()}
-        )
+        path = self.data_directory_widget.get_path()
 
-        if self.data_directory_widget.get_path() != "":
-            self.fp_widget.enable_run(True)
-            self.bp_widget.enable_run(True)
+        self.fp_widget.update_params_dict({"data_path": path})
+
+        if path != "":
+            # check path exist
+            if os.path.exists(path):
+                self.fp_widget.enable_run(True)
+                self.bp_widget.enable_run(True)
+            else:
+                napari.utils.notifications.show_info(
+                    "ERROR: Data Path Unexists."
+                )
         else:
             self.fp_widget.enable_run(False)
             self.bp_widget.enable_run(False)

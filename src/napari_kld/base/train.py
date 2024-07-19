@@ -23,9 +23,6 @@ def train(
     model_name="kernet_fp",
 ):
     # check parameters
-    if data_path == "" or not os.path.exists(data_path):
-        print("ERROR: data path does not exist.")
-        return 0
 
     if output_path == "":
         output_path = os.path.join(data_path, "output")
