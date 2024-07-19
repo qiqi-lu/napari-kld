@@ -19,7 +19,6 @@ from napari_kld.base import methods
 from napari_kld.widgets_small import (
     DirectorySelectWidget,
     FileSelectWidget,
-    LineBox,
     ProgressObserver,
 )
 
@@ -218,37 +217,33 @@ class WidgetKLDeconvTrain(QGroupBox):
         grid_layout = QGridLayout()
         self.setLayout(grid_layout)
 
-        # grid_layout.setContentsMargins(3, 11, 3, 11)
-        self.dataset_name_widget = LineBox("Dataset Name")
-        grid_layout.addWidget(self.dataset_name_widget, 0, 0, 1, 3)
-
-        grid_layout.addWidget(QLabel("Data Directory:"), 1, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Data Directory:"), 0, 0, 1, 1)
         self.data_directory_widget = DirectorySelectWidget()
         self.data_directory_widget.path_edit.textChanged.connect(
             self._on_data_path_change
         )
         grid_layout.addWidget(self.data_directory_widget, 1, 1, 1, 2)
 
-        grid_layout.addWidget(QLabel("Output Directory:"), 2, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Output Directory:"), 1, 0, 1, 1)
         self.output_directory_widget = DirectorySelectWidget()
         self.output_directory_widget.path_edit.textChanged.connect(
             self._on_output_path_change
         )
-        grid_layout.addWidget(self.output_directory_widget, 2, 1, 1, 2)
+        grid_layout.addWidget(self.output_directory_widget, 1, 1, 1, 2)
 
-        grid_layout.addWidget(QLabel("PSF Directory:"), 3, 0, 1, 1)
+        grid_layout.addWidget(QLabel("PSF Directory:"), 2, 0, 1, 1)
         self.psf_directory_widget = FileSelectWidget()
         self.psf_directory_widget.path_edit.textChanged.connect(
             self._on_psf_path_change
         )
-        grid_layout.addWidget(self.psf_directory_widget, 3, 1, 1, 2)
+        grid_layout.addWidget(self.psf_directory_widget, 2, 1, 1, 2)
 
         self.fp_widget = WidgetKLDeconvTrainFP(logger=logger)
-        grid_layout.addWidget(self.fp_widget, 4, 0, 1, 3)
+        grid_layout.addWidget(self.fp_widget, 3, 0, 1, 3)
         self.bp_widget = WidgetKLDeconvTrainBP(logger=logger)
-        grid_layout.addWidget(self.bp_widget, 5, 0, 1, 3)
+        grid_layout.addWidget(self.bp_widget, 4, 0, 1, 3)
 
-        grid_layout.addWidget(QWidget(), 1, qtpy.QtCore.Qt.AlignTop)
+        # grid_layout.addWidget(QWidget(), 1, qtpy.QtCore.Qt.AlignTop)
 
     def _on_psf_path_change(self):
         print("psf path change")
