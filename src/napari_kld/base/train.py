@@ -13,7 +13,6 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 def train(
-    dataset_name,
     data_path,
     output_path,
     psf_path=None,
@@ -23,6 +22,21 @@ def train(
     ks_xy=31,
     model_name="kernet_fp",
 ):
+    # check parameters
+    if data_path == "":
+        return 0
+    if output_path == "":
+        output_path = os.path.join(data_path, "output")
+
+    if psf_path == "":
+        FP_type = "pre-trained"
+    else:
+        FP_type = "known"
+        # check exist
+        if not os.path.exists(psf_path):
+            print("Error: PSF does not exist.")
+            return 0
+
     torch.manual_seed(7)
 
     device, num_workers = torch.device("cpu"), 0
@@ -182,7 +196,6 @@ def train(
 
             FP_path = os.path.join(
                 "checkpoints",
-                dataset_name,
                 f"kernet_fp_bs_{batch_size}_lr_0.01_sf_{scale_factor}_mse_over2_inter_norm",
                 "epoch_10000.pt",
             )  # 10000 (NF), 5000 (N)
@@ -315,7 +328,6 @@ def train(
     if model_name == "kernet_fp":
         path_model = os.path.join(
             checkpoint_path,
-            dataset_name,
             "forward",
             f"{model_name}_bs_{batch_size}_lr_{start_learning_rate}{model_suffix}",
         )
@@ -323,7 +335,6 @@ def train(
     if model_name == "kernet":
         path_model = os.path.join(
             checkpoint_path,
-            dataset_name,
             "backward",
             f"{model_name}_bs_{batch_size}_lr_{start_learning_rate}{model_suffix}",
         )

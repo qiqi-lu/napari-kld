@@ -294,12 +294,6 @@ class WorkerKLDeconvTrainFP(QObject):
 class WidgetKLDeconvTrainFP(QGroupBox):
     def __init__(self, logger=None):
         super().__init__()
-        self.directories = {
-            "output_path": "",
-            "data_path": "",
-            "psf_path": "",
-        }
-
         self.params_dict = {
             "data_path": "",
             "output_path": "",
@@ -336,10 +330,12 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         self.ks_box_z = QSpinBox()
         self.ks_box_z.setMinimum(1)
         self.ks_box_z.setValue(1)
+        self.ks_box_z.valueChanged.connect(self._on_kz_change)
         grid_layout.addWidget(self.ks_box_z, 2, 1, 1, 1)
         self.ks_box_xy = QSpinBox()
         self.ks_box_xy.setMinimum(1)
         self.ks_box_xy.setValue(31)
+        self.ks_box_xy.valueChanged.connect(self._on_kxy_change)
         grid_layout.addWidget(self.ks_box_xy, 2, 2, 1, 1)
 
         # ----------------------------------------------------------------------
@@ -378,6 +374,20 @@ class WidgetKLDeconvTrainFP(QGroupBox):
 
     def update_params_dict(self, path_dict):
         self.params_dict.update(path_dict)
+
+    def _on_kz_change(self):
+        value = self.ks_box_xy.value()
+        if (value % 2) == 0:
+            value += 1
+            self.ks_box_xy.setValue(value)
+        self.params_dict.update({"ks_z": self.ks_box_z.value()})
+
+    def _on_kxy_change(self):
+        value = self.ks_box_xy.value()
+        if (value % 2) == 0:
+            value += 1
+            self.ks_box_xy.setValue(value)
+        self.params_dict.update({"ks_xy": value})
 
 
 class WidgetKLDeconvTrainBP(QGroupBox):
