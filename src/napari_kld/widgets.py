@@ -299,6 +299,9 @@ class WidgetKLDeconvTrainFP(QGroupBox):
             "data_path": "",
             "psf_path": "",
         }
+
+        self.params_dict = {"iteration"}
+
         self._observer = ProgressObserver()
         self._worker = WorkerKLDeconvTrainFP(self._observer)
         self.thread = QThread()
@@ -307,6 +310,11 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         self.setTitle("Forward Projection")
         grid_layout = QGridLayout()
         self.setLayout(grid_layout)
+        # ----------------------------------------------------------------------
+        grid_layout.addWidget(QLabel("Iteration (RL):", 0, 0, 1, 1))
+        self.iteration_box_rl = QSpinBox()
+        self.iteration_box_rl.setMinimum(1)
+        self.iteration_box_rl.setValue(2)
 
         # ----------------------------------------------------------------------
         self.run_btn = QPushButton("run")
