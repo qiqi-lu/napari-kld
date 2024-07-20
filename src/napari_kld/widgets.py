@@ -255,6 +255,7 @@ class WidgetKLDeconvTrain(QGroupBox):
 
         if psf_path != "":
             self.fp_widget.setVisible(False)
+            # if not os.path.exists
         else:
             self.fp_widget.setVisible(True)
 

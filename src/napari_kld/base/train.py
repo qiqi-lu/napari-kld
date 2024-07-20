@@ -22,14 +22,7 @@ def train(
     ks_xy=31,
     model_name="kernet_fp",
 ):
-    # check parameters
-
-    if output_path == "":
-        output_path = os.path.join(data_path, "output")
-    else:
-        if not os.path.exists(output_path):
-            os.makedirs(output_path, exist_ok=True)
-
+    # parameter setting
     if psf_path == "":
         FP_type = "pre-trained"
     else:
