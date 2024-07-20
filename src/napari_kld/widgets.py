@@ -331,12 +331,14 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         self.bs_box = SpinBox(vmin=1, vmax=1000, vinit=1)
         grid_layout.addWidget(self.bs_box, 1, 2, 1, 1)
 
-        grid_layout.addWidget(QLabel("Kernel Size"), 2, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Kernel Size (z, xy)"), 2, 0, 1, 1)
         self.ks_box_z = SpinBox(vmin=1, vmax=1000, vinit=1)
-        self.ks_box_z.valueChanged.connect(self._on_kz_change)
+        self.ks_box_z.setSingleStep(2)
+        self.ks_box_z.valueChanged.connect(self._on_param_change)
         grid_layout.addWidget(self.ks_box_z, 2, 1, 1, 1)
         self.ks_box_xy = SpinBox(vmin=3, vmax=999, vinit=31)
-        self.ks_box_xy.valueChanged.connect(self._on_kxy_change)
+        self.ks_box_xy.setSingleStep(2)
+        self.ks_box_xy.valueChanged.connect(self._on_param_change)
         grid_layout.addWidget(self.ks_box_xy, 2, 2, 1, 1)
 
         # ----------------------------------------------------------------------
@@ -373,7 +375,10 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         if self.logger is not None:
             self.logger.set_text(value)
 
-    def update_params_dict(self):
+    def update_params_dict(self, path_dict):
+        self.params_dict.update(path_dict)
+
+    def _on_param_change(self):
         ks_z = self.ks_box_z.value()
         if (ks_z % 2) == 0:
             ks_z += 1
