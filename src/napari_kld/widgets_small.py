@@ -8,6 +8,7 @@ from qtpy.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
+    QSpinBox,
     QTextEdit,
     QWidget,
 )
@@ -118,3 +119,12 @@ class LineBox(QWidget):
 
     def set_text(self, text):
         self.edit_box.setText(text)
+
+
+class SpinBox(QSpinBox):
+    def __init__(self, vmin, vmax, vinit):
+        super().__init__()
+
+        self.setMinimum(vmin)
+        self.setMaximum(vmax)
+        self.setValue(vinit)

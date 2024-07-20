@@ -22,6 +22,7 @@ from napari_kld.widgets_small import (
     DirectorySelectWidget,
     FileSelectWidget,
     ProgressObserver,
+    SpinBox,
 )
 
 
@@ -321,27 +322,20 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         self.setLayout(grid_layout)
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Iterations (RL):"), 0, 0, 1, 1)
-        self.iteration_box_rl = QSpinBox()
-        self.iteration_box_rl.setMinimum(1)
-        self.iteration_box_rl.setValue(2)
+        self.iteration_box_rl = SpinBox(vmin=1, vmax=99, vinit=2)
         grid_layout.addWidget(self.iteration_box_rl, 0, 1, 1, 2)
 
-        grid_layout.addWidget(QLabel("Epoch"), 1, 0, 1, 1)
-        self.epoch_box = QSpinBox()
-        self.epoch_box.setMinimum(1)
-        self.epoch_box.setMaximum(10000)
-        self.epoch_box.setValue(100)
-        grid_layout.addWidget(self.epoch_box, 1, 1, 1, 2)
+        grid_layout.addWidget(QLabel("Epoch/Batch Size"), 1, 0, 1, 1)
+        self.epoch_box = SpinBox(vmin=1, vmax=10000, vinit=100)
+        grid_layout.addWidget(self.epoch_box, 1, 1, 1, 1)
+        self.bs_box = SpinBox(vmin=1, vmax=1000, vinit=1)
+        grid_layout.addWidget(self.bs_box, 1, 2, 1, 1)
 
         grid_layout.addWidget(QLabel("Kernel Size"), 2, 0, 1, 1)
-        self.ks_box_z = QSpinBox()
-        self.ks_box_z.setMinimum(1)
-        self.ks_box_z.setValue(1)
+        self.ks_box_z = SpinBox(vmin=1, vmax=1000, vinit=1)
         self.ks_box_z.valueChanged.connect(self._on_kz_change)
         grid_layout.addWidget(self.ks_box_z, 2, 1, 1, 1)
-        self.ks_box_xy = QSpinBox()
-        self.ks_box_xy.setMinimum(1)
-        self.ks_box_xy.setValue(31)
+        self.ks_box_xy = SpinBox(vmin=3, vmax=999, vinit=31)
         self.ks_box_xy.valueChanged.connect(self._on_kxy_change)
         grid_layout.addWidget(self.ks_box_xy, 2, 2, 1, 1)
 
@@ -379,22 +373,23 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         if self.logger is not None:
             self.logger.set_text(value)
 
-    def update_params_dict(self, path_dict):
-        self.params_dict.update(path_dict)
+    def update_params_dict(self):
+        ks_z = self.ks_box_z.value()
+        if (ks_z % 2) == 0:
+            ks_z += 1
+            self.ks_box_z.setValue(ks_z)
 
-    def _on_kz_change(self):
-        value = self.ks_box_xy.value()
-        if (value % 2) == 0:
-            value += 1
-            self.ks_box_xy.setValue(value)
-        self.params_dict.update({"ks_z": self.ks_box_z.value()})
+        ks_xy = self.ks_box_xy.value()
+        if (ks_xy % 2) == 0:
+            ks_xy += 1
+            self.ks_box_xy.setValue(ks_xy)
 
-    def _on_kxy_change(self):
-        value = self.ks_box_xy.value()
-        if (value % 2) == 0:
-            value += 1
-            self.ks_box_xy.setValue(value)
-        self.params_dict.update({"ks_xy": value})
+        self.params_dict.update(
+            {
+                "ks_z": ks_z,
+                "ks_xy": ks_xy,
+            }
+        )
 
 
 class WidgetKLDeconvTrainBP(QGroupBox):
