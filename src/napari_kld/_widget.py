@@ -215,6 +215,8 @@ class RLDwidget(QWidget):
         for w in items:
             if w.widget().label == method_name:
                 w.widget().setVisible(True)
+                self.progress_bar.setMaximum(w.widget().iteration_box.value())
+
             else:
                 w.widget().setVisible(False)
 
