@@ -255,7 +255,9 @@ class WidgetKLDeconvTrain(QGroupBox):
 
         if psf_path != "":
             self.fp_widget.setVisible(False)
-            # if not os.path.exists
+            if not os.path.exists(psf_path):
+                napari.utils.notifications.show_info("ERROR: PSF Not Exists.")
+                self.bp_widget.run_btn.setEnabled(False)
         else:
             self.fp_widget.setVisible(True)
 

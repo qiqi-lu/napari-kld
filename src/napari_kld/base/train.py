@@ -16,27 +16,19 @@ def train(
     data_path,
     output_path,
     psf_path=None,
+    FP_path=None,
     data_dim=3,
     num_iter=2,
     ks_z=1,
     ks_xy=31,
-    model_name="kernet_fp",
+    model_name="kernet_fp",  # "kernet" or "kernet_fp"
+    epoch=10000,
+    bs=1,
 ):
-    # parameter setting
-    if psf_path == "":
-        FP_type = "pre-trained"
-    else:
-        FP_type = "known"
-        # check exist
-        if not os.path.exists(psf_path):
-            print("ERROR: PSF does not exist.")
-            return 0
+    # custom parameters
+    FP_type = "pre-trained" if psf_path == "" else "known"
 
     torch.manual_seed(7)
-
-    device, num_workers = torch.device("cpu"), 0
-    # device, num_workers = torch.device("cpu"), 6
-    # device, num_workers = torch.device("cuda"), 6
 
     checkpoint_path = os.path.join(output_path, "checkpoints")
     data_range = None
@@ -56,20 +48,21 @@ def train(
     epochs = 10000
 
     # --------------------------------------------------------------------------
+    #
+    device, num_workers = torch.device("cpu"), 0
+    # device, num_workers = torch.device("cpu"), 6
+    # device, num_workers = torch.device("cuda"), 6
+
     conv_mode, padding_mode, kernel_init = "fft", "reflect", "gauss"
     interpolation = True
     kernel_norm_fp = False
     kernel_norm_bp = True
     over_sampling = 2
-
     if data_dim == 2:
         std_init = [2.0, 2.0]
     if data_dim == 3:
         std_init = [4.0, 2.0, 2.0]
 
-    # --------------------------------------------------------------------------
-    # model_name = 'kernet_fp'
-    model_name = "kernet"
     # --------------------------------------------------------------------------
     if model_name == "kernet_fp":
         model_suffix = f"_ks_{ks_z}_{ks_xy}"
@@ -131,17 +124,17 @@ def train(
             save_every_iter, plot_every_iter = 5, 2
             print_every_iter = 1000
 
-        # --------------------------------------------------------------------------
-        # Data
-        # --------------------------------------------------------------------------
-        # Training data
-        hr_data_path = os.path.join(data_path, "gt")
-        lr_data_path = os.path.join(data_path, "raw")
-        hr_txt_file_path = os.path.join(data_path, "train.txt")
-        lr_txt_file_path = hr_txt_file_path
-        normalization, in_channels = (False, False), 1
+    # --------------------------------------------------------------------------
+    # Data
+    # --------------------------------------------------------------------------
+    # Training data
+    hr_data_path = os.path.join(data_path, "gt")
+    lr_data_path = os.path.join(data_path, "raw")
+    hr_txt_file_path = os.path.join(data_path, "train.txt")
+    lr_txt_file_path = hr_txt_file_path
+    in_channels = 1
 
-    print(">> Load datasets from:", lr_data_path)
+    print(">> Load datasets from:", data_path)
 
     # --------------------------------------------------------------------------
     # Training data
@@ -150,7 +143,7 @@ def train(
         lr_data_path=lr_data_path,
         hr_txt_file_path=hr_txt_file_path,
         lr_txt_file_path=lr_txt_file_path,
-        normalization=normalization,
+        normalization=(False, False),
         id_range=id_range,
     )
 
@@ -168,10 +161,10 @@ def train(
         FP, BP = None, None
         # FP_type, BP_type = 'pre-trained', None
         # FP_type, BP_type = "known", None
-        FP_type = "known"
+        # FP_type = "known"
         # --------------------------------------------------------------------------
         if FP_type == "pre-trained":
-            print(">> Pred-trained PSF")
+            print("use pred-trained forward projection ...")
 
             # load FP parameters
             FP = kernelnet.ForwardProject(
@@ -195,11 +188,12 @@ def train(
                 "epoch_10000.pt",
             )  # 10000 (NF), 5000 (N)
 
+            # load froward projection model
             FP_para = torch.load(FP_path, map_location=device)
             FP.load_state_dict(FP_para["model_state_dict"])
             FP.eval()
 
-            print(">> Load from: ", FP_path)
+            print("load forward projection model from: ", FP_path)
 
         if FP_type == "known":
             print(">> Known PSF")
