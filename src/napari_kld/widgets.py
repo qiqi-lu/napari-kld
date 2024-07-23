@@ -17,7 +17,7 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
-from napari_kld.base import methods
+from napari_kld.base import methods, train
 from napari_kld.widgets_small import (
     DirectorySelectWidget,
     FileSelectWidget,
@@ -296,7 +296,13 @@ class WorkerKLDeconvTrainFP(QObject):
     def run(self):
         print("worker run")
         try:
-            methods.test_func(observer=self.observer)
+            train.train(
+                FP_path=None,
+                num_iter=1,
+                model_name="kernet_fp",
+                self_supervised=False,
+                observer=self.observer,
+            )
         except RuntimeError:
             print("Run Filed.")
             self.observer.progress("Run Filed.")
@@ -309,7 +315,8 @@ class WidgetKLDeconvTrainFP(QGroupBox):
             "data_path": "",
             "output_path": "",
             "psf_path": "",
-            "epoch": 100,
+            "num_epoch": 100,
+            "batch_size": 1,
             "ks_z": 1,
             "ks_xy": 31,
         }
@@ -387,10 +394,15 @@ class WidgetKLDeconvTrainFP(QGroupBox):
             ks_xy += 1
             self.ks_box_xy.setValue(ks_xy)
 
+        num_epoch = self.epoch_box.value()
+        batch_size = self.bs_box.value()
+
         self.params_dict.update(
             {
                 "ks_z": ks_z,
                 "ks_xy": ks_xy,
+                "num_epoch": num_epoch,
+                "batch_size": batch_size,
             }
         )
 
@@ -457,6 +469,7 @@ class WidgetKLDeconvTrainBP(QGroupBox):
         self.progress_bar = QProgressBar()
         grid_layout.addWidget(self.progress_bar, 5, 0, 1, 3)
 
+        # init
         self.enable_run(False)
 
     def _on_click_run(self):
