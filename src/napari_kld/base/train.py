@@ -25,8 +25,8 @@ def train(
     num_epoch=10000,
     batch_size=1,
     self_supervised=False,
-    learning_rate = 0.001, # start learning rate
-    observer=None
+    learning_rate=0.001,  # start learning rate
+    observer=None,
 ):
     # custom parameters
     torch.manual_seed(7)
@@ -337,7 +337,6 @@ def train(
     print(">> Start training ... ")
     print(time.asctime(time.localtime(time.time())))
 
-
     if self_supervised:
         print("Training under self-supervised mode.")
 
@@ -354,7 +353,9 @@ def train(
         num_batches = 1
     elif batch_size > training_data_size:
         if observer is not None:
-            observer.notify('ERROR: the batch size should be larger than training data size')
+            observer.notify(
+                "ERROR: the batch size should be larger than training data size"
+            )
         return 0
     else:
         num_batches = len(train_dataloader)
@@ -381,11 +382,10 @@ def train(
 
             if batch_size < training_data_size:
                 # load data
-                x = train_dataloader[i_batch]['lr'].to(device)
-                y = train_dataloader[i_batch]['hr'].to(device)
+                x = train_dataloader[i_batch]["lr"].to(device)
+                y = train_dataloader[i_batch]["hr"].to(device)
 
             # if batch_size == training_data_size:
-
 
             if model_name == "kernet_fp":
                 inpt, gt = y, x
