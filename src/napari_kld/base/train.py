@@ -22,18 +22,21 @@ def train(
     ks_z=1,
     ks_xy=31,
     model_name="kernet_fp",  # "kernet" or "kernet_fp"
-    epoch=10000,
-    bs=1,
+    num_epoch=10000,
+    batch_size=1,
+    self_supervised=False,
+    learning_rate = 0.001, # start learning rate
+    observer=None
 ):
     # custom parameters
+    torch.manual_seed(7)
     FP_type = "pre-trained" if psf_path == "" else "known"
 
-    torch.manual_seed(7)
-
     checkpoint_path = os.path.join(output_path, "checkpoints")
-    data_range = None
-    scale_factor = 1
+    if not os.path.exists(checkpoint_path):
+        os.makedirs(checkpoint_path, exist_ok=True)
 
+    # kernel size setting
     if data_dim == 2:
         kernel_size_fp = (ks_xy,) * 2
         kernel_size_bp = (ks_xy,) * 2
@@ -42,10 +45,9 @@ def train(
         kernel_size_fp = [ks_z, ks_xy, ks_xy]
         kernel_size_bp = [ks_z, ks_xy, ks_xy]
 
-    id_range = [0, 1]
-    training_data_size = id_range[1] - id_range[0]
-    batch_size = training_data_size
-    epochs = 10000
+    scale_factor = 1
+    data_range = None
+    id_range = None
 
     # --------------------------------------------------------------------------
     #
@@ -71,32 +73,23 @@ def train(
         loss_main = torch.nn.MSELoss()
 
         optimizer_type = "adam"
-        start_learning_rate = 0.001
+        start_learning_rate = learning_rate
 
         # optimizer_type = 'lbfgs'
         # start_learning_rate = 1
 
-        epochs = 500
-
     if model_name == "kernet":
-        num_iter = 2
         lam = 0.0  # lambda for prior
         multi_out = False
         shared_bp = True
-        self_supervised = False
-        # self_supervised = True
 
         ss_marker = "_ss" if self_supervised else ""
         model_suffix = f"_iter_{num_iter}_ks_{ks_z}_{ks_xy}{ss_marker}"
+
         loss_main = torch.nn.MSELoss()
+
         optimizer_type = "adam"
-
-        # start_learning_rate = 0.000001 if self_supervised else 0.00001
-        start_learning_rate = 0.000001 if self_supervised else 0.000001
-
-        epochs = 10000
-        # start_learning_rate = 0.000001
-        # epochs = 7500
+        start_learning_rate = learning_rate
 
     # --------------------------------------------------------------------------
     warm_up = 0
@@ -108,6 +101,7 @@ def train(
     scheduler_cus["min"] = 0.00000001
 
     # --------------------------------------------------------------------------
+
     if data_dim == 2:
         if model_name == "kernet":
             save_every_iter, plot_every_iter = 1000, 50
@@ -128,13 +122,12 @@ def train(
     # Data
     # --------------------------------------------------------------------------
     # Training data
+    print("load training data set from:", data_path)
     hr_data_path = os.path.join(data_path, "gt")
     lr_data_path = os.path.join(data_path, "raw")
     hr_txt_file_path = os.path.join(data_path, "train.txt")
     lr_txt_file_path = hr_txt_file_path
     in_channels = 1
-
-    print(">> Load datasets from:", data_path)
 
     # --------------------------------------------------------------------------
     # Training data
@@ -146,6 +139,8 @@ def train(
         normalization=(False, False),
         id_range=id_range,
     )
+
+    training_data_size = training_data.data_size
 
     train_dataloader = DataLoader(
         dataset=training_data,
@@ -182,12 +177,6 @@ def train(
                 conv_mode=conv_mode,
             )
 
-            FP_path = os.path.join(
-                "checkpoints",
-                f"kernet_fp_bs_{batch_size}_lr_0.01_sf_{scale_factor}_mse_over2_inter_norm",
-                "epoch_10000.pt",
-            )  # 10000 (NF), 5000 (N)
-
             # load froward projection model
             FP_para = torch.load(FP_path, map_location=device)
             FP.load_state_dict(FP_para["model_state_dict"])
@@ -196,7 +185,7 @@ def train(
             print("load forward projection model from: ", FP_path)
 
         if FP_type == "known":
-            print(">> Known PSF")
+            print("known PSF")
             if data_dim == 2:
                 ks, std = 25, 2.0
                 ker = kernelnet.gauss_kernel_2d(shape=[ks, ks], std=std).to(
@@ -348,34 +337,37 @@ def train(
     print(">> Start training ... ")
     print(time.asctime(time.localtime(time.time())))
 
-    num_batches = len(train_dataloader)
-
-    print(f">> Number of training batches: {num_batches}")
 
     if self_supervised:
         print("Training under self-supervised mode.")
 
-    if training_data_size == 1:
-        sample = training_data[0]
-        x, y = sample["lr"].to(device)[None], sample["hr"].to(device)[None]
-        y = y
-    else:
+    # --------------------------------------------------------------------------
+    # load data
+    if batch_size == training_data_size:
         x, y = [], []
         for i in range(training_data_size):
             sample = training_data[i]
             x.append(sample["lr"])
             y.append(sample["hr"])
-        x = torch.stack(x)
-        y = torch.stack(y)
+        x, y = torch.stack(x), torch.stack(y)
         x, y = x.to(device), y.to(device)
-        y = y
+        num_batches = 1
+    elif batch_size > training_data_size:
+        if observer is not None:
+            observer.notify('ERROR: the batch size should be larger than training data size')
+        return 0
+    else:
+        num_batches = len(train_dataloader)
 
-    for i_epoch in range(epochs):
-        print("\n" + "-" * 98)
+    print(f"number of training batches: {num_batches}")
+    # --------------------------------------------------------------------------
+
+    for i_epoch in range(num_epoch):
+        print("\n" + "-" * 80)
         print(
-            f"Epoch: {i_epoch + 1}/{epochs} | Batch size: {batch_size} | Num of Batches: {num_batches}"
+            f"Epoch: {i_epoch + 1}/{num_epoch} | Batch size: {batch_size} | Num of Batches: {num_batches}"
         )
-        print("-" * 98)
+        print("-" * 80)
         # --------------------------------------------------------------------------
         ave_ssim, ave_psnr = 0, 0
         print_loss, print_ssim, print_psnr = [], [], []
@@ -386,10 +378,14 @@ def train(
         # for i_batch, sample in enumerate(train_dataloader):
         for i_batch in range(num_batches):
             i_iter = i_batch + i_epoch * num_batches  # index of iteration
-            # ----------------------------------------------------------------------
-            # load data
-            # x, y = sample['lr'].to(device), sample['hr'].to(device)
-            # y = y * ratio
+
+            if batch_size < training_data_size:
+                # load data
+                x = train_dataloader[i_batch]['lr'].to(device)
+                y = train_dataloader[i_batch]['hr'].to(device)
+
+            # if batch_size == training_data_size:
+
 
             if model_name == "kernet_fp":
                 inpt, gt = y, x

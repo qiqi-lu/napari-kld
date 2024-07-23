@@ -289,13 +289,15 @@ class SRDataset(Dataset):
             self.file_names_hr = f.read().splitlines()
 
         if id_range is not None:
-            data_size = len(self.file_names_lr)
+            self.data_size = len(self.file_names_lr)
             self.file_names_lr = self.file_names_lr[id_range[0] : id_range[1]]
             self.file_names_hr = self.file_names_hr[id_range[0] : id_range[1]]
 
             print(
-                f"DATASET: Use only part of datasets. ({len(self.file_names_lr)}|{data_size})"
+                f"DATASET: use only part of data set. ({len(self.file_names_lr)}|{self.data_size})"
             )
+        else:
+            print("DATASET: use all the data list in the train.txt")
 
     def __len__(self):
         return len(self.file_names_lr)

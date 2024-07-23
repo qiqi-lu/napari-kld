@@ -309,7 +309,6 @@ class WidgetKLDeconvTrainFP(QGroupBox):
             "data_path": "",
             "output_path": "",
             "psf_path": "",
-            "num_iter_rl": 2,
             "epoch": 100,
             "ks_z": 1,
             "ks_xy": 31,
@@ -324,10 +323,6 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         grid_layout = QGridLayout()
         self.setLayout(grid_layout)
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Iterations (RL):"), 0, 0, 1, 1)
-        self.iteration_box_rl = SpinBox(vmin=1, vmax=99, vinit=2)
-        grid_layout.addWidget(self.iteration_box_rl, 0, 1, 1, 2)
-
         grid_layout.addWidget(QLabel("Epoch/Batch Size"), 1, 0, 1, 1)
         self.epoch_box = SpinBox(vmin=1, vmax=10000, vinit=100)
         grid_layout.addWidget(self.epoch_box, 1, 1, 1, 1)
@@ -346,11 +341,11 @@ class WidgetKLDeconvTrainFP(QGroupBox):
 
         # ----------------------------------------------------------------------
         self.run_btn = QPushButton("run")
-        grid_layout.addWidget(self.run_btn, 4, 0, 1, 2)
+        grid_layout.addWidget(self.run_btn, 4, 0, 1, 3)
         self.run_btn.clicked.connect(self._on_click_run)
 
         self.progress_bar = QProgressBar()
-        grid_layout.addWidget(self.progress_bar, 5, 0, 1, 2)
+        grid_layout.addWidget(self.progress_bar, 5, 0, 1, 3)
 
         # ----------------------------------------------------------------------
         # init
@@ -400,13 +395,34 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         )
 
 
+class WorkerKLDeconvTrainBP(QObject):
+    finish_signal = Signal()
+
+    def __init__(self, observer):
+        super().__init__()
+        self.observer = observer
+
+    def run(self):
+        print("worker run")
+        try:
+            methods.test_func(observer=self.observer)
+        except RuntimeError:
+            print("Run Filed.")
+            self.observer.progress("Run Filed.")
+
+
 class WidgetKLDeconvTrainBP(QGroupBox):
     def __init__(self, logger=None):
         super().__init__()
-        self.directories = {
+        self.params_dict = {
             "output_path": "",
             "data_path": "",
             "psf_path": "",
+            "ks_xy": 31,
+            "ks_z": 1,
+            "epoch": 10000,
+            "bs": 1,
+            "num_iter": 2,
         }
 
         self.setTitle("Backward Projection")
@@ -414,12 +430,32 @@ class WidgetKLDeconvTrainBP(QGroupBox):
         self.setLayout(grid_layout)
 
         # ----------------------------------------------------------------------
+        grid_layout.addWidget(QLabel("Iterations (RL):"), 0, 0, 1, 1)
+        self.iteration_box_rl = SpinBox(vmin=1, vmax=99, vinit=2)
+        grid_layout.addWidget(self.iteration_box_rl, 0, 1, 1, 2)
+
+        grid_layout.addWidget(QLabel("Epoch/Batch Size"), 1, 0, 1, 1)
+        self.epoch_box = SpinBox(vmin=1, vmax=10000, vinit=100)
+        grid_layout.addWidget(self.epoch_box, 1, 1, 1, 1)
+        self.bs_box = SpinBox(vmin=1, vmax=1000, vinit=1)
+        grid_layout.addWidget(self.bs_box, 1, 2, 1, 1)
+
+        grid_layout.addWidget(QLabel("Kernel Size (z, xy)"), 2, 0, 1, 1)
+        self.ks_box_z = SpinBox(vmin=1, vmax=1000, vinit=1)
+        self.ks_box_z.setSingleStep(2)
+        self.ks_box_z.valueChanged.connect(self._on_param_change)
+        grid_layout.addWidget(self.ks_box_z, 2, 1, 1, 1)
+        self.ks_box_xy = SpinBox(vmin=3, vmax=999, vinit=31)
+        self.ks_box_xy.setSingleStep(2)
+        self.ks_box_xy.valueChanged.connect(self._on_param_change)
+        grid_layout.addWidget(self.ks_box_xy, 2, 2, 1, 1)
+
         self.run_btn = QPushButton("run")
-        grid_layout.addWidget(self.run_btn, 4, 0)
+        grid_layout.addWidget(self.run_btn, 4, 0, 1, 3)
         self.run_btn.clicked.connect(self._on_click_run)
 
         self.progress_bar = QProgressBar()
-        grid_layout.addWidget(self.progress_bar, 5, 0)
+        grid_layout.addWidget(self.progress_bar, 5, 0, 1, 3)
 
         self.enable_run(False)
 
@@ -431,6 +467,24 @@ class WidgetKLDeconvTrainBP(QGroupBox):
 
     def enable_run(self, enable):
         self.run_btn.setEnabled(enable)
+
+    def _on_param_change(self):
+        ks_z = self.ks_box_z.value()
+        if (ks_z % 2) == 0:
+            ks_z += 1
+            self.ks_box_z.setValue(ks_z)
+
+        ks_xy = self.ks_box_xy.value()
+        if (ks_xy % 2) == 0:
+            ks_xy += 1
+            self.ks_box_xy.setValue(ks_xy)
+
+        self.params_dict.update(
+            {
+                "ks_z": ks_z,
+                "ks_xy": ks_xy,
+            }
+        )
 
 
 class WidgetKLDeconvPredict(QGroupBox):
@@ -473,3 +527,6 @@ class WidgetKLDeconvPredict(QGroupBox):
             self.run_btn.setEnabled(False)
         else:
             self.run_btn.setEnabled(True)
+
+    def enable_run(self, enable):
+        self.run_btn.setEnabled(enable)
