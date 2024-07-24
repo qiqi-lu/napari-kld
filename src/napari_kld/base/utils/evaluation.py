@@ -2,7 +2,7 @@ import numpy as np
 import skimage.metrics as skim
 import torch
 from pytorch_msssim import ms_ssim
-from utils import dataset_utils
+from napari.utils import dataset_utils
 
 
 def SSIM(
