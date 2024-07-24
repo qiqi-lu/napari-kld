@@ -289,9 +289,10 @@ class WidgetKLDeconvTrain(QGroupBox):
 class WorkerKLDeconvTrainFP(QObject):
     finish_signal = Signal()
 
-    def __init__(self, observer):
+    def __init__(self, widget, observer):
         super().__init__()
         self.observer = observer
+        self.widget = widget
 
     def run(self):
         print("worker run")
@@ -302,6 +303,7 @@ class WorkerKLDeconvTrainFP(QObject):
                 model_name="kernet_fp",
                 self_supervised=False,
                 observer=self.observer,
+                **self.widget
             )
         except RuntimeError:
             print("Run Filed.")
