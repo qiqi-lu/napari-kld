@@ -241,10 +241,17 @@ class WidgetKLDeconvTrain(QGroupBox):
         )
         grid_layout.addWidget(self.psf_directory_widget, 2, 1, 1, 2)
 
+        grid_layout.addWidget(QLabel("Image Channels/Dimension"), 3, 0, 1, 1)
+        self.channel_box = SpinBox(vmin=1, vmax=10, vinit=1)
+        grid_layout.addWidget(self.channel_box, 3, 1, 1, 1)
+        self.dim_box = QComboBox()
+        self.dim_box.addItems(["3", "2"])
+        grid_layout.addWidget(self.dim_box, 3, 2, 1, 1)
+
         self.fp_widget = WidgetKLDeconvTrainFP(logger=logger)
-        grid_layout.addWidget(self.fp_widget, 3, 0, 1, 3)
+        grid_layout.addWidget(self.fp_widget, 4, 0, 1, 3)
         self.bp_widget = WidgetKLDeconvTrainBP(logger=logger)
-        grid_layout.addWidget(self.bp_widget, 4, 0, 1, 3)
+        grid_layout.addWidget(self.bp_widget, 5, 0, 1, 3)
 
         # grid_layout.addWidget(QWidget(), 1, qtpy.QtCore.Qt.AlignTop)
 
@@ -285,6 +292,14 @@ class WidgetKLDeconvTrain(QGroupBox):
             self.fp_widget.enable_run(False)
             self.bp_widget.enable_run(False)
 
+    def _on_dim_change(self):
+        dim = self.dim_box.text()
+        self.fp_widget.update_params_dict({"data_dim": int(dim)})
+
+    def _on_channel_change(self):
+        num_channel = self.channel_box.value()
+        self.fp_widget.update_params_dict({"num_channel": num_channel})
+
 
 class WidgetKLDeconvTrainFP(QGroupBox):
     def __init__(self, logger=None):
@@ -293,10 +308,13 @@ class WidgetKLDeconvTrainFP(QGroupBox):
             "data_path": "",
             "output_path": "",
             "psf_path": "",
+            "data_dim": 3,
+            "num_channel": 1,
             "num_epoch": 100,
             "batch_size": 1,
             "ks_z": 1,
             "ks_xy": 31,
+            "learning_rate": 0.001,
         }
 
         self._observer = ProgressObserver()
@@ -324,6 +342,15 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         self.ks_box_xy.valueChanged.connect(self._on_param_change)
         grid_layout.addWidget(self.ks_box_xy, 2, 2, 1, 1)
 
+        grid_layout.addWidget(QLabel("Learning rate"), 3, 0, 1, 1)
+        self.lr_box = QDoubleSpinBox()
+        self.lr_box.setSingleStep(0.001)
+        self.lr_box.setMinimum(0)
+        self.lr_box.setValue(0.001)
+        self.lr_box.setDecimals(7)
+        self.lr_box.valueChanged.connect(self._on_param_change)
+        grid_layout.addWidget(self.lr_box, 3, 1, 1, 2)
+
         # ----------------------------------------------------------------------
         self.run_btn = QPushButton("run")
         grid_layout.addWidget(self.run_btn, 4, 0, 1, 3)
@@ -346,6 +373,7 @@ class WidgetKLDeconvTrainFP(QGroupBox):
 
     def _on_click_run(self):
         print("run")
+        self._worker.set_params(self.params_dict)
         self.thread.start()
 
     def enable_run(self, enable):
@@ -374,6 +402,7 @@ class WidgetKLDeconvTrainFP(QGroupBox):
 
         num_epoch = self.epoch_box.value()
         batch_size = self.bs_box.value()
+        learning_rate = self.lr_box.value()
 
         self.params_dict.update(
             {
@@ -381,6 +410,7 @@ class WidgetKLDeconvTrainFP(QGroupBox):
                 "ks_xy": ks_xy,
                 "num_epoch": num_epoch,
                 "batch_size": batch_size,
+                "learning_rate": learning_rate,
             }
         )
 
@@ -388,10 +418,10 @@ class WidgetKLDeconvTrainFP(QGroupBox):
 class WorkerKLDeconvTrainFP(QObject):
     finish_signal = Signal()
 
-    def __init__(self, widget: WidgetKLDeconvTrainFP, observer):
+    def __init__(self, observer):
         super().__init__()
         self.observer = observer
-        self.widget = widget
+        self.params_dict = {}
 
     def run(self):
         print("worker run")
@@ -402,11 +432,14 @@ class WorkerKLDeconvTrainFP(QObject):
                 model_name="kernet_fp",
                 self_supervised=False,
                 observer=self.observer,
-                **self.widget.params_dict,
+                **self.params_dict,
             )
         except RuntimeError:
             print("Run Filed.")
             self.observer.progress("Run Filed.")
+
+    def set_params(self, params_dict):
+        self.params_dict = params_dict
 
 
 class WorkerKLDeconvTrainBP(QObject):
