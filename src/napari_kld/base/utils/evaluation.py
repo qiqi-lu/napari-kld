@@ -1,8 +1,8 @@
 import numpy as np
 import skimage.metrics as skim
 import torch
+from napari_kld.base.utils import dataset_utils
 from pytorch_msssim import ms_ssim
-from napari.utils import dataset_utils
 
 
 def SSIM(
