@@ -286,30 +286,6 @@ class WidgetKLDeconvTrain(QGroupBox):
             self.bp_widget.enable_run(False)
 
 
-class WorkerKLDeconvTrainFP(QObject):
-    finish_signal = Signal()
-
-    def __init__(self, widget, observer):
-        super().__init__()
-        self.observer = observer
-        self.widget = widget
-
-    def run(self):
-        print("worker run")
-        try:
-            train.train(
-                FP_path=None,
-                num_iter=1,
-                model_name="kernet_fp",
-                self_supervised=False,
-                observer=self.observer,
-                **self.widget,
-            )
-        except RuntimeError:
-            print("Run Filed.")
-            self.observer.progress("Run Filed.")
-
-
 class WidgetKLDeconvTrainFP(QGroupBox):
     def __init__(self, logger=None):
         super().__init__()
@@ -407,6 +383,29 @@ class WidgetKLDeconvTrainFP(QGroupBox):
                 "batch_size": batch_size,
             }
         )
+
+class WorkerKLDeconvTrainFP(QObject):
+    finish_signal = Signal()
+
+    def __init__(self, widget: WidgetKLDeconvTrainFP, observer):
+        super().__init__()
+        self.observer = observer
+        self.widget = widget
+
+    def run(self):
+        print("worker run")
+        try:
+            train.train(
+                FP_path=None,
+                num_iter=1,
+                model_name="kernet_fp",
+                self_supervised=False,
+                observer=self.observer,
+                **self.widget.params_dict,
+            )
+        except RuntimeError:
+            print("Run Filed.")
+            self.observer.progress("Run Filed.")
 
 
 class WorkerKLDeconvTrainBP(QObject):
