@@ -384,6 +384,7 @@ class WidgetKLDeconvTrainFP(QGroupBox):
             }
         )
 
+
 class WorkerKLDeconvTrainFP(QObject):
     finish_signal = Signal()
 
