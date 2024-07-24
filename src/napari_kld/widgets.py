@@ -303,7 +303,7 @@ class WorkerKLDeconvTrainFP(QObject):
                 model_name="kernet_fp",
                 self_supervised=False,
                 observer=self.observer,
-                **self.widget
+                **self.widget,
             )
         except RuntimeError:
             print("Run Filed.")
