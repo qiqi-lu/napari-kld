@@ -95,7 +95,7 @@ class LogBox(QGroupBox):
         grid_layout.addWidget(self.clear_btn, 0, 0, 1, 1)
         self.clear_btn.clicked.connect(self.clear_text)
 
-    def set_text(self, value):
+    def add_text(self, value):
         self.log_box.append(value)
 
     def clear_text(self):

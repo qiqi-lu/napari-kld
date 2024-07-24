@@ -384,7 +384,7 @@ class WidgetKLDeconvTrainFP(QGroupBox):
 
     def _on_notify(self, value):
         if self.logger is not None:
-            self.logger.set_text(value)
+            self.logger.add_text(value)
 
     def update_params_dict(self, path_dict):
         self.params_dict.update(path_dict)

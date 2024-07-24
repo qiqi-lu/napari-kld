@@ -60,6 +60,7 @@ def train(
     kernel_norm_fp = False
     kernel_norm_bp = True
     over_sampling = 2
+
     if data_dim == 2:
         std_init = [2.0, 2.0]
     if data_dim == 3:
@@ -72,17 +73,11 @@ def train(
         self_supervised = False
         loss_main = torch.nn.MSELoss()
 
-        optimizer_type = "adam"
-        start_learning_rate = learning_rate
-
-        # optimizer_type = 'lbfgs'
-        # start_learning_rate = 1
+        optimizer_type, start_learning_rate = "adam", learning_rate
+        # optimizer_type, start_learning_rate = 'lbfgs', 1
 
     if model_name == "kernet":
-        lam = 0.0  # lambda for prior
-        multi_out = False
-        shared_bp = True
-
+        lam, multi_out, shared_bp = 0.0, False, True
         ss_marker = "_ss" if self_supervised else ""
         model_suffix = f"_iter_{num_iter}_ks_{ks_z}_{ks_xy}{ss_marker}"
 
@@ -102,21 +97,10 @@ def train(
 
     # --------------------------------------------------------------------------
 
-    if data_dim == 2:
-        if model_name == "kernet":
-            save_every_iter, plot_every_iter = 1000, 50
-            print_every_iter = 1000
-        if model_name == "kernet_fp":
-            save_every_iter, plot_every_iter = 5, 2
-            print_every_iter = 1000
-
-    if data_dim == 3:
-        if model_name == "kernet":
-            save_every_iter, plot_every_iter = 1000, 50
-            print_every_iter = 1000
-        if model_name == "kernet_fp":
-            save_every_iter, plot_every_iter = 5, 2
-            print_every_iter = 1000
+    # notify
+    if observer is not None:
+        observer.notify(f"Use {FP_type} forward kernel.")
+        observer.notify("")
 
     # --------------------------------------------------------------------------
     # Data
@@ -354,13 +338,19 @@ def train(
     elif batch_size > training_data_size:
         if observer is not None:
             observer.notify(
-                "ERROR: the batch size should be larger than training data size"
+                "ERROR: the batch size should not be larger than training data size"
             )
         return 0
     else:
         num_batches = len(train_dataloader)
 
     print(f"number of training batches: {num_batches}")
+
+    num_iter_training = num_epoch * num_batches
+    save_every_iter = int(num_iter_training * 0.1)
+    plot_every_iter = np.round(num_iter_training * 0.005)
+    print_every_iter = int(num_iter_training * 0.1)
+
     # --------------------------------------------------------------------------
 
     for i_epoch in range(num_epoch):
