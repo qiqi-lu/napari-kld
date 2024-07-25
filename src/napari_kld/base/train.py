@@ -17,7 +17,7 @@ def train(
     data_path,
     output_path,
     psf_path=None,
-    FP_path=None,
+    fp_path=None,
     num_channel=1,
     data_dim=3,
     num_iter=2,
@@ -171,11 +171,11 @@ def train(
             )
 
             # load froward projection model
-            FP_para = torch.load(FP_path, map_location=device)
+            FP_para = torch.load(fp_path, map_location=device)
             FP.load_state_dict(FP_para["model_state_dict"])
             FP.eval()
 
-            print("load forward projection model from: ", FP_path)
+            print("load forward projection model from: ", fp_path)
 
         if FP_type == "known":
             print("known PSF")
@@ -516,7 +516,7 @@ if __name__ == "__main__":
         data_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\train",
         output_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory",
         psf_path=None,
-        FP_path=None,
+        fp_path=None,
         num_channel=1,
         data_dim=2,
         num_iter=2,
