@@ -82,6 +82,3 @@ venv/
 
 # written by setuptools_scm
 **/_version.py
-
-# custom
-src/napari_kld/_tests/work_directory/checkpoints
