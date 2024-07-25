@@ -1,4 +1,5 @@
 import os
+import pathlib
 import time
 
 import numpy as np
@@ -17,6 +18,7 @@ def train(
     output_path,
     psf_path=None,
     FP_path=None,
+    num_channel=1,
     data_dim=3,
     num_iter=2,
     ks_z=1,
@@ -106,25 +108,32 @@ def train(
     # Data
     # --------------------------------------------------------------------------
     # Training data
-    print("load training data set from:", data_path)
-    hr_data_path = os.path.join(data_path, "gt")
-    lr_data_path = os.path.join(data_path, "raw")
-    hr_txt_file_path = os.path.join(data_path, "train.txt")
+    data_path = pathlib.Path(data_path)
+    print(
+        "load training data set from:",
+    )
+    hr_data_path = pathlib.Path(data_path, "gt")
+    lr_data_path = pathlib.Path(data_path, "raw")
+    hr_txt_file_path = pathlib.Path(data_path, "train.txt")
     lr_txt_file_path = hr_txt_file_path
-    in_channels = 1
+    in_channels = num_channel
+
+    if not os.path.exists(hr_txt_file_path):
+        print("ERROR: Training data does not exists.")
+        return 0
 
     # --------------------------------------------------------------------------
     # Training data
     training_data = dataset_utils.SRDataset(
-        hr_data_path=hr_data_path,
-        lr_data_path=lr_data_path,
+        hr_root_path=hr_data_path,
+        lr_root_path=lr_data_path,
         hr_txt_file_path=hr_txt_file_path,
         lr_txt_file_path=lr_txt_file_path,
         normalization=(False, False),
         id_range=id_range,
     )
 
-    training_data_size = training_data.data_size
+    training_data_size = training_data.__len__()
 
     train_dataloader = DataLoader(
         dataset=training_data,
@@ -282,27 +291,27 @@ def train(
         ).to(device)
 
     # --------------------------------------------------------------------------
-    eva.count_parameters(model)
+    info = eva.count_parameters(model)
     print(model)
-
-    # --------------------------------------------------------------------------
     # save
     if model_name == "kernet_fp":
         path_model = os.path.join(
             checkpoint_path,
-            "forward",
-            f"{model_name}_bs_{batch_size}_lr_{start_learning_rate}{model_suffix}",
+            f"forward_bs_{batch_size}_lr_{start_learning_rate}{model_suffix}",
         )
 
     if model_name == "kernet":
         path_model = os.path.join(
             checkpoint_path,
-            "backward",
-            f"{model_name}_bs_{batch_size}_lr_{start_learning_rate}{model_suffix}",
+            f"backward_bs_{batch_size}_lr_{start_learning_rate}{model_suffix}",
         )
 
     writer = SummaryWriter(os.path.join(path_model, "log"))
-    print(">> Save model to", path_model)
+    print("save model to", path_model)
+
+    if observer is not None:
+        observer.notify(info)
+        observer.notify(f"save model to {path_model}")
 
     # --------------------------------------------------------------------------
     # OPTIMIZATION
@@ -352,40 +361,32 @@ def train(
     print_every_iter = int(num_iter_training * 0.1)
 
     # --------------------------------------------------------------------------
-
+    print("Batch size: {batch_size} | Num of Batches: {num_batches}")
+    # --------------------------------------------------------------------------
     for i_epoch in range(num_epoch):
-        print("\n" + "-" * 80)
-        print(
-            f"Epoch: {i_epoch + 1}/{num_epoch} | Batch size: {batch_size} | Num of Batches: {num_batches}"
-        )
-        print("-" * 80)
-        # --------------------------------------------------------------------------
+        observer.process(i_epoch + 1)
         ave_ssim, ave_psnr = 0, 0
         print_loss, print_ssim, print_psnr = [], [], []
 
         start_time = time.time()
-        # --------------------------------------------------------------------------
         model.train()
-        # for i_batch, sample in enumerate(train_dataloader):
         for i_batch in range(num_batches):
             i_iter = i_batch + i_epoch * num_batches  # index of iteration
 
             if batch_size < training_data_size:
-                # load data
                 x = train_dataloader[i_batch]["lr"].to(device)
                 y = train_dataloader[i_batch]["hr"].to(device)
 
-            # if batch_size == training_data_size:
-
             if model_name == "kernet_fp":
                 inpt, gt = y, x
+
             if model_name == "kernet":
                 if self_supervised:
                     inpt, gt = x, x
                 else:
                     inpt, gt = x, y
 
-            # ----------------------------------------------------------------------
+            # ------------------------------------------------------------------
             # optimize
             if optimizer_type == "lbfgs":
                 # L-BFGS
@@ -410,12 +411,11 @@ def train(
                 loss.backward()
                 optimizer.step()
 
-            # ----------------------------------------------------------------------
+            # ------------------------------------------------------------------
             # custom learning rate scheduler
             if use_lr_schedule:
                 if (warm_up > 0) and (i_iter < warm_up):
                     lr = (i_iter + 1) / warm_up * scheduler_cus["lr"]
-                    # set learning rate
                     for g in optimizer.param_groups:
                         g["lr"] = lr
 
@@ -440,13 +440,9 @@ def train(
                     for g in optimizer.param_groups:
                         g["lr"] = scheduler_cus["lr"]
 
-            # ----------------------------------------------------------------------
-            if not multi_out:
-                out = pred
-            if multi_out:
-                out = pred[-1]
+            # ------------------------------------------------------------------
+            out = pred if not multi_out else pred[-1]
 
-            # ----------------------------------------------------------------------
             # plot loss and metrics
             if i_iter % plot_every_iter == 0:
                 if data_dim == 2:
@@ -467,7 +463,7 @@ def train(
                         i_iter,
                     )
 
-            # ----------------------------------------------------------------------
+            # ------------------------------------------------------------------
             # print and save model
             if data_dim == 2:
                 s, p = eva.measure_2d(
@@ -491,7 +487,7 @@ def train(
                 start_time = time.time()
                 print_loss, print_ssim, print_psnr = [], [], []
 
-            # ----------------------------------------------------------------------
+            # ------------------------------------------------------------------
             # save model and relative information
             if i_iter % save_every_iter == 0:
                 print(
@@ -512,3 +508,25 @@ def train(
     writer.flush()
     writer.close()
     print("Training done!")
+    if observer is not None:
+        observer.notify("[done]")
+
+
+if __name__ == "__main__":
+    train(
+        data_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\train",
+        output_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory",
+        psf_path=None,
+        FP_path=None,
+        num_channel=1,
+        data_dim=2,
+        num_iter=2,
+        ks_z=1,
+        ks_xy=31,
+        model_name="kernet_fp",  # "kernet" or "kernet_fp"
+        num_epoch=100,
+        batch_size=1,
+        self_supervised=False,
+        learning_rate=0.001,  # start learning rate
+        observer=None,
+    )

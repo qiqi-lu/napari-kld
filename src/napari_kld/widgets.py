@@ -346,8 +346,8 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         self.lr_box = QDoubleSpinBox()
         self.lr_box.setSingleStep(0.001)
         self.lr_box.setMinimum(0)
-        self.lr_box.setValue(0.001)
         self.lr_box.setDecimals(7)
+        self.lr_box.setValue(0.001)
         self.lr_box.valueChanged.connect(self._on_param_change)
         grid_layout.addWidget(self.lr_box, 3, 1, 1, 2)
 
@@ -425,18 +425,14 @@ class WorkerKLDeconvTrainFP(QObject):
 
     def run(self):
         print("worker run")
-        try:
-            train.train(
-                FP_path=None,
-                num_iter=1,
-                model_name="kernet_fp",
-                self_supervised=False,
-                observer=self.observer,
-                **self.params_dict,
-            )
-        except RuntimeError:
-            print("Run Filed.")
-            self.observer.progress("Run Filed.")
+        train.train(
+            FP_path=None,
+            num_iter=1,
+            model_name="kernet_fp",
+            self_supervised=False,
+            observer=self.observer,
+            **self.params_dict,
+        )
 
     def set_params(self, params_dict):
         self.params_dict = params_dict

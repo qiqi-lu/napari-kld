@@ -268,7 +268,7 @@ class KLDwidget(QWidget):
         self.layout().setContentsMargins(0, 0, 0, 0)
         # ----------------------------------------------------------------------
         logger = LogBox()
-        logger.set_text("log:")
+        logger.add_text("log:")
         self.layout().addWidget(WidgetKLDeconvTrain(logger=logger))
         self.layout().addWidget(WidgetKLDeconvPredict(viewer))
         self.layout().addWidget(logger)

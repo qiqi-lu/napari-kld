@@ -242,6 +242,6 @@ def count_parameters(model):
     trainbale_para = sum(
         p.numel() for p in model.parameters() if p.requires_grad
     )
-    print(
-        f"Total Parameters: {total_para:>10d}, Trainable Parameters: {trainbale_para:>10d}, Non-trainable Parameters: {total_para-trainbale_para:>10d}"
-    )
+    param_info = f"Total Parameters: {total_para:>10d}, Trainable Parameters: {trainbale_para:>10d}, Non-trainable Parameters: {total_para-trainbale_para:>10d}"
+    print(param_info)
+    return param_info
