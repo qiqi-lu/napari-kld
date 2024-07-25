@@ -245,6 +245,7 @@ class WidgetKLDeconvTrain(QGroupBox):
         self.channel_box = SpinBox(vmin=1, vmax=10, vinit=1)
         grid_layout.addWidget(self.channel_box, 3, 1, 1, 1)
         self.dim_box = QComboBox()
+        self.dim_box.currentTextChanged.connect(self._on_dim_change)
         self.dim_box.addItems(["3", "2"])
         grid_layout.addWidget(self.dim_box, 3, 2, 1, 1)
 
@@ -254,6 +255,9 @@ class WidgetKLDeconvTrain(QGroupBox):
         grid_layout.addWidget(self.bp_widget, 5, 0, 1, 3)
 
         # grid_layout.addWidget(QWidget(), 1, qtpy.QtCore.Qt.AlignTop)
+
+        # initialization
+        self._on_dim_change()
 
     def _on_psf_path_change(self):
         print("psf path change")
@@ -293,7 +297,7 @@ class WidgetKLDeconvTrain(QGroupBox):
             self.bp_widget.enable_run(False)
 
     def _on_dim_change(self):
-        dim = self.dim_box.text()
+        dim = self.dim_box.currentText()
         self.fp_widget.update_params_dict({"data_dim": int(dim)})
 
     def _on_channel_change(self):
@@ -425,14 +429,18 @@ class WorkerKLDeconvTrainFP(QObject):
 
     def run(self):
         print("worker run")
-        train.train(
-            FP_path=None,
-            num_iter=1,
-            model_name="kernet_fp",
-            self_supervised=False,
-            observer=self.observer,
-            **self.params_dict,
-        )
+        try:
+            train.train(
+                FP_path=None,
+                num_iter=1,
+                model_name="kernet_fp",
+                self_supervised=False,
+                observer=self.observer,
+                **self.params_dict,
+            )
+        except RuntimeError:
+            self.observer.notify("Run Failed.")
+        self.finish_signal.emit()
 
     def set_params(self, params_dict):
         self.params_dict = params_dict

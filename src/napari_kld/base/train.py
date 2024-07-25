@@ -361,10 +361,11 @@ def train(
     print_every_iter = int(num_iter_training * 0.1)
 
     # --------------------------------------------------------------------------
-    print("Batch size: {batch_size} | Num of Batches: {num_batches}")
+    print(f"Batch size: {batch_size} | Num of Batches: {num_batches}")
     # --------------------------------------------------------------------------
     for i_epoch in range(num_epoch):
-        observer.process(i_epoch + 1)
+        if observer is not None:
+            observer.progress(i_epoch + 1)
         ave_ssim, ave_psnr = 0, 0
         print_loss, print_ssim, print_psnr = [], [], []
 
@@ -389,9 +390,8 @@ def train(
             # ------------------------------------------------------------------
             # optimize
             if optimizer_type == "lbfgs":
-                # L-BFGS
-                loss = 0.0
-                pred = 0.0
+                # L-BFGS optimization
+                loss, pred = 0.0, 0.0
 
                 def closure(x, y):
                     global loss
@@ -476,11 +476,10 @@ def train(
             print_loss.append(loss.cpu().detach().numpy())
             print_ssim.append(s)
             print_psnr.append(p)
-            print("#", end="")
 
             if i_iter % print_every_iter == 0:
                 print(
-                    f"\nEpoch: {i_epoch}, Iter: {i_iter}, loss: {np.mean(print_loss):>.5f}, PSNR: {np.mean(print_psnr):>.5f},\
+                    f"Epoch: {i_epoch}, Iter: {i_iter}, loss: {np.mean(print_loss):>.5f}, PSNR: {np.mean(print_psnr):>.5f},\
                     SSIM: {np.mean(print_ssim):>.5f}"
                 )
                 print(f"Computation time: {time.time()-start_time:>.2f} s")
@@ -491,7 +490,7 @@ def train(
             # save model and relative information
             if i_iter % save_every_iter == 0:
                 print(
-                    f"\nSave model ... (Epoch: {i_epoch}, Iteration: {i_iter})"
+                    f"save model ... (Epoch: {i_epoch}, Iteration: {i_iter})"
                 )
                 model_dict = {"model_state_dict": model.state_dict()}
                 torch.save(
@@ -500,7 +499,7 @@ def train(
 
     # --------------------------------------------------------------------------
     # save the last one model
-    print(f"\nSave model ... (Epoch: {i_epoch}, Iteration: {i_iter+1})")
+    print(f"Save model ... (Epoch: {i_epoch}, Iteration: {i_iter+1})")
     model_dict = {"model_state_dict": model.state_dict()}
     torch.save(model_dict, os.path.join(path_model, f"epoch_{i_iter + 1}.pt"))
 
