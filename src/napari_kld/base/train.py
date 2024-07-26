@@ -47,16 +47,13 @@ def train(
         kernel_size_fp = [ks_z, ks_xy, ks_xy]
         kernel_size_bp = [ks_z, ks_xy, ks_xy]
 
+    # --------------------------------------------------------------------------
     scale_factor = 1
     data_range = None
     id_range = None
-
-    # --------------------------------------------------------------------------
-    #
     device, num_workers = torch.device("cpu"), 0
     # device, num_workers = torch.device("cpu"), 6
     # device, num_workers = torch.device("cuda"), 6
-
     conv_mode, padding_mode, kernel_init = "fft", "reflect", "gauss"
     interpolation = True
     kernel_norm_fp = False
