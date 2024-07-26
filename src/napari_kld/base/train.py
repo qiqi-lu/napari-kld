@@ -32,14 +32,22 @@ def train(
 ):
     # custom parameters
     torch.manual_seed(7)
-    if psf_path == "" and fp_path != "":
-        FP_type = "pre-trained"
+
+    # set type of FP
     if psf_path != "":
         FP_type = "known"
+    elif fp_path != "":
+        FP_type = "pre-trained"
 
     checkpoint_path = os.path.join(output_path, "checkpoints")
     if not os.path.exists(checkpoint_path):
         os.makedirs(checkpoint_path, exist_ok=True)
+    # --------------------------------------------------------------------------
+    # check pre-trained forward projection
+    if FP_type == "pre-trained":
+        # parse path of FP
+        pathlib.Path(fp_path)
+
 
     # kernel size setting
     if data_dim == 2:
@@ -102,8 +110,7 @@ def train(
     # --------------------------------------------------------------------------
     # notify
     if observer is not None:
-        observer.notify(f"Use {FP_type} forward kernel.")
-        observer.notify("")
+        observer.notify(f"Use {FP_type} forward projection.")
 
     # --------------------------------------------------------------------------
     # Data
@@ -148,10 +155,7 @@ def train(
     # --------------------------------------------------------------------------
     if model_name == "kernet":
         FP, BP = None, None
-        # FP_type, BP_type = 'pre-trained', None
-        # FP_type, BP_type = "known", None
-        # FP_type = "known"
-        # --------------------------------------------------------------------------
+
         if FP_type == "pre-trained":
             print("use pred-trained forward projection ...")
 
