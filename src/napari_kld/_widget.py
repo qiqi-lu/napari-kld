@@ -6,6 +6,7 @@ from qtpy.QtWidgets import (
     QLabel,
     QProgressBar,
     QPushButton,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -255,6 +256,25 @@ class KLDworker(QObject):
         self.finish_signal.emit()
 
 
+# class KLDwidget(QWidget):
+#     def __init__(self, viewer: napari.Viewer):
+#         super().__init__()
+
+#         self.thread = QThread()
+#         self._worker = RLDworker()
+#         self._observer = ProgressObserver()
+#         self._widgets = {}
+
+#         self.setLayout(QVBoxLayout())
+#         self.layout().setContentsMargins(0, 0, 0, 0)
+#         # ----------------------------------------------------------------------
+#         logger = LogBox()
+#         logger.add_text("log:")
+#         self.layout().addWidget(WidgetKLDeconvTrain(logger=logger))
+#         self.layout().addWidget(WidgetKLDeconvPredict(viewer))
+#         self.layout().addWidget(logger)
+
+
 class KLDwidget(QWidget):
     def __init__(self, viewer: napari.Viewer):
         super().__init__()
@@ -264,14 +284,35 @@ class KLDwidget(QWidget):
         self._observer = ProgressObserver()
         self._widgets = {}
 
-        self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
-        # ----------------------------------------------------------------------
         logger = LogBox()
-        logger.add_text("log:")
-        self.layout().addWidget(WidgetKLDeconvTrain(logger=logger))
-        self.layout().addWidget(WidgetKLDeconvPredict(viewer))
-        self.layout().addWidget(logger)
+
+        page_widget_train = QWidget()
+        page_layout_train = QVBoxLayout()
+        page_widget_train.setLayout(page_layout_train)
+        page_layout_train.addWidget(WidgetKLDeconvTrain(logger=logger))
+
+        page_widget_prediction = QWidget()
+        page_layout_prediction = QVBoxLayout()
+        page_widget_prediction.setLayout(page_layout_prediction)
+        page_layout_prediction.addWidget(WidgetKLDeconvPredict(viewer))
+        page_layout_prediction.addStretch()
+
+        page_widget_log = QWidget()
+        page_layout_log = QVBoxLayout()
+        page_widget_log.setLayout(page_layout_log)
+        page_layout_log.addWidget(logger)
+        page_layout_log.addStretch()
+
+        tabwidget = QTabWidget()
+        tabwidget.addTab(page_widget_train, "Training")
+        tabwidget.addTab(page_widget_prediction, "Prediction")
+        tabwidget.addTab(page_widget_log, "Log")
+        page_layout_log.addStretch()
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(tabwidget)
+        self.setLayout(layout)
 
 
 if __name__ == "__main__":
