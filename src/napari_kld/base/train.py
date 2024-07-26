@@ -31,6 +31,12 @@ def train(
     learning_rate=0.001,  # start learning rate
     observer=None,
 ):
+
+    def notify(value):
+        print(value)
+        if observer is not None:
+            observer.notify(value)
+
     # custom parameters
     torch.manual_seed(7)
 
@@ -103,16 +109,15 @@ def train(
 
     # --------------------------------------------------------------------------
     # notify
-    if observer is not None:
-        observer.notify(f"Use {FP_type} forward projection.")
+    notify(f"Use {FP_type} forward projection.")
 
     # --------------------------------------------------------------------------
     # Data
     # --------------------------------------------------------------------------
     # Training data
     data_path = pathlib.Path(data_path)
-    print(
-        "load training data set from:",
+    notify(
+        f"load training data set from: {data_path}",
     )
     hr_data_path = pathlib.Path(data_path, "gt")
     lr_data_path = pathlib.Path(data_path, "raw")
@@ -120,7 +125,7 @@ def train(
     lr_txt_file_path = hr_txt_file_path
 
     if not os.path.exists(hr_txt_file_path):
-        print("ERROR: Training data does not exists.")
+        notify("ERROR: Training data does not exists.")
         return 0
 
     # --------------------------------------------------------------------------
@@ -203,7 +208,7 @@ def train(
                 )
 
         if FP_type == "known":
-            print("known PSF")
+            notify("known PSF")
             PSF_true = io.imread(psf_path).astype(np.float32)
             PSF_true = torch.tensor(PSF_true[None, None]).to(device=device)
             PSF_true = torch.round(PSF_true, decimals=16)
@@ -274,9 +279,7 @@ def train(
                     )
                 return x_fp
 
-            print("load psf from :", psf_path)
-            if observer is not None:
-                observer.notify(f"load psf from {psf_path}")
+            notify(f"load psf from {psf_path}")
 
         # ----------------------------------------------------------------------
         # create whole algorithm
@@ -338,11 +341,9 @@ def train(
         )
 
     writer = SummaryWriter(os.path.join(path_model, "log"))
-    print("save model to", path_model)
+    notify(info)
+    notify(f"save model to {path_model}")
 
-    if observer is not None:
-        observer.notify(info)
-        observer.notify(f"save model to {path_model}")
 
     # --------------------------------------------------------------------------
     # OPTIMIZATION
@@ -358,7 +359,8 @@ def train(
             line_search_fn="strong_wolfe",
         )
 
-    print(">> Start training ... ")
+    print("start training ... ")
+    notify("start training ... ")
     print(time.asctime(time.localtime(time.time())))
 
     if self_supervised:
