@@ -397,9 +397,10 @@ def train(
     )
     # --------------------------------------------------------------------------
     for i_epoch in range(num_epoch):
-        if abort_flag[0]:
+        if abort_flag is not None and abort_flag[0]:
             notify("Abort!")
             return 0
+
         if observer is not None:
             observer.progress(i_epoch + 1)
         ave_ssim, ave_psnr = 0, 0

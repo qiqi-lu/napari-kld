@@ -332,10 +332,16 @@ class WorkerKLDeconvTrainFP(QObject):
                 model_name="kernet_fp",
                 self_supervised=False,
                 observer=self.observer,
-                abort_flag=self.abort_flag**self.params_dict,
+                abort_flag=self.abort_flag,
+                **self.params_dict,
             )
-        except (RuntimeError, TypeError):
+        except (RuntimeError, TypeError) as e:
+            print(e)
             self.observer.notify("Run Failed.")
+        self.finish_signal.emit()
+
+    def stop(self):
+        self.abort_flag[0] = True
         self.finish_signal.emit()
 
     def set_params(self, params_dict):
@@ -474,6 +480,7 @@ class WorkerKLDeconvTrainBP(QObject):
         super().__init__()
         self.observer = observer
         self.params_dict = {}
+        self.abort_flag = [False]
 
     def run(self):
         print("start training ...")
@@ -481,15 +488,21 @@ class WorkerKLDeconvTrainBP(QObject):
             train.train(
                 model_name="kernet",
                 observer=self.observer,
+                abort_flag=self.abort_flag,
                 **self.params_dict,
             )
-        except (RuntimeError, TypeError):
+            print("training done.")
+        except (RuntimeError, TypeError) as e:
+            print(e)
             self.observer.notify("Run Failed.")
-        print("training done.")
         self.finish_signal.emit()
 
     def set_params(self, params_dict):
         self.params_dict = params_dict
+
+    def stop(self):
+        self.abort_flag[0] = True
+        self.finish_signal.emit()
 
 
 class WidgetKLDeconvTrainBP(QGroupBox):
@@ -609,8 +622,8 @@ class WidgetKLDeconvTrainBP(QGroupBox):
         self._thread.start()
 
     def _on_click_stop(self):
-        print("user stops the thread.")
-        self._thread.exit()
+        print("user stops")
+        self._worker.stop()
 
     def enable_run(self, enable):
         self.run_btn.setEnabled(enable)
