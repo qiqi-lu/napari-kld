@@ -182,7 +182,7 @@ def train(
             # create forward projection model
             FP = kernelnet.ForwardProject(
                 dim=data_dim,
-                num_channel=num_channel,
+                in_channels=num_channel,
                 scale_factor=scale_factor,
                 kernel_size=kernel_size_fp,
                 std_init=std_init,
@@ -284,7 +284,7 @@ def train(
         # create whole algorithm
         model = kernelnet.KernelNet(
             dim=data_dim,
-            num_channel=num_channel,
+            in_channels=num_channel,
             scale_factor=scale_factor,
             num_iter=num_iter,
             kernel_size_fp=kernel_size_fp,
@@ -309,7 +309,7 @@ def train(
         # create fprward projection model
         model = kernelnet.ForwardProject(
             dim=data_dim,
-            num_channel=num_channel,
+            in_channels=num_channel,
             scale_factor=scale_factor,
             kernel_size=kernel_size_fp,
             std_init=std_init,
@@ -376,7 +376,9 @@ def train(
         x, y = x.to(device), y.to(device)
         num_batches = 1
     elif batch_size > training_data_size:
-        notify("ERROR: the batch size should not be larger than training data size.")
+        notify(
+            "ERROR: the batch size should not be larger than training data size."
+        )
         return 0
     else:
         num_batches = len(train_dataloader)
@@ -389,7 +391,9 @@ def train(
     print_every_iter = int(num_iter_training * 0.1)
 
     # --------------------------------------------------------------------------
-    notify(f"Batch size: {batch_size} | Num of Batches: {num_batches}")
+    notify(
+        f"Epoch: {num_epoch} | Batch size: {batch_size} | Num of Batches: {num_batches}"
+    )
     # --------------------------------------------------------------------------
     for i_epoch in range(num_epoch):
         if observer is not None:
@@ -507,8 +511,7 @@ def train(
 
             if i_iter % print_every_iter == 0:
                 notify(
-                    f"Epoch: {i_epoch}, Iter: {i_iter}, loss: {np.mean(print_loss):>.5f}, PSNR: {np.mean(print_psnr):>.5f},\
-                    SSIM: {np.mean(print_ssim):>.5f}"
+                    f"Epoch: {i_epoch}, Iter: {i_iter}, loss: {np.mean(print_loss):>.5f}, PSNR: {np.mean(print_psnr):>.5f}, SSIM: {np.mean(print_ssim):>.5f}"
                 )
                 notify(f"Computation time: {time.time()-start_time:>.2f} s")
                 start_time = time.time()
@@ -527,7 +530,7 @@ def train(
 
     # --------------------------------------------------------------------------
     # save the last one model
-    print(f"Save model ... (Epoch: {i_epoch}, Iteration: {i_iter+1})")
+    notify(f"Save model ... (Epoch: {i_epoch}, Iteration: {i_iter+1})")
     model_dict = {"model_state_dict": model.state_dict()}
     torch.save(model_dict, os.path.join(path_model, f"epoch_{i_iter + 1}.pt"))
 
@@ -552,13 +555,14 @@ def train(
     writer.close()
     notify("Training done!")
 
+
 if __name__ == "__main__":
     # forward projection training
     # train(
     #     data_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\train",
     #     output_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory",
-    #     psf_path=None,
-    #     fp_path=None,
+    #     psf_path='',
+    #     fp_path='',
     #     num_channel=1,
     #     data_dim=2,
     #     num_iter=2,
@@ -576,7 +580,7 @@ if __name__ == "__main__":
     train(
         data_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\train",
         output_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory",
-        psf_path=None,
+        psf_path="",
         fp_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\checkpoints\\forward_bs_1_lr_0.001_ks_1_31\\epoch_100.pt",
         num_channel=1,
         data_dim=2,

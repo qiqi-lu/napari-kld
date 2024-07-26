@@ -1,3 +1,5 @@
+import pathlib
+
 from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import (
     QDoubleSpinBox,
@@ -30,7 +32,12 @@ class FileSelectWidget(QWidget):
         layout.addWidget(btn_browse)
 
     def _on_browse(self):
-        file = QFileDialog.getOpenFileName(self, "Open a PSF file", "", "*.*")
+        init_directory = pathlib.Path(
+            pathlib.Path.cwd(), "src\\napari_kld\\_tests\\work_directory"
+        )
+        file = QFileDialog.getOpenFileName(
+            self, "Open a PSF file", str(init_directory), "*.*"
+        )
         if file != "":
             self.path_edit.setText(file[0])
 
@@ -44,8 +51,11 @@ class DirectorySelectWidget(FileSelectWidget):
         super().__init__()
 
     def _on_browse(self):
+        init_directory = pathlib.Path(
+            pathlib.Path.cwd(), "src\\napari_kld\\_tests\\work_directory"
+        )
         directory = QFileDialog.getExistingDirectory(
-            self, "Select a working dictionary", ""
+            self, "Select a working dictionary", init_directory
         )
         if directory != "":
             self.path_edit.setText(directory)

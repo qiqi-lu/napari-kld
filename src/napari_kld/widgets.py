@@ -249,6 +249,7 @@ class WidgetKLDeconvTrain(QGroupBox):
 
         grid_layout.addWidget(QLabel("Image Channels/Dimension"), 3, 0, 1, 1)
         self.channel_box = SpinBox(vmin=1, vmax=10, vinit=1)
+        self.channel_box.valueChanged.connect(self._on_channel_change)
         grid_layout.addWidget(self.channel_box, 3, 1, 1, 1)
         self.dim_box = QComboBox()
         self.dim_box.currentTextChanged.connect(self._on_dim_change)
@@ -264,6 +265,7 @@ class WidgetKLDeconvTrain(QGroupBox):
         print("psf path change")
         psf_path = self.psf_directory_widget.get_path()
         self.fp_widget.update_params_dict({"psf_path": psf_path})
+        self.bp_widget.update_params_dict({"psf_path": psf_path})
 
         if psf_path != "":
             self.fp_widget.setVisible(False)
@@ -277,12 +279,14 @@ class WidgetKLDeconvTrain(QGroupBox):
         print("output path change")
         path = self.output_directory_widget.get_path()
         self.fp_widget.update_params_dict({"output_path": path})
+        self.bp_widget.update_params_dict({"output_path": path})
 
     def _on_data_path_change(self):
         print("data path change")
         path = self.data_directory_widget.get_path()
 
         self.fp_widget.update_params_dict({"data_path": path})
+        self.bp_widget.update_params_dict({"data_path": path})
 
         if path != "":
             # check path exist
@@ -299,11 +303,15 @@ class WidgetKLDeconvTrain(QGroupBox):
 
     def _on_dim_change(self):
         dim = self.dim_box.currentText()
+        print(f"data dimension change to {int(dim)}")
         self.fp_widget.update_params_dict({"data_dim": int(dim)})
+        self.bp_widget.update_params_dict({"data_dim": int(dim)})
 
     def _on_channel_change(self):
         num_channel = self.channel_box.value()
+        print(f"data channel change to {num_channel}")
         self.fp_widget.update_params_dict({"num_channel": num_channel})
+        self.bp_widget.update_params_dict({"num_channel": num_channel})
 
 
 class WorkerKLDeconvTrainFP(QObject):
@@ -325,7 +333,7 @@ class WorkerKLDeconvTrainFP(QObject):
                 observer=self.observer,
                 **self.params_dict,
             )
-        except RuntimeError:
+        except (RuntimeError, TypeError):
             self.observer.notify("Run Failed.")
         self.finish_signal.emit()
 
@@ -351,7 +359,7 @@ class WidgetKLDeconvTrainFP(QGroupBox):
 
         self._observer = ProgressObserver()
         self._worker = WorkerKLDeconvTrainFP(self._observer)
-        self.thread = QThread()
+        self._thread = QThread()
         self.logger = logger
 
         self.setTitle("Forward Projection")
@@ -360,8 +368,11 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Epoch/Batch Size"), 1, 0, 1, 1)
         self.epoch_box = SpinBox(vmin=1, vmax=10000, vinit=100)
+        self.epoch_box.valueChanged.connect(self._on_param_change)
         grid_layout.addWidget(self.epoch_box, 1, 1, 1, 1)
+
         self.bs_box = SpinBox(vmin=1, vmax=1000, vinit=1)
+        self.bs_box.valueChanged.connect(self._on_param_change)
         grid_layout.addWidget(self.bs_box, 1, 2, 1, 1)
 
         # ----------------------------------------------------------------------
@@ -370,6 +381,7 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         self.ks_box_z.setSingleStep(2)
         self.ks_box_z.valueChanged.connect(self._on_param_change)
         grid_layout.addWidget(self.ks_box_z, 2, 1, 1, 1)
+
         self.ks_box_xy = SpinBox(vmin=3, vmax=999, vinit=31)
         self.ks_box_xy.setSingleStep(2)
         self.ks_box_xy.valueChanged.connect(self._on_param_change)
@@ -397,19 +409,23 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         # ----------------------------------------------------------------------
         # init
         self.enable_run(False)
+        self._on_param_change()
 
         # ----------------------------------------------------------------------
         # connect
-        self._worker.moveToThread(self.thread)
-        self.thread.started.connect(self._worker.run)
-        self._worker.finish_signal.connect(self.thread.quit)
+        self._worker.moveToThread(self._thread)
+        self._thread.started.connect(self._worker.run)
+        self._worker.finish_signal.connect(self._thread.quit)
         self._observer.progress_signal.connect(self._on_progress)
         self._observer.notify_signal.connect(self._on_notify)
 
     def _on_click_run(self):
         print("run")
+        self._on_notify("Parameters: ")
+        for item in self.params_dict:
+            self._on_notify(f"{item} : {self.params_dict[item]}")
         self._worker.set_params(self.params_dict)
-        self.thread.start()
+        self._thread.start()
 
     def enable_run(self, enable):
         self.run_btn.setEnabled(enable)
@@ -459,15 +475,16 @@ class WorkerKLDeconvTrainBP(QObject):
         self.params_dict = {}
 
     def run(self):
-        print("worker run")
+        print("start training ...")
         try:
             train.train(
                 model_name="kernet",
                 observer=self.observer,
                 **self.params_dict,
             )
-        except RuntimeError:
+        except (RuntimeError, TypeError):
             self.observer.notify("Run Failed.")
+        print("training done.")
         self.finish_signal.emit()
 
     def set_params(self, params_dict):
@@ -478,11 +495,11 @@ class WidgetKLDeconvTrainBP(QGroupBox):
     def __init__(self, logger=None):
         super().__init__()
         self.params_dict = {
-            "output_path": "",
             "data_path": "",
+            "output_path": "",
             "psf_path": "",
             "fp_path": "",
-            "num_channel": 3,
+            "num_channel": 1,
             "data_dim": 3,
             "num_iter": 2,
             "ks_z": 1,
@@ -495,7 +512,7 @@ class WidgetKLDeconvTrainBP(QGroupBox):
 
         self._observer = ProgressObserver()
         self._worker = WorkerKLDeconvTrainBP(self._observer)
-        self.thread = QThread()
+        self._thread = QThread()
         self.logger = logger
 
         self.setTitle("Backward Projection")
@@ -515,13 +532,17 @@ class WidgetKLDeconvTrainBP(QGroupBox):
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Iterations (RL):"), 1, 0, 1, 1)
         self.iteration_box_rl = SpinBox(vmin=1, vmax=99, vinit=2)
+        self.iteration_box_rl.valueChanged.connect(self._on_param_change)
         grid_layout.addWidget(self.iteration_box_rl, 1, 1, 1, 2)
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Epoch/Batch Size"), 2, 0, 1, 1)
         self.epoch_box = SpinBox(vmin=1, vmax=10000, vinit=100)
+        self.epoch_box.valueChanged.connect(self._on_param_change)
         grid_layout.addWidget(self.epoch_box, 2, 1, 1, 1)
+
         self.bs_box = SpinBox(vmin=1, vmax=1000, vinit=1)
+        self.bs_box.valueChanged.connect(self._on_param_change)
         grid_layout.addWidget(self.bs_box, 2, 2, 1, 1)
 
         # ----------------------------------------------------------------------
@@ -530,6 +551,7 @@ class WidgetKLDeconvTrainBP(QGroupBox):
         self.ks_box_z.setSingleStep(2)
         self.ks_box_z.valueChanged.connect(self._on_param_change)
         grid_layout.addWidget(self.ks_box_z, 3, 1, 1, 1)
+
         self.ks_box_xy = SpinBox(vmin=3, vmax=999, vinit=31)
         self.ks_box_xy.setSingleStep(2)
         self.ks_box_xy.valueChanged.connect(self._on_param_change)
@@ -553,8 +575,12 @@ class WidgetKLDeconvTrainBP(QGroupBox):
 
         # ----------------------------------------------------------------------
         self.run_btn = QPushButton("run")
-        grid_layout.addWidget(self.run_btn, 6, 0, 1, 3)
+        grid_layout.addWidget(self.run_btn, 6, 0, 1, 2)
         self.run_btn.clicked.connect(self._on_click_run)
+
+        self.stop_btn = QPushButton("stop")
+        grid_layout.addWidget(self.stop_btn, 6, 2, 1, 1)
+        self.stop_btn.clicked.connect(self._on_click_stop)
 
         self.progress_bar = QProgressBar()
         grid_layout.addWidget(self.progress_bar, 7, 0, 1, 3)
@@ -562,17 +588,28 @@ class WidgetKLDeconvTrainBP(QGroupBox):
         # ----------------------------------------------------------------------
         # init
         self.enable_run(False)
+        self._on_param_change()
 
         # ----------------------------------------------------------------------
         # connect
-        self._worker.moveToThread(self.thread)
-        self.thread.started.connect(self._worker.run)
-        self._worker.finish_signal.connect(self.thread.quit)
+        self._worker.moveToThread(self._thread)
+        self._thread.started.connect(self._worker.run)
+        self._worker.finish_signal.connect(self._thread.quit)
         self._observer.progress_signal.connect(self._on_progress)
         self._observer.notify_signal.connect(self._on_notify)
 
     def _on_click_run(self):
-        print("run")
+        print("[BP run]")
+        self._on_notify("Parameters: ")
+        for item in self.params_dict:
+            self._on_notify(f"{item} : {self.params_dict[item]}")
+        self._thread.quit()
+        self._worker.set_params(self.params_dict)
+        self._thread.start()
+
+    def _on_click_stop(self):
+        print("user stops the thread.")
+        self._thread.exit()
 
     def enable_run(self, enable):
         self.run_btn.setEnabled(enable)
@@ -588,6 +625,12 @@ class WidgetKLDeconvTrainBP(QGroupBox):
         self.params_dict.update(path_dict)
 
     def _on_param_change(self):
+        num_iter = self.iteration_box_rl.value()
+        num_epoch = self.epoch_box.value()
+        batch_size = self.bs_box.value()
+        learning_rate = self.learning_rate_box.value()
+        fp_path = self.fp_path_box.get_path()
+
         ks_z = self.ks_box_z.value()
         if (ks_z % 2) == 0:
             ks_z += 1
@@ -598,21 +641,20 @@ class WidgetKLDeconvTrainBP(QGroupBox):
             ks_xy += 1
             self.ks_box_xy.setValue(ks_xy)
 
-        fp_path = self.fp_path_box.get_path()
-
         training_strategy = self.training_strategy_box.currentText()
         if training_strategy == "self-supervised learning":
             self_supervised = True
         else:
             self_supervised = False
 
-        learning_rate = self.learning_rate_box.value()
-
         self.params_dict.update(
             {
+                "fp_path": fp_path,
+                "num_iter": num_iter,
                 "ks_z": ks_z,
                 "ks_xy": ks_xy,
-                "fp_path": fp_path,
+                "num_epoch": num_epoch,
+                "batch_size": batch_size,
                 "self_supervised": self_supervised,
                 "learning_rate": learning_rate,
             }
@@ -626,7 +668,7 @@ class WidgetKLDeconvPredict(QGroupBox):
         self.viewer.layers.events.inserted.connect(self._on_change_layer)
         self.viewer.layers.events.removed.connect(self._on_change_layer)
 
-        self.thread = QThread()
+        self._thread = QThread()
         self._observer = ProgressObserver()
 
         self.setTitle("Predict")

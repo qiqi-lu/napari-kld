@@ -256,25 +256,6 @@ class KLDworker(QObject):
         self.finish_signal.emit()
 
 
-# class KLDwidget(QWidget):
-#     def __init__(self, viewer: napari.Viewer):
-#         super().__init__()
-
-#         self.thread = QThread()
-#         self._worker = RLDworker()
-#         self._observer = ProgressObserver()
-#         self._widgets = {}
-
-#         self.setLayout(QVBoxLayout())
-#         self.layout().setContentsMargins(0, 0, 0, 0)
-#         # ----------------------------------------------------------------------
-#         logger = LogBox()
-#         logger.add_text("log:")
-#         self.layout().addWidget(WidgetKLDeconvTrain(logger=logger))
-#         self.layout().addWidget(WidgetKLDeconvPredict(viewer))
-#         self.layout().addWidget(logger)
-
-
 class KLDwidget(QWidget):
     def __init__(self, viewer: napari.Viewer):
         super().__init__()
