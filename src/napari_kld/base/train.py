@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 import time
@@ -33,7 +34,6 @@ def train(
     # custom parameters
     torch.manual_seed(7)
 
-    # set type of FP
     if psf_path != "":
         FP_type = "known"
     elif fp_path != "":
@@ -43,11 +43,6 @@ def train(
     if not os.path.exists(checkpoint_path):
         os.makedirs(checkpoint_path, exist_ok=True)
     # --------------------------------------------------------------------------
-    # check pre-trained forward projection
-    if FP_type == "pre-trained":
-        # parse path of FP
-        pathlib.Path(fp_path)
-
     # kernel size setting
     if data_dim == 2:
         kernel_size_fp = (ks_xy,) * 2
@@ -123,7 +118,6 @@ def train(
     lr_data_path = pathlib.Path(data_path, "raw")
     hr_txt_file_path = pathlib.Path(data_path, "train.txt")
     lr_txt_file_path = hr_txt_file_path
-    in_channels = num_channel
 
     if not os.path.exists(hr_txt_file_path):
         print("ERROR: Training data does not exists.")
@@ -158,10 +152,33 @@ def train(
         if FP_type == "pre-trained":
             print("use pred-trained forward projection ...")
 
-            # load FP parameters
+            # check the parameters of pre-trained forward projection
+            parent = pathlib.Path(fp_path).parent
+            with open(pathlib.Path(parent, "parameters.json")) as f:
+                params_fp = json.load(f)
+            if params_fp["data_dim"] != data_dim:
+                data_dim_pre = params_fp["data_dim"]
+                print(
+                    f"ERROR: training data dim of FP is {data_dim_pre}, current data dim is {data_dim}"
+                )
+                return 0
+            if params_fp["num_channel"] != num_channel:
+                num_channel_pre = params_fp["num_channel"]
+                print(
+                    f"ERROR: training data channel of FP is {num_channel_pre}, current data channel is {num_channel}"
+                )
+                return 0
+            if params_fp["ks_z"] != ks_z or params_fp["ks_xy"] != ks_xy:
+                ks_z_pre, ks_xy_pre = params_fp["ks_z"], params_fp["ks_xy"]
+                print(
+                    f"ERROR: kernel size of pre-trained FP is ({ks_z_pre}, {ks_xy_pre}), current kernel size is ({ks_z}, {ks_xy})"
+                )
+                return 0
+
+            # create forward projection model
             FP = kernelnet.ForwardProject(
                 dim=data_dim,
-                in_channels=in_channels,
+                num_channel=num_channel,
                 scale_factor=scale_factor,
                 kernel_size=kernel_size_fp,
                 std_init=std_init,
@@ -174,90 +191,79 @@ def train(
                 conv_mode=conv_mode,
             )
 
-            # load froward projection model
+            # load weights of froward projection model
             FP_para = torch.load(fp_path, map_location=device)
             FP.load_state_dict(FP_para["model_state_dict"])
             FP.eval()
 
             print("load forward projection model from: ", fp_path)
+            if observer is not None:
+                observer.notify(
+                    f"load forward projection model from: {fp_path}"
+                )
 
         if FP_type == "known":
             print("known PSF")
-            if data_dim == 2:
-                ks, std = 25, 2.0
-                ker = kernelnet.gauss_kernel_2d(shape=[ks, ks], std=std).to(
-                    device=device
-                )
-                ker = ker.repeat(repeats=(in_channels, 1, 1, 1))
+            PSF_true = io.imread(psf_path).astype(np.float32)
+            PSF_true = torch.tensor(PSF_true[None, None]).to(device=device)
+            PSF_true = torch.round(PSF_true, decimals=16)
+            ks = PSF_true.shape
 
-                def padd_fp(x):
-                    return torch.nn.functional.pad(
-                        input=x,
-                        pad=(ks // 2, ks // 2, ks // 2, ks // 2),
-                        mode=padding_mode,
+            def padd_fp(x):
+                if data_dim == 3:
+                    pad_size = (
+                        ks[-1] // 2,
+                        ks[-1] // 2,
+                        ks[-2] // 2,
+                        ks[-2] // 2,
+                        ks[-3] // 2,
+                        ks[-3] // 2,
                     )
+                if data_dim == 2:
+                    pad_size = (
+                        ks[-1] // 2,
+                        ks[-1] // 2,
+                        ks[-2] // 2,
+                        ks[-2] // 2,
+                    )
+                x_pad = torch.nn.functional.pad(
+                    input=x,
+                    pad=pad_size,
+                    mode=padding_mode,
+                )
+                return x_pad
+
+            if conv_mode == "direct":
 
                 def conv_fp(x):
-                    return torch.nn.functional.conv2d(
-                        input=padd_fp(x), weight=ker, groups=in_channels
+                    return torch.nn.functional.conv3d(
+                        input=padd_fp(x),
+                        weight=PSF_true,
+                        groups=num_channel,
                     )
 
-                def FP(x):
-                    return torch.nn.functional.avg_pool2d(
-                        conv_fp(x), kernel_size=25, stride=scale_factor
+            if conv_mode == "fft":
+
+                def conv_fp(x):
+                    return fft_conv(
+                        signal=padd_fp(x),
+                        kernel=PSF_true,
+                        groups=num_channel,
                     )
 
-            if data_dim == 3:
-                PSF_true = io.imread(psf_path).astype(np.float32)
-                PSF_true = torch.tensor(PSF_true[None, None]).to(device=device)
-                PSF_true = torch.round(PSF_true, decimals=16)
-                ks = PSF_true.shape
+            def FP(x):
+                return torch.nn.functional.avg_pool3d(
+                    conv_fp(x),
+                    kernel_size=scale_factor,
+                    stride=scale_factor,
+                )
 
-                def padd_fp(x):
-                    return torch.nn.functional.pad(
-                        input=x,
-                        pad=(
-                            ks[-1] // 2,
-                            ks[-1] // 2,
-                            ks[-2] // 2,
-                            ks[-2] // 2,
-                            ks[-3] // 2,
-                            ks[-3] // 2,
-                        ),
-                        mode=padding_mode,
-                    )
-
-                if conv_mode == "direct":
-
-                    def conv_fp(x):
-                        return torch.nn.functional.conv3d(
-                            input=padd_fp(x),
-                            weight=PSF_true,
-                            groups=in_channels,
-                        )
-
-                if conv_mode == "fft":
-
-                    def conv_fp(x):
-                        return fft_conv(
-                            signal=padd_fp(x),
-                            kernel=PSF_true,
-                            groups=in_channels,
-                        )
-
-                def FP(x):
-                    return torch.nn.functional.avg_pool3d(
-                        conv_fp(x),
-                        kernel_size=scale_factor,
-                        stride=scale_factor,
-                    )
-
-                print(">> Load from :", psf_path)
+            print(">> Load from :", psf_path)
 
         # --------------------------------------------------------------------------
         model = kernelnet.KernelNet(
             dim=data_dim,
-            in_channels=in_channels,
+            num_channel=num_channel,
             scale_factor=scale_factor,
             num_iter=num_iter,
             kernel_size_fp=kernel_size_fp,
@@ -281,7 +287,7 @@ def train(
     if model_name == "kernet_fp":
         model = kernelnet.ForwardProject(
             dim=data_dim,
-            in_channels=in_channels,
+            num_channel=num_channel,
             scale_factor=scale_factor,
             kernel_size=kernel_size_fp,
             std_init=std_init,
@@ -506,6 +512,22 @@ def train(
     print(f"Save model ... (Epoch: {i_epoch}, Iteration: {i_iter+1})")
     model_dict = {"model_state_dict": model.state_dict()}
     torch.save(model_dict, os.path.join(path_model, f"epoch_{i_iter + 1}.pt"))
+
+    # save parameters
+    parameters_dict = {
+        "num_channel": num_channel,
+        "data_dim": data_dim,
+        "num_iter": num_iter,
+        "ks_z": ks_z,
+        "ks_xy": ks_xy,
+        "model_name": "kernet_fp",  # "kernet" or "kernet_fp"
+        "num_epoch": num_epoch,
+        "batch_size": batch_size,
+        "self_supervised": self_supervised,
+        "learning_rate": learning_rate,  # start learning rate
+    }
+    with open(os.path.join(path_model, "parameters.json"), "w") as f:
+        f.write(json.dumps(parameters_dict))
 
     # --------------------------------------------------------------------------
     writer.flush()
