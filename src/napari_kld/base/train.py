@@ -32,9 +32,9 @@ def train(
 ):
     # custom parameters
     torch.manual_seed(7)
-    if psf_path == '' and fp_path != '':
+    if psf_path == "" and fp_path != "":
         FP_type = "pre-trained"
-    if psf_path != '':
+    if psf_path != "":
         FP_type = "known"
 
     checkpoint_path = os.path.join(output_path, "checkpoints")
