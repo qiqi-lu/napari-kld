@@ -406,8 +406,12 @@ class WidgetKLDeconvTrainFP(QGroupBox):
 
         # ----------------------------------------------------------------------
         self.run_btn = QPushButton("run")
-        grid_layout.addWidget(self.run_btn, 4, 0, 1, 3)
+        grid_layout.addWidget(self.run_btn, 4, 0, 1, 2)
         self.run_btn.clicked.connect(self._on_click_run)
+
+        self.stop_btn = QPushButton("stop")
+        grid_layout.addWidget(self.stop_btn, 4, 2, 1, 1)
+        self.stop_btn.clicked.connect(self._on_click_stop)
 
         # ----------------------------------------------------------------------
         self.progress_bar = QProgressBar()
@@ -433,6 +437,9 @@ class WidgetKLDeconvTrainFP(QGroupBox):
             self._on_notify(f"{item} : {self.params_dict[item]}")
         self._worker.set_params(self.params_dict)
         self._thread.start()
+
+    def _on_click_stop(self):
+        self._worker.stop()
 
     def enable_run(self, enable):
         self.run_btn.setEnabled(enable)
@@ -639,6 +646,7 @@ class WidgetKLDeconvTrainBP(QGroupBox):
         self.params_dict.update(path_dict)
 
     def _on_param_change(self):
+        self.progress_bar.setValue(0)
         num_iter = self.iteration_box_rl.value()
         num_epoch = self.epoch_box.value()
         batch_size = self.bs_box.value()
