@@ -288,7 +288,6 @@ class KLDwidget(QWidget):
         tabwidget.addTab(page_widget_train, "Training")
         tabwidget.addTab(page_widget_prediction, "Prediction")
         tabwidget.addTab(page_widget_log, "Log")
-        page_layout_log.addStretch()
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)

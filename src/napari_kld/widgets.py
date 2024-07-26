@@ -321,6 +321,7 @@ class WorkerKLDeconvTrainFP(QObject):
         super().__init__()
         self.observer = observer
         self.params_dict = {}
+        self.abort_flag = [False]
 
     def run(self):
         print("worker run")
@@ -331,7 +332,7 @@ class WorkerKLDeconvTrainFP(QObject):
                 model_name="kernet_fp",
                 self_supervised=False,
                 observer=self.observer,
-                **self.params_dict,
+                abort_flag=self.abort_flag**self.params_dict,
             )
         except (RuntimeError, TypeError):
             self.observer.notify("Run Failed.")

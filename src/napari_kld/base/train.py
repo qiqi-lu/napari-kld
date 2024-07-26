@@ -30,6 +30,7 @@ def train(
     self_supervised=False,
     learning_rate=0.001,  # start learning rate
     observer=None,
+    abort_flag=None,
 ):
 
     def notify(value):
@@ -396,6 +397,9 @@ def train(
     )
     # --------------------------------------------------------------------------
     for i_epoch in range(num_epoch):
+        if abort_flag[0]:
+            notify("Abort!")
+            return 0
         if observer is not None:
             observer.progress(i_epoch + 1)
         ave_ssim, ave_psnr = 0, 0
