@@ -32,7 +32,10 @@ def train(
 ):
     # custom parameters
     torch.manual_seed(7)
-    FP_type = "pre-trained" if psf_path == "" else "known"
+    if psf_path == '' and fp_path != '':
+        FP_type = "pre-trained"
+    if psf_path != '':
+        FP_type = "known"
 
     checkpoint_path = os.path.join(output_path, "checkpoints")
     if not os.path.exists(checkpoint_path):
@@ -66,6 +69,7 @@ def train(
         std_init = [4.0, 2.0, 2.0]
 
     # --------------------------------------------------------------------------
+    # forward projection
     if model_name == "kernet_fp":
         model_suffix = f"_ks_{ks_z}_{ks_xy}"
         multi_out = False
@@ -75,6 +79,7 @@ def train(
         optimizer_type, start_learning_rate = "adam", learning_rate
         # optimizer_type, start_learning_rate = 'lbfgs', 1
 
+    # backward projection
     if model_name == "kernet":
         lam, multi_out, shared_bp = 0.0, False, True
         ss_marker = "_ss" if self_supervised else ""
@@ -95,7 +100,6 @@ def train(
     scheduler_cus["min"] = 0.00000001
 
     # --------------------------------------------------------------------------
-
     # notify
     if observer is not None:
         observer.notify(f"Use {FP_type} forward kernel.")
@@ -509,20 +513,40 @@ def train(
 
 
 if __name__ == "__main__":
+    # forward projection training
+    # train(
+    #     data_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\train",
+    #     output_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory",
+    #     psf_path=None,
+    #     fp_path=None,
+    #     num_channel=1,
+    #     data_dim=2,
+    #     num_iter=2,
+    #     ks_z=1,
+    #     ks_xy=31,
+    #     model_name="kernet_fp",  # "kernet" or "kernet_fp"
+    #     num_epoch=100,
+    #     batch_size=1,
+    #     self_supervised=False,
+    #     learning_rate=0.001,  # start learning rate
+    #     observer=None,
+    # )
+
+    # backward projection training
     train(
         data_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\train",
         output_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory",
         psf_path=None,
-        fp_path=None,
+        fp_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\checkpoints\\forward_bs_1_lr_0.001_ks_1_31\\epoch_100.pt",
         num_channel=1,
         data_dim=2,
         num_iter=2,
         ks_z=1,
         ks_xy=31,
-        model_name="kernet_fp",  # "kernet" or "kernet_fp"
+        model_name="kernet",  # "kernet" or "kernet_fp"
         num_epoch=100,
         batch_size=1,
         self_supervised=False,
-        learning_rate=0.001,  # start learning rate
+        learning_rate=0.00001,  # start learning rate
         observer=None,
     )
