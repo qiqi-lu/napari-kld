@@ -236,11 +236,19 @@ def train(
             if conv_mode == "direct":
 
                 def conv_fp(x):
-                    return torch.nn.functional.conv3d(
-                        input=padd_fp(x),
-                        weight=PSF_true,
-                        groups=num_channel,
-                    )
+                    if data_dim == 3:
+                        x_conv = torch.nn.functional.conv3d(
+                            input=padd_fp(x),
+                            weight=PSF_true,
+                            groups=num_channel,
+                        )
+                    if data_dim == 2:
+                        x_conv = torch.nn.functional.conv2d(
+                            input=padd_fp(x),
+                            weight=PSF_true,
+                            groups=num_channel,
+                        )
+                    return x_conv
 
             if conv_mode == "fft":
 
