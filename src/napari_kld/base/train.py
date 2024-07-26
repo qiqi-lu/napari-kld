@@ -260,15 +260,26 @@ def train(
                     )
 
             def FP(x):
-                return torch.nn.functional.avg_pool3d(
-                    conv_fp(x),
-                    kernel_size=scale_factor,
-                    stride=scale_factor,
-                )
+                if data_dim == 3:
+                    x_fp = torch.nn.functional.avg_pool3d(
+                        conv_fp(x),
+                        kernel_size=scale_factor,
+                        stride=scale_factor,
+                    )
+                if data_dim == 2:
+                    x_fp = torch.nn.functional.avg_pool2d(
+                        conv_fp(x),
+                        kernel_size=scale_factor,
+                        stride=scale_factor,
+                    )
+                return x_fp
 
-            print(">> Load from :", psf_path)
+            print("load psf from :", psf_path)
+            if observer is not None:
+                observer.notify(f"load psf from {psf_path}")
 
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
+        # create whole algorithm
         model = kernelnet.KernelNet(
             dim=data_dim,
             num_channel=num_channel,
@@ -293,6 +304,7 @@ def train(
 
     # --------------------------------------------------------------------------
     if model_name == "kernet_fp":
+        # create fprward projection model
         model = kernelnet.ForwardProject(
             dim=data_dim,
             num_channel=num_channel,
@@ -311,6 +323,7 @@ def train(
     # --------------------------------------------------------------------------
     info = eva.count_parameters(model)
     print(model)
+
     # save
     if model_name == "kernet_fp":
         path_model = os.path.join(
