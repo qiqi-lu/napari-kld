@@ -48,7 +48,6 @@ def train(
         # parse path of FP
         pathlib.Path(fp_path)
 
-
     # kernel size setting
     if data_dim == 2:
         kernel_size_fp = (ks_xy,) * 2
