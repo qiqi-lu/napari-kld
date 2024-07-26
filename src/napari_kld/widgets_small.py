@@ -55,7 +55,7 @@ class DirectorySelectWidget(FileSelectWidget):
             pathlib.Path.cwd(), "src\\napari_kld\\_tests\\work_directory"
         )
         directory = QFileDialog.getExistingDirectory(
-            self, "Select a working dictionary", init_directory
+            self, "Select a working dictionary", str(init_directory)
         )
         if directory != "":
             self.path_edit.setText(directory)
