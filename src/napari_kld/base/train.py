@@ -116,9 +116,8 @@ def train(
     # --------------------------------------------------------------------------
     # Training data
     data_path = pathlib.Path(data_path)
-    notify(
-        f"load training data set from: {data_path}",
-    )
+    notify(f"load training data set from: {data_path}")
+
     hr_data_path = pathlib.Path(data_path, "gt")
     lr_data_path = pathlib.Path(data_path, "raw")
     hr_txt_file_path = pathlib.Path(data_path, "train.txt")
@@ -358,16 +357,16 @@ def train(
             line_search_fn="strong_wolfe",
         )
 
-    print("start training ... ")
     notify("start training ... ")
-    print(time.asctime(time.localtime(time.time())))
+    notify(time.asctime(time.localtime(time.time())))
 
     if self_supervised:
-        print("Training under self-supervised mode.")
+        notify("Training under self-supervised mode.")
 
     # --------------------------------------------------------------------------
     # load data
     if batch_size == training_data_size:
+        # load all data in one batch
         x, y = [], []
         for i in range(training_data_size):
             sample = training_data[i]
@@ -377,15 +376,12 @@ def train(
         x, y = x.to(device), y.to(device)
         num_batches = 1
     elif batch_size > training_data_size:
-        if observer is not None:
-            observer.notify(
-                "ERROR: the batch size should not be larger than training data size"
-            )
+        notify("ERROR: the batch size should not be larger than training data size.")
         return 0
     else:
         num_batches = len(train_dataloader)
 
-    print(f"number of training batches: {num_batches}")
+    notify(f"number of training batches: {num_batches}")
 
     num_iter_training = num_epoch * num_batches
     save_every_iter = int(num_iter_training * 0.1)
@@ -393,7 +389,7 @@ def train(
     print_every_iter = int(num_iter_training * 0.1)
 
     # --------------------------------------------------------------------------
-    print(f"Batch size: {batch_size} | Num of Batches: {num_batches}")
+    notify(f"Batch size: {batch_size} | Num of Batches: {num_batches}")
     # --------------------------------------------------------------------------
     for i_epoch in range(num_epoch):
         if observer is not None:
@@ -510,18 +506,18 @@ def train(
             print_psnr.append(p)
 
             if i_iter % print_every_iter == 0:
-                print(
+                notify(
                     f"Epoch: {i_epoch}, Iter: {i_iter}, loss: {np.mean(print_loss):>.5f}, PSNR: {np.mean(print_psnr):>.5f},\
                     SSIM: {np.mean(print_ssim):>.5f}"
                 )
-                print(f"Computation time: {time.time()-start_time:>.2f} s")
+                notify(f"Computation time: {time.time()-start_time:>.2f} s")
                 start_time = time.time()
                 print_loss, print_ssim, print_psnr = [], [], []
 
             # ------------------------------------------------------------------
             # save model and relative information
             if i_iter % save_every_iter == 0:
-                print(
+                notify(
                     f"save model ... (Epoch: {i_epoch}, Iteration: {i_iter})"
                 )
                 model_dict = {"model_state_dict": model.state_dict()}
@@ -554,10 +550,7 @@ def train(
     # --------------------------------------------------------------------------
     writer.flush()
     writer.close()
-    print("Training done!")
-    if observer is not None:
-        observer.notify("[done]")
-
+    notify("Training done!")
 
 if __name__ == "__main__":
     # forward projection training
