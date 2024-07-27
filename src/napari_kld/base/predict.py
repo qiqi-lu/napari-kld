@@ -47,11 +47,23 @@ def predict(
     # forward projection model
     if FP_type == "pre-trained":
         parent_fp = pathlib.Path(fp_path).parent
-        with open(pathlib.Path(parent_fp, "parameters.json")) as f:
-            params_fp = json.load(f)
+
+        try:
+            with open(pathlib.Path(parent_fp, "parameters.json")) as f:
+                params_fp = json.load(f)
+        except OSError as e:
+            notify(str(e))
+            return 0
+
         data_dim_fp = params_fp["data_dim"]
         ks_z_fp = params_fp["ks_z"]
         ks_xy_fp = params_fp["ks_xy"]
+
+        if params_fp['model_name'] != 'kernet_fp':
+            notify(
+                f"ERROR: The FP path does not point to a FP model."
+            )
+            return 0
 
         if data_dim != data_dim_fp:
             notify(
@@ -66,11 +78,23 @@ def predict(
 
     # backward projection model
     parent_bp = pathlib.Path(bp_path).parent
-    with open(pathlib.Path(parent_bp, "parameters.json")) as f:
-        params_bp = json.load(f)
+
+    try:
+        with open(pathlib.Path(parent_bp, "parameters.json")) as f:
+            params_bp = json.load(f)
+    except OSError as e:
+        notify(str(e))
+        return 0
+
     data_dim_bp = params_bp["data_dim"]
     ks_z_bp = params_bp["ks_z"]
     ks_xy_bp = params_bp["ks_xy"]
+
+    if params_bp['model_name'] != 'kernet_bp':
+        notify(
+            f"ERROR: The BP path does not point to a BP model."
+        )
+        return 0
 
     if data_dim != data_dim_bp:
         notify(

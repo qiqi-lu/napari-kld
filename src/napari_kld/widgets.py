@@ -701,7 +701,7 @@ class WorkerKLDeconvPredict(QObject):
 
         self.viewer.add_image(
             self.img_output,
-            name=f"{self.img_input_name}_deconv_iter_{num_iter}",
+            name=f"{self.input_name}_deconv_iter_{num_iter}",
         )
 
     def set_input(self, name):
