@@ -275,7 +275,7 @@ class KLDwidget(QWidget):
         page_widget_prediction = QWidget()
         page_layout_prediction = QVBoxLayout()
         page_widget_prediction.setLayout(page_layout_prediction)
-        page_layout_prediction.addWidget(WidgetKLDeconvPredict(viewer))
+        page_layout_prediction.addWidget(WidgetKLDeconvPredict(viewer, logger))
         page_layout_prediction.addStretch()
 
         page_widget_log = QWidget()

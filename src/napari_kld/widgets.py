@@ -336,7 +336,7 @@ class WorkerKLDeconvTrainFP(QObject):
                 **self.params_dict,
             )
         except (RuntimeError, TypeError) as e:
-            print(e)
+            print(str(e))
             self.observer.notify("Run Failed.")
         self.finish_signal.emit()
 
@@ -501,7 +501,7 @@ class WorkerKLDeconvTrainBP(QObject):
             )
             print("training done.")
         except (RuntimeError, TypeError) as e:
-            print(e)
+            print(str(e))
             self.observer.notify("Run Failed.")
         self.finish_signal.emit()
 
@@ -693,18 +693,21 @@ class WorkerKLDeconvPredict(QObject):
         self.observer = observer
         self.params_dict = {}
         self.img_input = None
+        self.img_input_name = ""
         self.img_output = None
 
     def set_output(self):
-        input_name = self.params_dict["img_name"]
         num_iter = self.params_dict["num_iter"]
 
-        self.viewer.add_img(
-            self.img_output, name=f"{input_name}_deconv_iter_{num_iter}"
+        self.viewer.add_image(
+            self.img_output,
+            name=f"{self.img_input_name}_deconv_iter_{num_iter}",
         )
 
-    def set_input(self):
-        self.img_input = self.viewer.layers[self.params_dict["img_name"]].data
+    def set_input(self, name):
+        self.img_input_name = name
+        self.img_input = self.viewer.layers[name].data
+        print(self.img_input.shape)
 
     def set_params(self, params_dict):
         self.params_dict = params_dict
@@ -713,13 +716,19 @@ class WorkerKLDeconvPredict(QObject):
         print("start predicting ...")
 
         try:
-            self.set_input()
-            predict.predict(self.img_input, **self.params_dict)
+            self.img_output = predict.predict(
+                self.img_input, observer=self.observer, **self.params_dict
+            )
         except (RuntimeError, TypeError) as e:
-            self.observer.notify(e)
+            self.observer.notify(str(e))
             self.observer.notify("Run Failed.")
 
         self.finish_signal.emit()
+        self.observer.notify("Finished.")
+
+        if self.img_output is not None:
+            print("set output.")
+            self.set_output()
 
 
 class WidgetKLDeconvPredict(QGroupBox):
@@ -787,14 +796,12 @@ class WidgetKLDeconvPredict(QGroupBox):
         self._observer.notify_signal.connect(self._on_notify)
 
     def get_params(self):
-        img_name = self.input_raw_data_box.currentText()
         psf_path = self.psf_path_box.get_path()
         fp_path = self.fp_path_box.get_path()
         bp_path = self.bp_path_box.get_path()
         num_iter = self.iteration_box_rl.value()
 
         params_dict = {
-            "img_name": img_name,
             "psf_path": psf_path,
             "fp_path": fp_path,
             "bp_path": bp_path,
@@ -813,6 +820,7 @@ class WidgetKLDeconvPredict(QGroupBox):
             self._on_notify(f"{item} : {params_dict[item]}")
 
         self._worker.set_params(params_dict)
+        self._worker.set_input(self.input_raw_data_box.currentText())
         self._thread.start()
 
     def _on_change_layer(self):

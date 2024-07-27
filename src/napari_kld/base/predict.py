@@ -20,10 +20,6 @@ def predict(
     data_dim = len(img.shape)
     in_channels = 1
 
-    psf_path = pathlib.Path(psf_path)
-    fp_path = pathlib.Path(fp_path)
-    bp_path = pathlib.Path(bp_path)
-
     def notify(value):
         print(value)
         if observer is not None:
@@ -36,11 +32,16 @@ def predict(
         FP_type = "known"
     elif fp_path != "":
         FP_type = "pre-trained"
+        notify("use pre-trained forward kernel.")
     else:
         notify("ERROR: Need a forward kernel.")
 
     BP_type = "learned"
 
+    # --------------------------------------------------------------------------
+    psf_path = pathlib.Path(psf_path)
+    fp_path = pathlib.Path(fp_path)
+    bp_path = pathlib.Path(bp_path)
     # --------------------------------------------------------------------------
     # load parameters
     # forward projection model
@@ -59,7 +60,7 @@ def predict(
             return 0
 
         if data_dim == 3:
-            kernel_size_fp = [ks_z_fp, ks_xy_fp, ks_xy_fp]
+            kernel_size_fp = (ks_z_fp, ks_xy_fp, ks_xy_fp)
         if data_dim == 2:
             kernel_size_fp = (ks_xy_fp,) * 2
 
@@ -78,12 +79,9 @@ def predict(
         return 0
 
     if data_dim == 3:
-        kernel_size_bp = [ks_z_bp, ks_xy_bp, ks_xy_bp]
+        kernel_size_bp = (ks_z_bp, ks_xy_bp, ks_xy_bp)
     if data_dim == 2:
         kernel_size_bp = (ks_xy_bp,) * 2
-
-    # suffix_net = '_ss'
-    # suffix_net = ""
 
     # --------------------------------------------------------------------------
     scale_factor = 1
@@ -93,9 +91,9 @@ def predict(
     over_sampling = 2
     padding_mode = "reflect"
     if data_dim == 3:
-        std_init = [4.0, 2.0, 2.0]
+        std_init = (4.0, 2.0, 2.0)
     if data_dim == 2:
-        std_init = [2.0, 2.0]
+        std_init = (2.0, 2.0)
     shared_bp = True
     conv_mode = "fft"
 
@@ -106,7 +104,7 @@ def predict(
     # Forward Projection
     if FP_type == "pre-trained":
         notify("Use a pre-trained forward kernel.")
-        notify(f"model: {fp_path}")
+        notify(f"fp_path: {fp_path}")
 
         FP = kernelnet.ForwardProject(
             dim=data_dim,
@@ -128,7 +126,7 @@ def predict(
         )
         FP.eval()
 
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     if FP_type == "known":
         print("known PSF")
         PSF_true = io.imread(psf_path).astype(np.float32)
@@ -197,7 +195,7 @@ def predict(
         # The PSF now is known, setting the initial PSF as all zeros.
         ker_FP = weight.numpy()[0, 0]
 
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     model = kernelnet.KernelNet(
         in_channels=in_channels,
         scale_factor=scale_factor,
@@ -220,11 +218,14 @@ def predict(
         conv_mode=conv_mode,
     ).to(device)
 
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     if BP_type == "learned":
-        print("BP kernel (Leanred)")
+        notify("use learned backward kernel.")
         model_path = bp_path
-        print("Model: ", model_path)
+        notify(
+            f"bp_path: {model_path}",
+        )
+
         model.load_state_dict(
             torch.load(model_path, map_location=device)["model_state_dict"],
             strict=False,
@@ -237,21 +238,16 @@ def predict(
         else:
             ker_BP = model.BP[0].conv.get_kernel()[0, 0].detach().numpy()
 
-    print("BP kernel shape:", ker_BP.shape)
+    notify(f"BP kernel shape: {ker_BP.shape}")
 
     if FP_type == "pre-trained":
-        # get the FP learned FP kernel
         ker_FP = model.FP.conv.get_kernel()[0, 0].detach().numpy()
-        print("FP kernel shape:", ker_FP.shape)
+        notify(f"FP kernel shape: {ker_FP.shape}")
 
     # --------------------------------------------------------------------------
     # Evaluation
     # --------------------------------------------------------------------------
-    def t2n(x):
-        return x.cpu().detach().numpy()[0, 0]
-
-    # prediciton
-    x = img[None, None]
+    x = torch.from_numpy(img)[None, None]
     ts = time.time()
     y_pred_all = model(x)
     notify(
@@ -260,3 +256,22 @@ def predict(
     y_pred_all = y_pred_all.cpu().detach().numpy()[:, 0, 0]
     y_pred = y_pred_all[-1]
     return y_pred
+
+
+if __name__ == "__main__":
+
+    img_path = "F:\\Datasets\\BioSR\\F-actin_Nonlinear\\raw_noise_9\\11.tif"
+    psf_path = ""
+    fp_path = "D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\checkpoints\\forward_bs_1_lr_0.001_ks_1_31\\epoch_100.pt"
+    bp_path = "D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\checkpoints\\backward_bs_1_lr_1e-05_iter_2_ks_1_31\\epoch_100.pt"
+
+    img = io.imread(img_path).astype(np.float32)
+    y = predict(
+        img,
+        psf_path=psf_path,
+        fp_path=fp_path,
+        bp_path=bp_path,
+        num_iter=2,
+        observer=None,
+    )
+    print(y.shape)
