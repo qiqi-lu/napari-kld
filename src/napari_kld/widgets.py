@@ -737,7 +737,7 @@ class WidgetKLDeconvPredict(QGroupBox):
         self.bp_path_box = FileSelectWidget()
         grid_layout.addWidget(self.bp_path_box, 2, 1, 1, 2)
 
-        grid_layout.addWidget(QLabel('Iterations (RL)'), 3, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Iterations (RL)"), 3, 0, 1, 1)
         self.iteration_box_rl = SpinBox(vmin=1, vmax=999, vinit=2)
         grid_layout.addWidget(self.iteration_box_rl, 3, 1, 1, 2)
 
@@ -770,7 +770,7 @@ class WidgetKLDeconvPredict(QGroupBox):
             "img_name": img_name,
             "fp_path": fp_path,
             "bp_path": bp_path,
-            'num_iter': num_iter,
+            "num_iter": num_iter,
         }
         return params_dict
 
