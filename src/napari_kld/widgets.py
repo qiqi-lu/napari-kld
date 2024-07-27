@@ -551,7 +551,7 @@ class WidgetKLDeconvTrainBP(QGroupBox):
         grid_layout.addWidget(self.training_strategy_box, 0, 1, 1, 2)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Iterations (RL):"), 1, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Iterations (RL)"), 1, 0, 1, 1)
         self.iteration_box_rl = SpinBox(vmin=1, vmax=99, vinit=2)
         self.iteration_box_rl.valueChanged.connect(self._on_param_change)
         grid_layout.addWidget(self.iteration_box_rl, 1, 1, 1, 2)
@@ -709,12 +709,6 @@ class WorkerKLDeconvPredict(QObject):
 class WidgetKLDeconvPredict(QGroupBox):
     def __init__(self, viewer: napari.Viewer):
         super().__init__()
-        self.params_dict = {
-            "img_name": None,
-            "fp_path": "",
-            "bp_path": "",
-        }
-
         self.viewer = viewer
         self.viewer.layers.events.inserted.connect(self._on_change_layer)
         self.viewer.layers.events.removed.connect(self._on_change_layer)
@@ -743,6 +737,10 @@ class WidgetKLDeconvPredict(QGroupBox):
         self.bp_path_box = FileSelectWidget()
         grid_layout.addWidget(self.bp_path_box, 2, 1, 1, 2)
 
+        grid_layout.addWidget(QLabel('Iterations (RL)'), 3, 0, 1, 1)
+        self.iteration_box_rl = SpinBox(vmin=1, vmax=999, vinit=2)
+        grid_layout.addWidget(self.iteration_box_rl, 3, 1, 1, 2)
+
         # ----------------------------------------------------------------------
         self.run_btn = QPushButton("run")
         grid_layout.addWidget(self.run_btn, 4, 0, 1, 3)
@@ -762,22 +760,24 @@ class WidgetKLDeconvPredict(QGroupBox):
         self._worker.finish_signal.connect(self._thread.quit)
         # self._worker.finish_signal.connect(self.set_outputs)
 
-    def _on_param_change(self):
-        self.progress_bar.setValue(0)
+    def get_params(self):
         img_name = self.input_raw_data_box.currentText()
         fp_path = self.fp_path_box.get_path()
         bp_path = self.bp_path_box.get_path()
+        num_iter = self.iteration_box_rl.value()
 
-        self.params_dict.update(
-            {
-                "img_name": img_name,
-                "fp_path": fp_path,
-                "bp_path": bp_path,
-            }
-        )
+        params_dict = {
+            "img_name": img_name,
+            "fp_path": fp_path,
+            "bp_path": bp_path,
+            'num_iter': num_iter,
+        }
+        return params_dict
 
     def _on_click_run(self):
         print("run")
+        self.progress_bar.setValue(0)
+        self._worker.set_params(self.get_params)
 
     def _on_change_layer(self):
         print("layer change.")
