@@ -59,10 +59,8 @@ def predict(
         ks_z_fp = params_fp["ks_z"]
         ks_xy_fp = params_fp["ks_xy"]
 
-        if params_fp['model_name'] != 'kernet_fp':
-            notify(
-                f"ERROR: The FP path does not point to a FP model."
-            )
+        if params_fp["model_name"] != "kernet_fp":
+            notify("ERROR: The FP path does not point to a FP model.")
             return 0
 
         if data_dim != data_dim_fp:
@@ -90,10 +88,8 @@ def predict(
     ks_z_bp = params_bp["ks_z"]
     ks_xy_bp = params_bp["ks_xy"]
 
-    if params_bp['model_name'] != 'kernet_bp':
-        notify(
-            f"ERROR: The BP path does not point to a BP model."
-        )
+    if params_bp["model_name"] != "kernet_bp":
+        notify("ERROR: The BP path does not point to a BP model.")
         return 0
 
     if data_dim != data_dim_bp:
