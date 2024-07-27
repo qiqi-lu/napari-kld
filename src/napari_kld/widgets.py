@@ -686,14 +686,14 @@ class WidgetKLDeconvTrainBP(QGroupBox):
 
 class WorkerKLDeconvPredict(QObject):
     finish_signal = Signal()
+    succeed_signal = Signal()
 
     def __init__(self, viewer, observer):
         super().__init__()
         self.viewer = viewer
         self.observer = observer
         self.params_dict = {}
-        self.img_input = None
-        self.img_input_name = ""
+        self.input_name = ""
         self.img_output = None
 
     def set_output(self):
@@ -705,30 +705,28 @@ class WorkerKLDeconvPredict(QObject):
         )
 
     def set_input(self, name):
-        self.img_input_name = name
-        self.img_input = self.viewer.layers[name].data
-        print(self.img_input.shape)
+        self.input_name = name
 
     def set_params(self, params_dict):
         self.params_dict = params_dict
 
     def run(self):
         print("start predicting ...")
+        img_input = self.viewer.layers[self.input_name].data
+        print(img_input.shape)
 
         try:
             self.img_output = predict.predict(
-                self.img_input, observer=self.observer, **self.params_dict
+                img_input, observer=self.observer, **self.params_dict
             )
+            self.observer.notify("Succeed.")
+            self.succeed_signal.emit()
+
         except (RuntimeError, TypeError) as e:
             self.observer.notify(str(e))
             self.observer.notify("Run Failed.")
 
         self.finish_signal.emit()
-        self.observer.notify("Finished.")
-
-        if self.img_output is not None:
-            print("set output.")
-            self.set_output()
 
 
 class WidgetKLDeconvPredict(QGroupBox):
@@ -791,6 +789,7 @@ class WidgetKLDeconvPredict(QGroupBox):
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.finish_signal.connect(self._thread.quit)
+        self._worker.succeed_signal.connect(self._on_succeed)
 
         self._observer.progress_signal.connect(self._on_progress)
         self._observer.notify_signal.connect(self._on_notify)
@@ -856,3 +855,6 @@ class WidgetKLDeconvPredict(QGroupBox):
                 self.enable_run(True)
         else:
             self.enable_run(False)
+
+    def _on_succeed(self):
+        self._worker.set_output()
