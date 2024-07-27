@@ -683,26 +683,66 @@ class WidgetKLDeconvTrainBP(QGroupBox):
         )
 
 
+class WorkerKLDeconvPredict(QObject):
+    finish_signal = Signal()
+
+    def __init__(self, observer):
+        super().__init__()
+        self.observer = observer
+        self.params_dict = {}
+
+    def run(self):
+        print("start predicting ...")
+        try:
+            # predict.predict()
+            print("predict")
+        except (RuntimeError, TypeError) as e:
+            self.observer.notify(e)
+            self.observer.notify("Run Failed.")
+        self.finish_signal.emit()
+
+    def set_params(self, params_dict):
+        self.params_dict = params_dict
+
+
 class WidgetKLDeconvPredict(QGroupBox):
     def __init__(self, viewer: napari.Viewer):
         super().__init__()
+        self.params_dict = {
+            "img": None,
+            "fp_path": "",
+            "bp_path": "",
+        }
+
         self.viewer = viewer
         self.viewer.layers.events.inserted.connect(self._on_change_layer)
         self.viewer.layers.events.removed.connect(self._on_change_layer)
 
         self._thread = QThread()
         self._observer = ProgressObserver()
+        self._worker = WorkerKLDeconvPredict(self._observer)
 
         self.setTitle("Predict")
         grid_layout = QGridLayout()
         self.setLayout(grid_layout)
-
         # ----------------------------------------------------------------------
         # RAW data box
         grid_layout.addWidget(QLabel("Input RAW data"), 0, 0, 1, 1)
         self.input_raw_data_box = QComboBox()
         grid_layout.addWidget(self.input_raw_data_box, 0, 1, 1, 2)
 
+        # ----------------------------------------------------------------------
+        # forward projection model
+        grid_layout.addWidget(QLabel("Forward Projection"), 1, 0, 1, 1)
+        self.fp_path_box = FileSelectWidget()
+        grid_layout.addWidget(self.fp_path_box, 1, 1, 1, 2)
+
+        # backward projeciton model
+        grid_layout.addWidget(QLabel("Backward Projection"), 2, 0, 1, 1)
+        self.bp_path_box = FileSelectWidget()
+        grid_layout.addWidget(self.bp_path_box, 2, 1, 1, 2)
+
+        # ----------------------------------------------------------------------
         self.run_btn = QPushButton("run")
         grid_layout.addWidget(self.run_btn, 4, 0, 1, 3)
         self.run_btn.clicked.connect(self._on_click_run)
@@ -710,15 +750,42 @@ class WidgetKLDeconvPredict(QGroupBox):
         self.progress_bar = QProgressBar()
         grid_layout.addWidget(self.progress_bar, 5, 0, 1, 3)
 
+        # ----------------------------------------------------------------------
+        # initialization
+        self._on_change_layer()
+
+        # ----------------------------------------------------------------------
+        # connect the thread
+        self._worker.moveToThread(self._thread)
+        self._thread.started.connect(self._worker.run)
+        self._worker.finish_signal.connect(self._thread.quit)
+        # self._worker.finish_signal.connect(self.set_outputs)
+
+    def _on_param_change(self):
+        self.progress_bar.setValue(0)
+        img_name = self.input_raw_data_box.currentText()
+        fp_path = self.fp_path_box.get_path()
+        bp_path = self.bp_path_box.get_path()
+
+        self.params_dict.update(
+            {
+                "img_name": img_name,
+                "fp_path": fp_path,
+                "bp_path": bp_path,
+            }
+        )
+
     def _on_click_run(self):
         print("run")
 
     def _on_change_layer(self):
         print("layer change.")
         self.input_raw_data_box.clear()
+
         for layer in self.viewer.layers:
             if isinstance(layer, napari.layers.Image):
                 self.input_raw_data_box.addItem(layer.name)
+
         if self.input_raw_data_box.count() < 1:
             self.run_btn.setEnabled(False)
         else:

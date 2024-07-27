@@ -73,7 +73,7 @@ class RLDwidget(QWidget):
         self.viewer.layers.events.inserted.connect(self._on_change_layer)
         self.viewer.layers.events.removed.connect(self._on_change_layer)
 
-        self.thread = QThread()
+        self._thread = QThread()
         self._worker = RLDworker()
         self._observer = ProgressObserver()
         self._widgets = {}
@@ -174,9 +174,9 @@ class RLDwidget(QWidget):
 
         # ----------------------------------------------------------------------
         # connect thread
-        self._worker.moveToThread(self.thread)
-        self.thread.started.connect(self._worker.run)
-        self._worker.finish_signal.connect(self.thread.quit)
+        self._worker.moveToThread(self._thread)
+        self._thread.started.connect(self._worker.run)
+        self._worker.finish_signal.connect(self._thread.quit)
         self._worker.finish_signal.connect(self.set_outputs)
 
         self._observer.progress_signal.connect(self._on_progress)
@@ -193,7 +193,7 @@ class RLDwidget(QWidget):
             self.viewer.layers[self.input_raw_data_box.currentText()].data
         )
         self._worker.set_psf_path(self.psf_select.path_edit.text())
-        self.thread.start()
+        self._thread.start()
 
     def _on_change_layer(self):
         print("layer change.")
@@ -260,7 +260,7 @@ class KLDwidget(QWidget):
     def __init__(self, viewer: napari.Viewer):
         super().__init__()
 
-        self.thread = QThread()
+        self._thread = QThread()
         self._worker = RLDworker()
         self._observer = ProgressObserver()
         self._widgets = {}
