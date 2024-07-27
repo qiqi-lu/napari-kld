@@ -161,6 +161,7 @@ def train(
             parent = pathlib.Path(fp_path).parent
             with open(pathlib.Path(parent, "parameters.json")) as f:
                 params_fp = json.load(f)
+
             if params_fp["data_dim"] != data_dim:
                 data_dim_pre = params_fp["data_dim"]
                 print(

@@ -496,6 +496,7 @@ class KernelNet(nn.Module):
         return_inter=False,
         multi_out=False,
         self_supervised=False,
+        observer=None,
     ):
         super().__init__()
 
@@ -512,6 +513,7 @@ class KernelNet(nn.Module):
         self.num_iter = num_iter
         self.lam = lam
         self.eps = 0.000001
+        self.observer = observer
 
         self.shared_bp = shared_bp
         self.self_supervised = self_supervised
@@ -598,6 +600,9 @@ class KernelNet(nn.Module):
             xk_inter.append(x)
 
         for i in range(self.num_iter):
+            if self.observer is not None:
+                self.observer.progress(i)
+
             fp = self.FP(xk)
             dv = x / (fp + self.eps)
 

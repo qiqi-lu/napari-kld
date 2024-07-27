@@ -1,6 +1,7 @@
+import json
+import pathlib
 import time
 
-import napari_kld.base.deconvolution as dcv
 import numpy as np
 import skimage.io as io
 import torch
@@ -14,10 +15,14 @@ def predict(
     fp_path="",
     bp_path="",
     num_iter=2,
-    data_dim=3,
-    in_channels=1,
     observer=None,
 ):
+    data_dim = len(img.shape)
+    in_channels = 1
+
+    psf_path = pathlib.Path(psf_path)
+    fp_path = pathlib.Path(fp_path)
+    bp_path = pathlib.Path(bp_path)
 
     def notify(value):
         print(value)
@@ -27,53 +32,84 @@ def predict(
     device = torch.device("cpu")
 
     if psf_path != "":
+        notify("Use a known PSF as forward kernel.")
         FP_type = "known"
-    elif psf_path == "" and fp_path != "":
+    elif fp_path != "":
         FP_type = "pre-trained"
+    else:
+        notify("ERROR: Need a forward kernel.")
 
     BP_type = "learned"
 
-    ker_size_fp, ker_size_bp = 31, 31
-    kernel_size_fp = [ker_size_fp, 31, 31]
-    kernel_size_bp = [ker_size_bp, 25, 25]
-    dim = 3
+    # --------------------------------------------------------------------------
+    # load parameters
+    # forward projection model
+    if FP_type == "pre-trained":
+        parent_fp = pathlib.Path(fp_path).parent
+        with open(pathlib.Path(parent_fp, "parameters.json")) as f:
+            params_fp = json.load(f)
+        data_dim_fp = params_fp["data_dim"]
+        ks_z_fp = params_fp["ks_z"]
+        ks_xy_fp = params_fp["ks_xy"]
 
-    ker_size_fp, ker_size_bp = 31, 31
-    kernel_size_fp = (ker_size_fp,) * 2
-    kernel_size_bp = (ker_size_bp,) * 2
-    dim = 2
+        if data_dim != data_dim_fp:
+            notify(
+                f"ERROR: The dim of FP is {data_dim_fp}, but the dim of data is {data_dim}"
+            )
+            return 0
+
+        if data_dim == 3:
+            kernel_size_fp = [ks_z_fp, ks_xy_fp, ks_xy_fp]
+        if data_dim == 2:
+            kernel_size_fp = (ks_xy_fp,) * 2
+
+    # backward projection model
+    parent_bp = pathlib.Path(bp_path).parent
+    with open(pathlib.Path(parent_bp, "parameters.json")) as f:
+        params_bp = json.load(f)
+    data_dim_bp = params_bp["data_dim"]
+    ks_z_bp = params_bp["ks_z"]
+    ks_xy_bp = params_bp["ks_xy"]
+
+    if data_dim != data_dim_bp:
+        notify(
+            f"ERROR: The dim of BP is {data_dim_bp}, but the dim of data is {data_dim}"
+        )
+        return 0
+
+    if data_dim == 3:
+        kernel_size_bp = [ks_z_bp, ks_xy_bp, ks_xy_bp]
+    if data_dim == 2:
+        kernel_size_bp = (ks_xy_bp,) * 2
 
     # suffix_net = '_ss'
     # suffix_net = ""
 
-    # ------------------------------------------------------------------------------
-    num_iter_train = 2
-    num_iter_test = num_iter_train + 0
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     scale_factor = 1
     interpolation = True
     kernel_norm_fp = False
     kernel_norm_bp = True
     over_sampling = 2
     padding_mode = "reflect"
-    if dim == 3:
+    if data_dim == 3:
         std_init = [4.0, 2.0, 2.0]
-    if dim == 2:
+    if data_dim == 2:
         std_init = [2.0, 2.0]
     shared_bp = True
     conv_mode = "fft"
 
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Model
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     FP, BP = None, None
     # Forward Projection
-    print("-" * 80)
     if FP_type == "pre-trained":
-        print("FP kernel (PSF) (Pre-trained)")
-        print("model: ", fp_path)
+        notify("Use a pre-trained forward kernel.")
+        notify(f"model: {fp_path}")
+
         FP = kernelnet.ForwardProject(
-            dim=dim,
+            dim=data_dim,
             in_channels=in_channels,
             scale_factor=scale_factor,
             kernel_size=kernel_size_fp,
@@ -97,6 +133,13 @@ def predict(
         print("known PSF")
         PSF_true = io.imread(psf_path).astype(np.float32)
         ks = PSF_true.shape
+
+        # check
+        if len(ks) != data_dim:
+            notify(
+                f"ERROR: The dim of PSF is {len(ks)}, but the dim of data is {data_dim}"
+            )
+
         weight = torch.tensor(PSF_true[None, None]).to(device=device)
 
         def padd_fp(x):
@@ -155,27 +198,11 @@ def predict(
         ker_FP = weight.numpy()[0, 0]
 
     # ------------------------------------------------------------------------------
-    # Backward Projection
-    print("-" * 80)
-    if BP_type == "known":
-        print("BP kernel (Known)")
-
-        def BP(x):
-            return dcv.Convolution(
-                PSF=ker_FP,
-                x=x.detach().numpy()[0, 0],
-                padding_mode=padding_mode,
-                domain=conv_mode,
-            )
-
-        ker_BP = PSF_true
-
-    # ------------------------------------------------------------------------------
     model = kernelnet.KernelNet(
         in_channels=in_channels,
         scale_factor=scale_factor,
-        dim=dim,
-        num_iter=num_iter_test,
+        dim=data_dim,
+        num_iter=num_iter,
         kernel_size_fp=kernel_size_fp,
         kernel_size_bp=kernel_size_bp,
         std_init=std_init,
@@ -228,7 +255,7 @@ def predict(
     ts = time.time()
     y_pred_all = model(x)
     notify(
-        f"Time : {time.time()-ts:.2f} s, each iteration: {(time.time()-ts)/num_iter_test:.2f} s."
+        f"Time : {time.time()-ts:.2f} s, each iteration: {(time.time()-ts)/num_iter:.2f} s."
     )
     y_pred_all = y_pred_all.cpu().detach().numpy()[:, 0, 0]
     y_pred = y_pred_all[-1]

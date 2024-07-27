@@ -17,7 +17,7 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
-from napari_kld.base import methods, train
+from napari_kld.base import methods, predict, train
 from napari_kld.widgets_small import (
     DirectorySelectWidget,
     FileSelectWidget,
@@ -427,6 +427,7 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.finish_signal.connect(self._thread.quit)
+
         self._observer.progress_signal.connect(self._on_progress)
         self._observer.notify_signal.connect(self._on_notify)
 
@@ -705,19 +706,20 @@ class WorkerKLDeconvPredict(QObject):
     def set_input(self):
         self.img_input = self.viewer.layers[self.params_dict["img_name"]].data
 
+    def set_params(self, params_dict):
+        self.params_dict = params_dict
+
     def run(self):
         print("start predicting ...")
+
         try:
             self.set_input()
-            # predict.predict()
-            print("predict")
+            predict.predict(self.img_input, **self.params_dict)
         except (RuntimeError, TypeError) as e:
             self.observer.notify(e)
             self.observer.notify("Run Failed.")
-        self.finish_signal.emit()
 
-    def set_params(self, params_dict):
-        self.params_dict = params_dict
+        self.finish_signal.emit()
 
 
 class WidgetKLDeconvPredict(QGroupBox):
@@ -742,47 +744,58 @@ class WidgetKLDeconvPredict(QGroupBox):
         grid_layout.addWidget(self.input_raw_data_box, 0, 1, 1, 2)
 
         # ----------------------------------------------------------------------
+        grid_layout.addWidget(QLabel("PSF directory"), 1, 0, 1, 1)
+        self.psf_path_box = FileSelectWidget()
+        grid_layout.addWidget(self.psf_path_box, 1, 1, 1, 2)
+
+        # ----------------------------------------------------------------------
         # forward projection model
-        grid_layout.addWidget(QLabel("Forward Projection"), 1, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Forward Projection"), 2, 0, 1, 1)
         self.fp_path_box = FileSelectWidget()
-        grid_layout.addWidget(self.fp_path_box, 1, 1, 1, 2)
+        grid_layout.addWidget(self.fp_path_box, 2, 1, 1, 2)
 
         # backward projeciton model
-        grid_layout.addWidget(QLabel("Backward Projection"), 2, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Backward Projection"), 3, 0, 1, 1)
         self.bp_path_box = FileSelectWidget()
-        grid_layout.addWidget(self.bp_path_box, 2, 1, 1, 2)
+        self.bp_path_box.path_edit.textChanged.connect(self._on_bp_path_change)
+        grid_layout.addWidget(self.bp_path_box, 3, 1, 1, 2)
 
-        grid_layout.addWidget(QLabel("Iterations (RL)"), 3, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Iterations (RL)"), 4, 0, 1, 1)
         self.iteration_box_rl = SpinBox(vmin=1, vmax=999, vinit=2)
-        grid_layout.addWidget(self.iteration_box_rl, 3, 1, 1, 2)
+        grid_layout.addWidget(self.iteration_box_rl, 4, 1, 1, 2)
 
         # ----------------------------------------------------------------------
         self.run_btn = QPushButton("run")
-        grid_layout.addWidget(self.run_btn, 4, 0, 1, 3)
+        grid_layout.addWidget(self.run_btn, 5, 0, 1, 3)
         self.run_btn.clicked.connect(self._on_click_run)
 
         self.progress_bar = QProgressBar()
-        grid_layout.addWidget(self.progress_bar, 5, 0, 1, 3)
+        grid_layout.addWidget(self.progress_bar, 6, 0, 1, 3)
 
         # ----------------------------------------------------------------------
         # initialization
         self._on_change_layer()
+        self._on_bp_path_change()
 
         # ----------------------------------------------------------------------
         # connect the thread
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.finish_signal.connect(self._thread.quit)
-        # self._worker.finish_signal.connect(self.set_outputs)
+
+        self._observer.progress_signal.connect(self._on_progress)
+        self._observer.notify_signal.connect(self._on_notify)
 
     def get_params(self):
         img_name = self.input_raw_data_box.currentText()
+        psf_path = self.psf_path_box.get_path()
         fp_path = self.fp_path_box.get_path()
         bp_path = self.bp_path_box.get_path()
         num_iter = self.iteration_box_rl.value()
 
         params_dict = {
             "img_name": img_name,
+            "psf_path": psf_path,
             "fp_path": fp_path,
             "bp_path": bp_path,
             "num_iter": num_iter,
@@ -824,3 +837,14 @@ class WidgetKLDeconvPredict(QGroupBox):
     def _on_notify(self, value):
         if self.logger is not None:
             self.logger.add_text(value)
+
+    def _on_bp_path_change(self):
+        bp_path = self.bp_path_box.get_path()
+
+        if bp_path != "":
+            if not os.path.exists(bp_path):
+                self.enable_run(False)
+            else:
+                self.enable_run(True)
+        else:
+            self.enable_run(False)
