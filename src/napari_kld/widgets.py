@@ -686,8 +686,9 @@ class WidgetKLDeconvTrainBP(QGroupBox):
 class WorkerKLDeconvPredict(QObject):
     finish_signal = Signal()
 
-    def __init__(self, observer):
+    def __init__(self, viewer, observer):
         super().__init__()
+        self.viewer = viewer
         self.observer = observer
         self.params_dict = {}
 
@@ -709,7 +710,7 @@ class WidgetKLDeconvPredict(QGroupBox):
     def __init__(self, viewer: napari.Viewer):
         super().__init__()
         self.params_dict = {
-            "img": None,
+            "img_name": None,
             "fp_path": "",
             "bp_path": "",
         }
@@ -720,7 +721,7 @@ class WidgetKLDeconvPredict(QGroupBox):
 
         self._thread = QThread()
         self._observer = ProgressObserver()
-        self._worker = WorkerKLDeconvPredict(self._observer)
+        self._worker = WorkerKLDeconvPredict(self.viewer, self._observer)
 
         self.setTitle("Predict")
         grid_layout = QGridLayout()
