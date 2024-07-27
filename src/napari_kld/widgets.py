@@ -691,10 +691,24 @@ class WorkerKLDeconvPredict(QObject):
         self.viewer = viewer
         self.observer = observer
         self.params_dict = {}
+        self.img_input = None
+        self.img_output = None
+
+    def set_output(self):
+        input_name = self.params_dict["img_name"]
+        num_iter = self.params_dict["num_iter"]
+
+        self.viewer.add_img(
+            self.img_output, name=f"{input_name}_deconv_iter_{num_iter}"
+        )
+
+    def set_input(self):
+        self.img_input = self.viewer.layers[self.params_dict["img_name"]].data
 
     def run(self):
         print("start predicting ...")
         try:
+            self.set_input()
             # predict.predict()
             print("predict")
         except (RuntimeError, TypeError) as e:
@@ -707,8 +721,9 @@ class WorkerKLDeconvPredict(QObject):
 
 
 class WidgetKLDeconvPredict(QGroupBox):
-    def __init__(self, viewer: napari.Viewer):
+    def __init__(self, viewer: napari.Viewer, logger=None):
         super().__init__()
+        self.logger = logger
         self.viewer = viewer
         self.viewer.layers.events.inserted.connect(self._on_change_layer)
         self.viewer.layers.events.removed.connect(self._on_change_layer)
@@ -775,9 +790,17 @@ class WidgetKLDeconvPredict(QGroupBox):
         return params_dict
 
     def _on_click_run(self):
-        print("run")
+        print("Predicting ...")
         self.progress_bar.setValue(0)
-        self._worker.set_params(self.get_params)
+        self._thread.quit()
+
+        params_dict = self.get_params()
+        self._on_notify("Parameters:")
+        for item in params_dict:
+            self._on_notify(f"{item} : {params_dict[item]}")
+
+        self._worker.set_params(params_dict)
+        self._thread.start()
 
     def _on_change_layer(self):
         print("layer change.")
@@ -794,3 +817,10 @@ class WidgetKLDeconvPredict(QGroupBox):
 
     def enable_run(self, enable):
         self.run_btn.setEnabled(enable)
+
+    def _on_progress(self, value):
+        self.progress_bar.setValue(value)
+
+    def _on_notify(self, value):
+        if self.logger is not None:
+            self.logger.add_text(value)
