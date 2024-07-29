@@ -57,7 +57,7 @@ def generate_simulation_data(
     # generate raw image with blurring and noise.
 
     # load psf
-    notify("load psf from:", path_psf)
+    notify(f"load psf from: {path_psf}")
     psf = io.imread(path_psf).astype(np.float32)
 
     # interpolate psf with even shape to odd shape
@@ -89,6 +89,8 @@ def generate_simulation_data(
     # --------------------------------------------------------------------------
     # add blur and noise
     for i, name in enumerate(name_list):
+        if name == '':
+            continue
         img_gt = io.imread(os.path.join(path_dataset_gt, name))
 
         # scale to control SNR

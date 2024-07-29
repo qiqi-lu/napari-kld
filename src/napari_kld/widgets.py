@@ -871,8 +871,13 @@ class WorkerKLDeconvSimulation(WorkerBase):
 
     def run(self):
         print("run simulation worker ...")
-        generate_simulation_data(self.params_dict)
+        try:
+            generate_simulation_data(**self.params_dict)
+        except (RuntimeError, TypeError) as e:
+            print(str(e))
+            self.observer.notify('Run failed.')
         self.finish_signal.emit()
+        print('finished.')
 
 
 class WidgetKLDeconvSimulation(WidgetBase):
@@ -938,6 +943,8 @@ class WidgetKLDeconvSimulation(WidgetBase):
         # ----------------------------------------------------------------------
         grid_layout.addWidget(self.run_btn, 7, 0, 1, 4)
         grid_layout.addWidget(self.progress_bar, 8, 0, 1, 4)
+
+        self.reconnect()
 
     def get_params(self):
         data_path = self.output_path_box.get_path()

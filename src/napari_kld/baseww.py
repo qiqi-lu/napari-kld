@@ -176,11 +176,9 @@ class WidgetBase(QGroupBox):
 
         self.run_btn = QPushButton("run")
         self.run_btn.clicked.connect(self._on_click_run)
-
         self.progress_bar = QProgressBar()
 
-        # ----------------------------------------------------------------------
-        # connect the thread
+    def reconnect(self):
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.finish_signal.connect(self._thread.quit)
@@ -193,6 +191,7 @@ class WidgetBase(QGroupBox):
 
     def _on_notify(self, value):
         if self.logger is not None:
+            print(value)
             self.logger.add_text(value)
 
     def print_params(self, params_dict):

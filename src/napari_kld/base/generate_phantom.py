@@ -3,7 +3,7 @@ Simulation phantom generation.
 Python version of the MATLAB code: "https://github.com/MeatyPlus/Richardson-Lucy-Net/blob/main/Phantom_generate/Phantom_generate.m"
 """
 
-import os
+import os, pathlib
 
 import numpy as np
 import skimage.io as io
@@ -33,11 +33,11 @@ def generate_phantom_3D(
     # normalize so thant total area (sum of all weights) is 1
     GaussM = GaussM / np.sum(GaussM)
 
-    saveto = os.path.join(output_path)
-    if not os.path.exists(saveto):
-        os.makedirs(saveto, exist_ok=True)
+    txt_path = pathlib.Path(output_path).parent
+    if not os.path.exists(txt_path):
+        os.makedirs(txt_path, exist_ok=True)
 
-    with open(os.path.join(saveto, "train.txt"), "w") as txt_file:
+    with open(os.path.join(txt_path, "train.txt"), "w") as txt_file:
         # spheroid
         for tt in range(num_simulation):
             print(f"simulation {tt}")
@@ -235,12 +235,12 @@ def generate_phantom_3D(
             A_conv = np.array(A_conv, dtype=np.float32)
 
             io.imsave(
-                fname=os.path.join(saveto, f"{tt}.tif"),
+                fname=os.path.join(txt_path, f"{tt}.tif"),
                 arr=A_conv,
                 check_contrast=False,
             )
 
-            txt_file.write(f"{tt}.tif\n")
+            txt_file.write(f"{tt}.tif")
 
 
 if __name__ == "__main__":
