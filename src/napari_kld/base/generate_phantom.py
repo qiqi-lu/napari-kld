@@ -2,9 +2,11 @@
 Simulation phantom generation.
 """
 
+import os
+
 import numpy as np
-import torch, os
 import skimage.io as io
+import torch
 
 
 def generate_phantom_3D(
@@ -194,10 +196,15 @@ def generate_phantom_3D(
 
         A = torch.Tensor(A)[None, None]
         GaussM = torch.Tensor(GaussM)[None, None]
-        A_conv = torch.nn.functional.conv3d(input=A, weight=GaussM, padding='same')
+        A_conv = torch.nn.functional.conv3d(
+            input=A, weight=GaussM, padding="same"
+        )
 
         A_conv = A_conv.cpu().detach().numpy()
         A_conv = np.array(A_conv, dtype=np.float32)
 
-    io.imsave(fname=os.path.join(output_path, f'{tt}.tif'),
-    arr=A_conv,check_contrast=False)
+        io.imsave(
+            fname=os.path.join(output_path, f"{tt}.tif"),
+            arr=A_conv,
+            check_contrast=False,
+        )
