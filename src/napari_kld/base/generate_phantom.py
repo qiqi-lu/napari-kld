@@ -1,5 +1,6 @@
 """
 Simulation phantom generation.
+Python version of the MATLAB code: "https://github.com/MeatyPlus/Richardson-Lucy-Net/blob/main/Phantom_generate/Phantom_generate.m"
 """
 
 import os

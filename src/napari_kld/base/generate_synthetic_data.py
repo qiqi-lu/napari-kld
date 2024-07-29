@@ -5,19 +5,29 @@ import napari_kld.base.utils.dataset_utils as utils_data
 import napari_kld.base.utils.evaluation as eva
 import numpy as np
 import skimage.io as io
+from napari_kld.base.generate_phantom import generate_phantom_3D
 
 
 def generate_simulation_data(
     path_dataset,
     path_psf,
     image_shape=(128, 128, 128),
+    num_simulation=1,
     psf_crop_shape=None,
     std_gauss=0,
     poisson=1,
     ratio=1,
     scale_factor=1,
 ):
+    # generate ground truth phantom
     path_dataset_gt = os.path.join(path_dataset, "gt")
+    generate_phantom_3D(
+        output_path=path_dataset_gt,
+        shape=image_shape,
+        num_simulation=1,
+        is_with_background=False,
+    )
+
     path_dataset_raw = os.path.join(path_dataset, "raw")
 
     print("load PSF from:", path_psf)
