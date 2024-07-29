@@ -3,6 +3,7 @@ Simulation phantom generation.
 """
 
 import numpy as np
+import torch
 
 
 def generate_phantom_3D(
@@ -186,3 +187,8 @@ def generate_phantom_3D(
             k3 = np.floor(np.random.rand() * Ldot) + 1
 
             A[z : z + k3 + 1, y : y + k2 + 1, x : x + k1 + 1] = inten
+
+        if is_with_background:
+            A = A + 30
+
+        A = torch.nn.functional.conv3d(input=A, weight=GaussM)
