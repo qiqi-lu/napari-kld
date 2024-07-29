@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (
 
 from napari_kld.base import methods, predict, train
 from napari_kld.base.generate_synthetic_data import generate_simulation_data
-from napari_kld.widgets_small import (
+from napari_kld.baseww import (
     DirectorySelectWidget,
     DoubleSpinBox,
     FileSelectWidget,
@@ -864,19 +864,28 @@ class WidgetKLDeconvPredict(QGroupBox):
 
 
 class WorkerKLDeconvSimulation(QObject):
+    finish_signal = Signal()
+
     def __init__(self, observer):
         super().__init__()
+
+    def run(self):
+        print("run simulation worker ...")
+
+        self.finish_signal.emit()
 
 
 class WidgetKLDeconvSimulation(QGroupBox):
     def __init__(self, logger=None):
         super().__init__()
         self.logger = logger
+        self._thread = QThread()
+        self._observer = ProgressObserver()
+        self._worker = WorkerKLDeconvSimulation(self._observer)
 
         self.setTitle("Simulation")
         grid_layout = QGridLayout()
         self.setLayout(grid_layout)
-
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Output Directory"), 0, 0, 1, 1)
         self.output_path_box = DirectorySelectWidget()
@@ -936,10 +945,25 @@ class WidgetKLDeconvSimulation(QGroupBox):
 
         self.progress_bar = QProgressBar()
         grid_layout.addWidget(self.progress_bar, 8, 0, 1, 4)
+        # ----------------------------------------------------------------------
+        # connect the thread
+        self._worker.moveToThread(self._thread)
+        self._thread.started.connect(self._worker.run)
+        self._worker.finish_signal.connect(self._thread.quit)
+
+        self._observer.progress_signal.connect(self._on_progress)
+        self._observer.notify_signal.connet(self._on_notify)
 
     def _on_click_run(self):
         print("Simulation data generating ...")
         self.progress_bar.setValue(0)
+
+    def _on_progress(self, value):
+        self.progress_bar.setValue(value)
+
+    def _on_notify(self, value):
+        if self.logger is not None:
+            self.logger.add_text(value)
 
     def get_params(self):
         data_path = self.output_path_box.get_path()

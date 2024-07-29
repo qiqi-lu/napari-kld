@@ -11,6 +11,12 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
+from napari_kld.baseww import (
+    FileSelectWidget,
+    GaussianWidget,
+    LogBox,
+    ProgressObserver,
+)
 from napari_kld.widgets import (
     WidgetKLDeconvPredict,
     WidgetKLDeconvSimulation,
@@ -23,12 +29,6 @@ from napari_kld.widgets import (
     WorkerRLDeconvGaussianl,
     WorkerRLDeconvTraditional,
     WorkerRLDeconvWB,
-)
-from napari_kld.widgets_small import (
-    FileSelectWidget,
-    GaussianWidget,
-    LogBox,
-    ProgressObserver,
 )
 
 
