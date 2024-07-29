@@ -37,8 +37,9 @@ def generate_phantom_3D(
             Sx - 2 * Rsphere,
             Sy - 2 * Rsphere,
             Sz - 2 * Rsphere,
-        )
+        ) # avoid out of image range
 
+        # ----------------------------------------------------------------------
         for _ in range(n_spheres):
             x = np.floor(xrange * np.random.rand() + Rsphere)
             y = np.floor(yrange * np.random.rand() + Rsphere)
@@ -53,6 +54,7 @@ def generate_phantom_3D(
                         if ((i - x) ** 2 + (j - y) ** 2 + (k - z) ** 2) < r**2:
                             A[k, j, i] = inten
 
+        # ----------------------------------------------------------------------
         for _ in range(n_ellipsoidal):
             x = np.floor(xrange * np.random.rand() + Rsphere)
             y = np.floor(yrange * np.random.rand() + Rsphere)
@@ -78,6 +80,7 @@ def generate_phantom_3D(
                         ) >= 0.8:
                             A[k, j, i] = inten
 
+        # ----------------------------------------------------------------------
         dotrangex = Sx - Ldot - 1
         dotrangey = Sy - Ldot - 1
         dotrangez = Sz - Ldot - 1
@@ -91,7 +94,7 @@ def generate_phantom_3D(
 
             inten = 800 * np.random.rand() + 50
 
-            A[z : z + 1, y : y + 1, x : x + 1] = inten
+            A[z : z + 2, y : y + 2, x : x + 2] = inten
 
         for _ in range(n_dots):
             x = np.floor(dotrangex * np.random.rand() + 1)
@@ -103,7 +106,7 @@ def generate_phantom_3D(
             inten = 800 * np.random.rand() + 50
             k = np.floor(np.random.rand() * Ldot) + 1
 
-            A[z : z + 1, y : y + 1, x : x + k] = inten
+            A[z : z + 2, y : y + 2, x : x + k+1] = inten
 
         for _ in range(n_dots):
             x = np.floor((Sx - 3) * np.random.rand() + 1)
@@ -116,7 +119,7 @@ def generate_phantom_3D(
 
             k = np.floor(np.random.rand() * 9) + 1
 
-            A[z : z + 1, y : y + k, x : x + 1] = inten + 50 * np.random.rand()
+            A[z : z + 2, y : y + k+1, x : x + 2] = inten + 50 * np.random.rand()
 
         for _ in range(n_dots):
             x = np.floor((Sx - 3) * np.random.rand() + 1)
@@ -128,7 +131,7 @@ def generate_phantom_3D(
             inten = 800 * np.random.rand() + 50
             k = np.floor(np.random.rand() * Ldot) + 1
 
-            A[z : z + k, y : y + 1, x : x + 1] = inten
+            A[z : z + k+1, y : y + 2, x : x + 2] = inten
 
         for _ in range(n_dots):
             x = np.floor(dotrangex * np.random.rand() + 1)
@@ -141,7 +144,7 @@ def generate_phantom_3D(
             k1 = np.floor(np.random.rand() * Ldot) + 1
             k2 = np.floor(np.random.rand() * Ldot) + 1
 
-            A[z : z + k2, y : y + 1, x : x + k1] = inten
+            A[z : z + k2+1, y : y + 2, x : x + k1+1] = inten
 
         for _ in range(n_dots):
             x = np.floor(dotrangex * np.random.rand() + 1)
@@ -154,7 +157,7 @@ def generate_phantom_3D(
 
             k1 = np.floor(np.random.rand() * Ldot) + 1
             k2 = np.floor(np.random.rand() * Ldot) + 1
-            A[z : z + 1, y : y + k2, x : x + k1] = inten
+            A[z : z + 2, y : y + k2+1, x : x + k1+1] = inten
 
         for _ in range(n_dots):
             x = np.floor((Sx - 3) * np.random.rand() + 1)
@@ -166,7 +169,7 @@ def generate_phantom_3D(
             inten = 800 * np.random.rand() + 50
             k1 = np.floor(np.random.rand() * Ldot) + 1
             k2 = np.floor(np.random.rand() * Ldot) + 1
-            A[z : z + k2, y : y + k1, x : x + 1] = inten
+            A[z : z + k2+1, y : y + k1+1, x : x + 2] = inten
 
         for _ in range(n_dots):
             x = np.floor(dotrangex * np.random.rand() + 1)
@@ -180,4 +183,4 @@ def generate_phantom_3D(
             k2 = np.floor(np.random.rand() * Ldot) + 1
             k3 = np.floor(np.random.rand() * Ldot) + 1
 
-            A[z : z + k3, y : y + k2, x : x + k1] = inten
+            A[z : z + k3+1, y : y + k2+1, x : x + k1+1] = inten
