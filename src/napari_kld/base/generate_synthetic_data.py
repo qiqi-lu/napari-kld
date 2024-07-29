@@ -89,7 +89,7 @@ def generate_simulation_data(
     # --------------------------------------------------------------------------
     # add blur and noise
     for i, name in enumerate(name_list):
-        if name == '':
+        if name == "":
             continue
         img_gt = io.imread(os.path.join(path_dataset_gt, name))
 

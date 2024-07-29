@@ -875,9 +875,9 @@ class WorkerKLDeconvSimulation(WorkerBase):
             generate_simulation_data(**self.params_dict)
         except (RuntimeError, TypeError) as e:
             print(str(e))
-            self.observer.notify('Run failed.')
+            self.observer.notify("Run failed.")
         self.finish_signal.emit()
-        print('finished.')
+        print("finished.")
 
 
 class WidgetKLDeconvSimulation(WidgetBase):

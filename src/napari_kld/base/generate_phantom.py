@@ -3,7 +3,8 @@ Simulation phantom generation.
 Python version of the MATLAB code: "https://github.com/MeatyPlus/Richardson-Lucy-Net/blob/main/Phantom_generate/Phantom_generate.m"
 """
 
-import os, pathlib
+import os
+import pathlib
 
 import numpy as np
 import skimage.io as io
