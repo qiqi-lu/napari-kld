@@ -203,3 +203,6 @@ class WidgetBase(QGroupBox):
     def restart(self):
         self.progress_bar.setValue(0)
         self._thread.quit()
+
+    def _on_click_run(self):
+        print('run ...')

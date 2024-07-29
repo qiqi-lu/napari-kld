@@ -904,11 +904,11 @@ class WidgetKLDeconvSimulation(WidgetBase):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("PSF crop (z,x,y)"), 3, 0, 1, 1)
-        self.crop_z_box = SpinBox(vmin=1, vmax=999, vinit=0)
+        self.crop_z_box = SpinBox(vmin=0, vmax=999, vinit=0)
         grid_layout.addWidget(self.crop_z_box, 3, 1, 1, 1)
-        self.crop_y_box = SpinBox(vmin=1, vmax=999, vinit=0)
+        self.crop_y_box = SpinBox(vmin=0, vmax=999, vinit=0)
         grid_layout.addWidget(self.crop_y_box, 3, 2, 1, 1)
-        self.crop_x_box = SpinBox(vmin=1, vmax=999, vinit=0)
+        self.crop_x_box = SpinBox(vmin=0, vmax=999, vinit=0)
         grid_layout.addWidget(self.crop_x_box, 3, 3, 1, 1)
 
         # ----------------------------------------------------------------------
@@ -928,7 +928,7 @@ class WidgetKLDeconvSimulation(WidgetBase):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Ratio"), 6, 0, 1, 1)
-        self.ratio_box = DoubleSpinBox(vmin=0, vmax=99, vinit=0)
+        self.ratio_box = DoubleSpinBox(vmin=0, vmax=99, vinit=1)
         grid_layout.addWidget(self.ratio_box, 6, 1, 1, 1)
 
         grid_layout.addWidget(QLabel("Scale factor"), 6, 2, 1, 1)
@@ -937,7 +937,6 @@ class WidgetKLDeconvSimulation(WidgetBase):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(self.run_btn, 7, 0, 1, 4)
-        self.run_btn.clicked.connect(self._on_click_run)
         grid_layout.addWidget(self.progress_bar, 8, 0, 1, 4)
 
     def get_params(self):
@@ -954,9 +953,8 @@ class WidgetKLDeconvSimulation(WidgetBase):
             int(self.crop_x_box.value()),
         )
 
-        for i in tuple:
-            if i == 0:
-                psf_crop = None
+        if psf_crop[0]==0 or psf_crop[1]==0 or psf_crop[2]==0:
+            psf_crop = None
 
         num_simulation = self.num_simu_box.value()
         std_gauss = self.gauss_std_box.value()
