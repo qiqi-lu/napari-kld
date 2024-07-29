@@ -208,3 +208,17 @@ def generate_phantom_3D(
             arr=A_conv,
             check_contrast=False,
         )
+
+
+if __name__ == "__main__":
+    import pathlib
+
+    output_path = pathlib.Path(
+        "D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory"
+    )
+    shape = (128, 128, 128)
+    num_simulation = 2
+
+    generate_phantom_3D(
+        output_path=output_path, shape=shape, num_simulation=num_simulation
+    )
