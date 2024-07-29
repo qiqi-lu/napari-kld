@@ -205,4 +205,4 @@ class WidgetBase(QGroupBox):
         self._thread.quit()
 
     def _on_click_run(self):
-        print('run ...')
+        print("run ...")

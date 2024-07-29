@@ -953,7 +953,7 @@ class WidgetKLDeconvSimulation(WidgetBase):
             int(self.crop_x_box.value()),
         )
 
-        if psf_crop[0]==0 or psf_crop[1]==0 or psf_crop[2]==0:
+        if psf_crop[0] == 0 or psf_crop[1] == 0 or psf_crop[2] == 0:
             psf_crop = None
 
         num_simulation = self.num_simu_box.value()
