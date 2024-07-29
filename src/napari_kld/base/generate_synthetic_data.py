@@ -25,16 +25,33 @@ def generate_simulation_data(
         if observer is not None:
             observer.notify(value)
 
-    path_dataset_gt = os.path.join(path_dataset, "gt")
-    path_dataset_raw = os.path.join(path_dataset, "raw")
+    path_dataset_train = os.path.join(path_dataset, "data", "train")
+    path_dataset_gt = os.path.join(path_dataset_train, "gt")
+    path_dataset_raw = os.path.join(path_dataset_train, "raw")
+
+    for path in [path_dataset_gt, path_dataset_raw]:
+        if not os.path.exists(path):
+            os.makedirs(path, exist_ok=True)
+
+    notify("save to:")
+    notify(path_dataset_gt)
+    notify(path_dataset_raw)
+
     # --------------------------------------------------------------------------
     # generate ground truth phantom.
     generate_phantom_3D(
         output_path=path_dataset_gt,
         shape=image_shape,
-        num_simulation=1,
+        num_simulation=num_simulation,
         is_with_background=False,
     )
+
+    # --------------------------------------------------------------------------
+    # read generated phantom data
+    with open(os.path.join(path_dataset_train, "train.txt")) as f:
+        text = f.read()
+        name_list = text.split("\n")
+        print(name_list)
 
     # --------------------------------------------------------------------------
     # generate raw image with blurring and noise.
@@ -55,50 +72,47 @@ def generate_simulation_data(
             np.minimum(psf_crop_shape[2], image_shape[2]),
         )
         psf_crop = utils_data.center_crop(psf_odd, size=size_crop)
-        print(f"crop PSF from {psf_odd.shape} to a shape of {psf_crop.shape}")
+        notify(f"crop PSF from {psf_odd.shape} to a shape of {psf_crop.shape}")
 
-    # ------------------------------------------------------------------------------
-    data_gt_single = io.imread(os.path.join(path_dataset_gt, "1.tif"))
-    data_gt_single = data_gt_single.astype(np.float32)
-    print("GT shape:", data_gt_single.shape)
-
-    std_gauss, poisson, ratio = 0.5, 1, 0.1
-    scale_factor = 1
-
-    # ------------------------------------------------------------------------------
-    # save to
-    if not os.path.exists(path_dataset_raw):
-        os.makedirs(path_dataset_raw)
-    print("save to:", path_dataset_raw)
-
+    # save cropped psf
     io.imsave(
-        os.path.join(path_dataset_raw, "psf.tif"),
-        arr=psf,
+        os.path.join(path_dataset_train, "psf.tif"),
+        arr=psf_crop,
         check_contrast=False,
     )
-    # ------------------------------------------------------------------------------
 
-    for i in [1]:
-        data_gt = io.imread(os.path.join(path_dataset_gt, f"{i}.tif"))
+    # --------------------------------------------------------------------------
+    img_gt_single = io.imread(os.path.join(path_dataset_gt, name_list[0]))
+    img_gt_single = img_gt_single.astype(np.float32)
+    notify(f"GT shape: {img_gt_single.shape}")
+
+    # --------------------------------------------------------------------------
+    # add blur and noise
+    for i, name in enumerate(name_list):
+        img_gt = io.imread(os.path.join(path_dataset_gt, name))
 
         # scale to control SNR
-        data_gt = data_gt.astype(np.float32) * ratio
-        data_blur = dcv.Convolution(
-            data_gt, psf_crop, padding_mode="reflect", domain="fft"
+        img_gt = img_gt.astype(np.float32) * ratio
+        img_blur = dcv.Convolution(
+            img_gt, psf_crop, padding_mode="reflect", domain="fft"
         )
 
         # add noise
-        data_blur_n = utils_data.add_mix_noise(
-            data_blur,
+        img_blur_n = utils_data.add_mix_noise(
+            img_blur,
             poisson=poisson,
             sigma_gauss=std_gauss,
             scale_factor=scale_factor,
         )
 
         # SNR
-        print(f"sample [{i}],", "SNR:", eva.SNR(data_blur, data_blur_n))
+        notify(f"{name}, SNR: {eva.SNR(img_blur, img_blur_n)}")
         io.imsave(
-            os.path.join(path_dataset_raw, f"{i}.tif"),
-            arr=data_blur_n,
+            os.path.join(path_dataset_raw, name),
+            arr=img_blur_n,
             check_contrast=False,
         )
+
+        # observe progress
+        if observer is not None:
+            observer.progress(i)

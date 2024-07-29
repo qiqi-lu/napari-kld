@@ -19,6 +19,7 @@ from qtpy.QtWidgets import (
 )
 
 from napari_kld.base import methods, predict, train
+from napari_kld.base.generate_synthetic_data import generate_simulation_data
 from napari_kld.baseww import (
     DirectorySelectWidget,
     DoubleSpinBox,
@@ -870,7 +871,7 @@ class WorkerKLDeconvSimulation(WorkerBase):
 
     def run(self):
         print("run simulation worker ...")
-        # generate_simulation_data(self.params_dict)
+        generate_simulation_data(self.params_dict)
         self.finish_signal.emit()
 
 
