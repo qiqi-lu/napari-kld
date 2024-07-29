@@ -16,6 +16,7 @@ def generate_phantom_3D(
     shape=(128, 128, 128),
     num_simulation=1,
     is_with_background=False,
+    observer=None,
 ):
     delta = 0.7
     Rsphere = 9
@@ -233,15 +234,17 @@ def generate_phantom_3D(
             )
 
             A_conv = A_conv.cpu().detach().numpy()
-            A_conv = np.array(A_conv, dtype=np.float32)
+            A_conv = np.array(A_conv, dtype=np.float32)[0, 0]
 
             io.imsave(
-                fname=os.path.join(txt_path, f"{tt}.tif"),
+                fname=os.path.join(output_path, f"{tt}.tif"),
                 arr=A_conv,
                 check_contrast=False,
             )
 
-            txt_file.write(f"{tt}.tif")
+            txt_file.write(f"{tt}.tif\n")
+            if observer is not None:
+                observer.progress(tt + 1)
 
 
 if __name__ == "__main__":

@@ -872,7 +872,9 @@ class WorkerKLDeconvSimulation(WorkerBase):
     def run(self):
         print("run simulation worker ...")
         try:
-            generate_simulation_data(**self.params_dict)
+            generate_simulation_data(
+                observer=self.observer, **self.params_dict
+            )
         except (RuntimeError, TypeError, UnboundLocalError) as e:
             print(str(e))
             self.observer.notify("Run failed.")
@@ -986,6 +988,7 @@ class WidgetKLDeconvSimulation(WidgetBase):
     def _on_click_run(self):
         print("Simulation data generating ...")
         self.restart()
+        self.progress_bar.setMaximum(self.num_simu_box.value())
         params_dict = self.get_params()
         self.print_params(params_dict=params_dict)
         self._worker.set_params(params_dict=params_dict)

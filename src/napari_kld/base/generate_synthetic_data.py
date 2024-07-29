@@ -1,3 +1,4 @@
+import json
 import os
 
 import napari_kld.base.deconvolution as dcv
@@ -44,6 +45,7 @@ def generate_simulation_data(
         shape=image_shape,
         num_simulation=num_simulation,
         is_with_background=False,
+        observer=observer,
     )
 
     # --------------------------------------------------------------------------
@@ -90,7 +92,7 @@ def generate_simulation_data(
 
     # --------------------------------------------------------------------------
     # add blur and noise
-    for i, name in enumerate(name_list):
+    for name in name_list:
         if name == "":
             continue
         img_gt = io.imread(os.path.join(path_dataset_gt, name))
@@ -117,6 +119,37 @@ def generate_simulation_data(
             check_contrast=False,
         )
 
-        # observe progress
-        if observer is not None:
-            observer.progress(i)
+    # --------------------------------------------------------------------------
+    # save parameters
+    params_dict = {
+        "path_psf": path_psf,
+        "image_shape": image_shape,
+        "num_simulation": num_simulation,
+        "psf_crop_shape": psf_crop_shape,
+        "std_gauss": std_gauss,
+        "poisson": poisson,
+        "ratio": ratio,
+        "scale_factor": scale_factor,
+    }
+
+    with open(os.path.join(path_dataset_train, "parameters.json"), "w") as f:
+        f.write(json.dumps(params_dict))
+
+
+if __name__ == "__main__":
+    import pathlib
+
+    output_path = pathlib.Path(
+        "D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\simulation"
+    )
+    psf_path = pathlib.Path(
+        "D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\simulation\\PSF.tif"
+    )
+    shape = (128, 128, 128)
+    num_simulation = 2
+
+    generate_simulation_data(
+        path_dataset=output_path,
+        path_psf=psf_path,
+        num_simulation=num_simulation,
+    )

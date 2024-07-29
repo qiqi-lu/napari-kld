@@ -191,7 +191,6 @@ class WidgetBase(QGroupBox):
 
     def _on_notify(self, value):
         if self.logger is not None:
-            print(value)
             self.logger.add_text(value)
 
     def print_params(self, params_dict):
