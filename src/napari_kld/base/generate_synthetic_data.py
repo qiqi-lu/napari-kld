@@ -18,7 +18,7 @@ def generate_simulation_data(
     poisson=1,
     ratio=1,
     scale_factor=1,
-    observer=None
+    observer=None,
 ):
     def notify(value):
         print(value)
@@ -49,11 +49,13 @@ def generate_simulation_data(
 
     # crop psf
     if psf_crop_shape is not None:
-        size_crop = (np.minimum(psf_crop_shape[0], image_shape[0]),
+        size_crop = (
+            np.minimum(psf_crop_shape[0], image_shape[0]),
             np.minimum(psf_crop_shape[1], image_shape[1]),
-            np.minimum(psf_crop_shape[2], image_shape[2]))
+            np.minimum(psf_crop_shape[2], image_shape[2]),
+        )
         psf_crop = utils_data.center_crop(psf_odd, size=size_crop)
-        print(f'crop PSF from {psf_odd.shape} to a shape of {psf_crop.shape}')
+        print(f"crop PSF from {psf_odd.shape} to a shape of {psf_crop.shape}")
 
     # ------------------------------------------------------------------------------
     data_gt_single = io.imread(os.path.join(path_dataset_gt, "1.tif"))
