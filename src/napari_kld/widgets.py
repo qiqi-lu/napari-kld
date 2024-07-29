@@ -5,6 +5,7 @@ import napari
 import qtpy.QtCore
 from qtpy.QtCore import QObject, QThread, Signal
 from qtpy.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDoubleSpinBox,
     QGridLayout,
@@ -18,8 +19,10 @@ from qtpy.QtWidgets import (
 )
 
 from napari_kld.base import methods, predict, train
+from napari_kld.base.generate_synthetic_data import generate_simulation_data
 from napari_kld.widgets_small import (
     DirectorySelectWidget,
+    DoubleSpinBox,
     FileSelectWidget,
     ProgressObserver,
     SpinBox,
@@ -860,6 +863,11 @@ class WidgetKLDeconvPredict(QGroupBox):
         self._worker.set_output()
 
 
+class WorkerKLDeconvSimulation(QObject):
+    def __init__(self, observer):
+        super().__init__()
+
+
 class WidgetKLDeconvSimulation(QGroupBox):
     def __init__(self, logger=None):
         super().__init__()
@@ -871,8 +879,8 @@ class WidgetKLDeconvSimulation(QGroupBox):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Output Directory"), 0, 0, 1, 1)
-        self.output_directory_widget = DirectorySelectWidget()
-        grid_layout.addWidget(self.output_directory_widget, 0, 1, 1, 3)
+        self.output_path_box = DirectorySelectWidget()
+        grid_layout.addWidget(self.output_path_box, 0, 1, 1, 3)
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("PSF directory"), 1, 0, 1, 1)
@@ -889,3 +897,79 @@ class WidgetKLDeconvSimulation(QGroupBox):
         grid_layout.addWidget(self.shape_x_box, 2, 3, 1, 1)
 
         # ----------------------------------------------------------------------
+        grid_layout.addWidget(QLabel("PSF crop (z,x,y)"), 3, 0, 1, 1)
+        self.crop_z_box = SpinBox(vmin=1, vmax=999, vinit=0)
+        grid_layout.addWidget(self.crop_z_box, 3, 1, 1, 1)
+        self.crop_y_box = SpinBox(vmin=1, vmax=999, vinit=0)
+        grid_layout.addWidget(self.crop_y_box, 3, 2, 1, 1)
+        self.crop_x_box = SpinBox(vmin=1, vmax=999, vinit=0)
+        grid_layout.addWidget(self.crop_x_box, 3, 3, 1, 1)
+
+        # ----------------------------------------------------------------------
+        grid_layout.addWidget(QLabel("Num of simulation"), 4, 0, 1, 1)
+        self.num_simu_box = SpinBox(vmin=1, vmax=999, vinit=1)
+        grid_layout.addWidget(self.num_simu_box, 4, 1, 1, 1)
+
+        # ----------------------------------------------------------------------
+        grid_layout.addWidget(QLabel("Gaussian (std)"), 5, 0, 1, 1)
+        self.gauss_std_box = DoubleSpinBox(vmin=0, vmax=999, vinit=0)
+        grid_layout.addWidget(self.gauss_std_box, 5, 1, 1, 1)
+
+        grid_layout.addWidget(QLabel("Poisson"), 5, 2, 1, 1)
+        self.poiss_check_box = QCheckBox()
+        self.poiss_check_box.setText("Enable")
+        grid_layout.addWidget(self.poiss_check_box, 5, 3, 1, 1)
+
+        # ----------------------------------------------------------------------
+        grid_layout.addWidget(QLabel("Ratio"), 6, 0, 1, 1)
+        self.ratio_box = DoubleSpinBox(vmin=0, vmax=99, vinit=0)
+        grid_layout.addWidget(self.ratio_box, 6, 1, 1, 1)
+
+        grid_layout.addWidget(QLabel("Scale factor"), 6, 2, 1, 1)
+        self.sf_box = SpinBox(vmin=1, vmax=10, vinit=1)
+        grid_layout.addWidget(self.sf_box, 6, 3, 1, 1)
+
+        # ----------------------------------------------------------------------
+        self.run_btn = QPushButton("run")
+        grid_layout.addWidget(self.run_btn, 7, 0, 1, 4)
+        self.run_btn.clicked.connect(self._on_click_run)
+
+        self.progress_bar = QProgressBar()
+        grid_layout.addWidget(self.progress_bar, 8, 0, 1, 4)
+
+    def _on_click_run(self):
+        print("Simulation data generating ...")
+        self.progress_bar.setValue(0)
+
+    def get_params(self):
+        data_path = self.output_path_box.get_path()
+        psf_path = self.psf_path_box.get_path()
+        image_shape = (
+            int(self.shape_z_box.value()),
+            int(self.shape_y_box.value()),
+            int(self.shape_x_box.value()),
+        )
+        psf_crop = (
+            int(self.crop_z_box.value()),
+            int(self.crop_y_box.value()),
+            int(self.crop_x_box.value()),
+        )
+        num_simulation = self.num_simu_box.value()
+        std_gauss = self.gauss_std_box.value()
+        poisson = 1 if self.poiss_check_box.checkState() else 0
+        ratio = self.ratio_box.value()
+        scale_factor = self.sf_box.value()
+
+        params_dict = {
+            "path_dataset": data_path,
+            "path_psf": psf_path,
+            "image_shape": image_shape,
+            "num_simulation": num_simulation,
+            "psf_crop_shape": psf_crop,
+            "std_gauss": std_gauss,
+            "poisson": poisson,
+            "ratio": ratio,
+            "scale_factor": scale_factor,
+        }
+
+        generate_simulation_data(**params_dict)

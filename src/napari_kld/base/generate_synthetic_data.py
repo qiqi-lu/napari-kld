@@ -19,7 +19,8 @@ def generate_simulation_data(
     ratio=1,
     scale_factor=1,
 ):
-    # generate ground truth phantom
+    # --------------------------------------------------------------------------
+    # generate ground truth phantom.
     path_dataset_gt = os.path.join(path_dataset, "gt")
     generate_phantom_3D(
         output_path=path_dataset_gt,
@@ -28,6 +29,8 @@ def generate_simulation_data(
         is_with_background=False,
     )
 
+    # --------------------------------------------------------------------------
+    # generate raw image with blurring and noise.
     path_dataset_raw = os.path.join(path_dataset, "raw")
 
     print("load PSF from:", path_psf)

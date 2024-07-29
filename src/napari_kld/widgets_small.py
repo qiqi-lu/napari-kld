@@ -138,3 +138,12 @@ class SpinBox(QSpinBox):
         self.setMinimum(vmin)
         self.setMaximum(vmax)
         self.setValue(vinit)
+
+
+class DoubleSpinBox(QDoubleSpinBox):
+    def __init__(self, vmin, vmax, vinit):
+        super().__init__()
+
+        self.setMinimum(vmin)
+        self.setMaximum(vmax)
+        self.setValue(vinit)
