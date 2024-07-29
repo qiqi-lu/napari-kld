@@ -1,6 +1,6 @@
 import pathlib
 
-from qtpy.QtCore import QObject, Signal
+from qtpy.QtCore import QObject, QThread, Signal
 from qtpy.QtWidgets import (
     QDoubleSpinBox,
     QFileDialog,
@@ -9,6 +9,7 @@ from qtpy.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QProgressBar,
     QPushButton,
     QSpinBox,
     QTextEdit,
@@ -147,3 +148,58 @@ class DoubleSpinBox(QDoubleSpinBox):
         self.setMinimum(vmin)
         self.setMaximum(vmax)
         self.setValue(vinit)
+
+
+class WorkerBase(QObject):
+    finish_signal = Signal()
+    succeed_signal = Signal()
+
+    def __init__(self, observer=None):
+        super().__init__()
+        self.observer = observer
+        self.params_dict = {}
+
+    def set_params(self, params_dict):
+        self.params_dict = params_dict
+
+    def run(self):
+        print("worker run ...")
+
+
+class WidgetBase(QGroupBox):
+    def __init__(self, logger=None):
+        super().__init__()
+        self.logger = logger
+        self._thread = QThread()
+        self._observer = ProgressObserver()
+        self._worker = WorkerBase()
+
+        self.run_btn = QPushButton("run")
+        self.run_btn.clicked.connect(self._on_click_run)
+
+        self.progress_bar = QProgressBar()
+
+        # ----------------------------------------------------------------------
+        # connect the thread
+        self._worker.moveToThread(self._thread)
+        self._thread.started.connect(self._worker.run)
+        self._worker.finish_signal.connect(self._thread.quit)
+
+        self._observer.progress_signal.connect(self._on_progress)
+        self._observer.notify_signal.connect(self._on_notify)
+
+    def _on_progress(self, value):
+        self.progress_bar.setValue(value)
+
+    def _on_notify(self, value):
+        if self.logger is not None:
+            self.logger.add_text(value)
+
+    def print_params(self, params_dict):
+        self._on_notify("Parameters:")
+        for item in params_dict:
+            self._on_notify(f"{item} : {params_dict[item]}")
+
+    def restart(self):
+        self.progress_bar.setValue(0)
+        self._thread.quit()

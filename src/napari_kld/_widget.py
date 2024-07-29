@@ -245,29 +245,12 @@ class RLDwidget(QWidget):
             self.gauss_widget.setVisible(False)
 
 
-class KLDworker(QObject):
-    finish_signal = Signal()
-
-    def __init__(self):
-        super().__init__()
-
-    def run(self):
-        print("worker run ...")
-        print("finish")
-        self.finish_signal.emit()
-
-
 class KLDwidget(QWidget):
     def __init__(self, viewer: napari.Viewer):
         super().__init__()
 
-        self._thread = QThread()
-        self._worker = RLDworker()
-        self._observer = ProgressObserver()
         self._widgets = {}
-
         logger = LogBox()
-
         # ----------------------------------------------------------------------
         page_widget_train = QWidget()
         page_layout_train = QVBoxLayout()

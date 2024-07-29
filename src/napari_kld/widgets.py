@@ -19,13 +19,14 @@ from qtpy.QtWidgets import (
 )
 
 from napari_kld.base import methods, predict, train
-from napari_kld.base.generate_synthetic_data import generate_simulation_data
 from napari_kld.baseww import (
     DirectorySelectWidget,
     DoubleSpinBox,
     FileSelectWidget,
     ProgressObserver,
     SpinBox,
+    WidgetBase,
+    WorkerBase,
 )
 
 
@@ -863,24 +864,19 @@ class WidgetKLDeconvPredict(QGroupBox):
         self._worker.set_output()
 
 
-class WorkerKLDeconvSimulation(QObject):
-    finish_signal = Signal()
-
+class WorkerKLDeconvSimulation(WorkerBase):
     def __init__(self, observer):
-        super().__init__()
+        super().__init__(observer)
 
     def run(self):
         print("run simulation worker ...")
-
+        # generate_simulation_data(self.params_dict)
         self.finish_signal.emit()
 
 
-class WidgetKLDeconvSimulation(QGroupBox):
+class WidgetKLDeconvSimulation(WidgetBase):
     def __init__(self, logger=None):
-        super().__init__()
-        self.logger = logger
-        self._thread = QThread()
-        self._observer = ProgressObserver()
+        super().__init__(logger)
         self._worker = WorkerKLDeconvSimulation(self._observer)
 
         self.setTitle("Simulation")
@@ -939,31 +935,9 @@ class WidgetKLDeconvSimulation(QGroupBox):
         grid_layout.addWidget(self.sf_box, 6, 3, 1, 1)
 
         # ----------------------------------------------------------------------
-        self.run_btn = QPushButton("run")
         grid_layout.addWidget(self.run_btn, 7, 0, 1, 4)
         self.run_btn.clicked.connect(self._on_click_run)
-
-        self.progress_bar = QProgressBar()
         grid_layout.addWidget(self.progress_bar, 8, 0, 1, 4)
-        # ----------------------------------------------------------------------
-        # connect the thread
-        self._worker.moveToThread(self._thread)
-        self._thread.started.connect(self._worker.run)
-        self._worker.finish_signal.connect(self._thread.quit)
-
-        self._observer.progress_signal.connect(self._on_progress)
-        self._observer.notify_signal.connet(self._on_notify)
-
-    def _on_click_run(self):
-        print("Simulation data generating ...")
-        self.progress_bar.setValue(0)
-
-    def _on_progress(self, value):
-        self.progress_bar.setValue(value)
-
-    def _on_notify(self, value):
-        if self.logger is not None:
-            self.logger.add_text(value)
 
     def get_params(self):
         data_path = self.output_path_box.get_path()
@@ -996,4 +970,12 @@ class WidgetKLDeconvSimulation(QGroupBox):
             "scale_factor": scale_factor,
         }
 
-        generate_simulation_data(**params_dict)
+        return params_dict
+
+    def _on_click_run(self):
+        print("Simulation data generating ...")
+        self.restart()
+        params_dict = self.get_params()
+        self.print_params(params_dict=params_dict)
+        self._worker.set_params(params_dict=params_dict)
+        self._thread.start()

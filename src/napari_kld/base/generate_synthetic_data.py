@@ -18,10 +18,17 @@ def generate_simulation_data(
     poisson=1,
     ratio=1,
     scale_factor=1,
+    observer=None
 ):
+    def notify(value):
+        print(value)
+        if observer is not None:
+            observer.notify(value)
+
+    path_dataset_gt = os.path.join(path_dataset, "gt")
+    path_dataset_raw = os.path.join(path_dataset, "raw")
     # --------------------------------------------------------------------------
     # generate ground truth phantom.
-    path_dataset_gt = os.path.join(path_dataset, "gt")
     generate_phantom_3D(
         output_path=path_dataset_gt,
         shape=image_shape,
@@ -31,17 +38,22 @@ def generate_simulation_data(
 
     # --------------------------------------------------------------------------
     # generate raw image with blurring and noise.
-    path_dataset_raw = os.path.join(path_dataset, "raw")
 
-    print("load PSF from:", path_psf)
+    # load psf
+    notify("load psf from:", path_psf)
+    psf = io.imread(path_psf).astype(np.float32)
 
-    # --------------------------------------------------------------------------
-    # load PSF
-    PSF = io.imread(path_psf).astype(np.float32)
-    PSF_odd = utils_data.even2odd(PSF)
-    print(f"convert PSF shape from {PSF.shape} to {PSF_odd.shape}.")
+    # interpolate psf with even shape to odd shape
+    psf_odd = utils_data.even2odd(psf)
+    notify(f"convert psf shape from {psf.shape} to {psf_odd.shape}.")
+
+    # crop psf
     if psf_crop_shape is not None:
-        PSF_crop = utils_data.center_crop(PSF_odd, size=psf_crop_shape)
+        size_crop = (np.minimum(psf_crop_shape[0], image_shape[0]),
+            np.minimum(psf_crop_shape[1], image_shape[1]),
+            np.minimum(psf_crop_shape[2], image_shape[2]))
+        psf_crop = utils_data.center_crop(psf_odd, size=size_crop)
+        print(f'crop PSF from {psf_odd.shape} to a shape of {psf_crop.shape}')
 
     # ------------------------------------------------------------------------------
     data_gt_single = io.imread(os.path.join(path_dataset_gt, "1.tif"))
@@ -58,8 +70,8 @@ def generate_simulation_data(
     print("save to:", path_dataset_raw)
 
     io.imsave(
-        os.path.join(path_dataset_raw, "PSF.tif"),
-        arr=PSF,
+        os.path.join(path_dataset_raw, "psf.tif"),
+        arr=psf,
         check_contrast=False,
     )
     # ------------------------------------------------------------------------------
@@ -70,7 +82,7 @@ def generate_simulation_data(
         # scale to control SNR
         data_gt = data_gt.astype(np.float32) * ratio
         data_blur = dcv.Convolution(
-            data_gt, PSF_crop, padding_mode="reflect", domain="fft"
+            data_gt, psf_crop, padding_mode="reflect", domain="fft"
         )
 
         # add noise
