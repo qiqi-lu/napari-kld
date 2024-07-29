@@ -953,6 +953,11 @@ class WidgetKLDeconvSimulation(WidgetBase):
             int(self.crop_y_box.value()),
             int(self.crop_x_box.value()),
         )
+
+        for i in tuple:
+            if i == 0:
+                psf_crop = None
+
         num_simulation = self.num_simu_box.value()
         std_gauss = self.gauss_std_box.value()
         poisson = 1 if self.poiss_check_box.checkState() else 0
