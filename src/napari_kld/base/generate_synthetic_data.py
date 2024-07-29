@@ -6,7 +6,17 @@ import napari_kld.base.utils.evaluation as eva
 import numpy as np
 import skimage.io as io
 
-def generate_simulation_data(path_dataset, path_psf, image_shape=(128,128,128), psf_crop_shape=None, std_gauss=0, poisson=1, ratio=1, scale_factor=1):
+
+def generate_simulation_data(
+    path_dataset,
+    path_psf,
+    image_shape=(128, 128, 128),
+    psf_crop_shape=None,
+    std_gauss=0,
+    poisson=1,
+    ratio=1,
+    scale_factor=1,
+):
     path_dataset_gt = os.path.join(path_dataset, "gt")
     path_dataset_raw = os.path.join(path_dataset, "raw")
 
