@@ -18,12 +18,14 @@ def generate_phantom_3D(
     delta = 0.7
     Rsphere = 9
     Ldot = 9
-    n_spheres = 1600
-    n_ellipsoidal = 1600
-    n_dots = 800
+
+    more_obj = (shape[0] // 128) * (shape[1] // 128) * (shape[2] // 128)
+    n_spheres = 200 * more_obj
+    n_ellipsoidal = 200 * more_obj
+    n_dots = 50 * more_obj
 
     # create Gaussian filter
-    Ggrid = np.linspace(-2, 2, 5)
+    Ggrid = range(-2, 2 + 1)
     [X, Y, Z] = np.meshgrid(Ggrid, Ggrid, Ggrid)
     # create Guassian mask
     GaussM = np.exp(-(X**2 + Y**2 + Z**2)) / (2 * delta**2)
@@ -45,34 +47,34 @@ def generate_phantom_3D(
 
         # ----------------------------------------------------------------------
         for _ in range(n_spheres):
-            x = np.floor(xrange * np.random.rand() + Rsphere)
-            y = np.floor(yrange * np.random.rand() + Rsphere)
-            z = np.floor(zrange * np.random.rand() + Rsphere)
+            x = np.floor(xrange * np.random.rand() + Rsphere).astype(np.int8)
+            y = np.floor(yrange * np.random.rand() + Rsphere).astype(np.int8)
+            z = np.floor(zrange * np.random.rand() + Rsphere).astype(np.int8)
 
-            r = np.floor(rrange * np.random.rand() + rrange)
+            r = np.floor(rrange * np.random.rand() + rrange).astype(np.int8)
             inten = 800 * np.random.rand() + 50
 
-            for i in np.linspace(x - r, x + r):
-                for j in np.linspace(y - r, y + r):
-                    for k in np.linspace(z - r, z + r):
+            for i in range(x - r, x + r + 1):
+                for j in range(y - r, y + r + 1):
+                    for k in range(z - r, z + r + 1):
                         if ((i - x) ** 2 + (j - y) ** 2 + (k - z) ** 2) < r**2:
                             A[k, j, i] = inten
 
         # ----------------------------------------------------------------------
         for _ in range(n_ellipsoidal):
-            x = np.floor(xrange * np.random.rand() + Rsphere)
-            y = np.floor(yrange * np.random.rand() + Rsphere)
-            z = np.floor(zrange * np.random.rand() + Rsphere)
+            x = np.floor(xrange * np.random.rand() + Rsphere).astype(np.int8)
+            y = np.floor(yrange * np.random.rand() + Rsphere).astype(np.int8)
+            z = np.floor(zrange * np.random.rand() + Rsphere).astype(np.int8)
 
-            r1 = np.floor(rrange * np.random.rand() + rrange)
-            r2 = np.floor(rrange * np.random.rand() + rrange)
-            r3 = np.floor(rrange * np.random.rand() + rrange)
+            r1 = np.floor(rrange * np.random.rand() + rrange).astype(np.int8)
+            r2 = np.floor(rrange * np.random.rand() + rrange).astype(np.int8)
+            r3 = np.floor(rrange * np.random.rand() + rrange).astype(np.int8)
 
             inten = 800 * np.random.rand() + 50
 
-            for i in np.linspace((x - r1), (x + r1)):
-                for j in np.linspace((y - r2), (y + r2)):
-                    for k in np.linspace((z - r3), (z + r3)):
+            for i in range(x - r1, x + r1 + 1):
+                for j in range(y - r2, y + r2 + 1):
+                    for k in range(z - r3, z + r3 + 1):
                         if (
                             ((i - x) ** 2) / r1**2
                             + ((j - y) ** 2) / r2**2
@@ -90,9 +92,9 @@ def generate_phantom_3D(
         dotrangez = Sz - Ldot - 1
 
         for _ in range(n_dots):
-            x = np.floor((Sx - 3) * np.random.rand() + 1)
-            y = np.floor((Sy - 3) * np.random.rand() + 1)
-            z = np.floor((Sz - 3) * np.random.rand() + 1)
+            x = np.floor((Sx - 3) * np.random.rand() + 1).astype(np.int8)
+            y = np.floor((Sy - 3) * np.random.rand() + 1).astype(np.int8)
+            z = np.floor((Sz - 3) * np.random.rand() + 1).astype(np.int8)
 
             r = 1
 
@@ -101,103 +103,104 @@ def generate_phantom_3D(
             A[z : z + 2, y : y + 2, x : x + 2] = inten
 
         for _ in range(n_dots):
-            x = np.floor(dotrangex * np.random.rand() + 1)
-            y = np.floor((Sy - 3) * np.random.rand() + 1)
-            z = np.floor((Sz - 3) * np.random.rand() + 1)
+            x = np.floor(dotrangex * np.random.rand() + 1).astype(np.int8)
+            y = np.floor((Sy - 3) * np.random.rand() + 1).astype(np.int8)
+            z = np.floor((Sz - 3) * np.random.rand() + 1).astype(np.int8)
 
             r = 1
 
             inten = 800 * np.random.rand() + 50
-            k = np.floor(np.random.rand() * Ldot) + 1
+            k = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
 
             A[z : z + 2, y : y + 2, x : x + k + 1] = inten
 
         for _ in range(n_dots):
-            x = np.floor((Sx - 3) * np.random.rand() + 1)
-            y = np.floor(dotrangey * np.random.rand() + 1)
-            z = np.floor((Sz - 3) * np.random.rand() + 1)
+            x = np.floor((Sx - 3) * np.random.rand() + 1).astype(np.int8)
+            y = np.floor(dotrangey * np.random.rand() + 1).astype(np.int8)
+            z = np.floor((Sz - 3) * np.random.rand() + 1).astype(np.int8)
 
             r = 1
 
             inten = 800 * np.random.rand() + 50
 
-            k = np.floor(np.random.rand() * 9) + 1
+            k = (np.floor(np.random.rand() * 9) + 1).astype(np.int8)
 
             A[z : z + 2, y : y + k + 1, x : x + 2] = (
                 inten + 50 * np.random.rand()
             )
 
         for _ in range(n_dots):
-            x = np.floor((Sx - 3) * np.random.rand() + 1)
-            y = np.floor((Sy - 3) * np.random.rand() + 1)
-            z = np.floor(dotrangez * np.random.rand() + 1)
+            x = np.floor((Sx - 3) * np.random.rand() + 1).astype(np.int8)
+            y = np.floor((Sy - 3) * np.random.rand() + 1).astype(np.int8)
+            z = np.floor(dotrangez * np.random.rand() + 1).astype(np.int8)
 
             r = 1
 
             inten = 800 * np.random.rand() + 50
-            k = np.floor(np.random.rand() * Ldot) + 1
+            k = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
 
             A[z : z + k + 1, y : y + 2, x : x + 2] = inten
 
         for _ in range(n_dots):
-            x = np.floor(dotrangex * np.random.rand() + 1)
-            y = np.floor((Sy - 3) * np.random.rand() + 1)
-            z = np.floor(dotrangez * np.random.rand() + 1)
+            x = np.floor(dotrangex * np.random.rand() + 1).astype(np.int8)
+            y = np.floor((Sy - 3) * np.random.rand() + 1).astype(np.int8)
+            z = np.floor(dotrangez * np.random.rand() + 1).astype(np.int8)
 
             r = 1
 
             inten = 800 * np.random.rand() + 50
-            k1 = np.floor(np.random.rand() * Ldot) + 1
-            k2 = np.floor(np.random.rand() * Ldot) + 1
+            k1 = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
+            k2 = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
 
             A[z : z + k2 + 1, y : y + 2, x : x + k1 + 1] = inten
 
         for _ in range(n_dots):
-            x = np.floor(dotrangex * np.random.rand() + 1)
-            y = np.floor(dotrangey * np.random.rand() + 1)
-            z = np.floor((Sz - 3) * np.random.rand() + 1)
+            x = np.floor(dotrangex * np.random.rand() + 1).astype(np.int8)
+            y = np.floor(dotrangey * np.random.rand() + 1).astype(np.int8)
+            z = np.floor((Sz - 3) * np.random.rand() + 1).astype(np.int8)
 
             r = 1
 
             inten = 800 * np.random.rand() + 50
 
-            k1 = np.floor(np.random.rand() * Ldot) + 1
-            k2 = np.floor(np.random.rand() * Ldot) + 1
+            k1 = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
+            k2 = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
             A[z : z + 2, y : y + k2 + 1, x : x + k1 + 1] = inten
 
         for _ in range(n_dots):
-            x = np.floor((Sx - 3) * np.random.rand() + 1)
-            y = np.floor(dotrangey * np.random.rand() + 1)
-            z = np.floor(dotrangez * np.random.rand() + 1)
+            x = np.floor((Sx - 3) * np.random.rand() + 1).astype(np.int8)
+            y = np.floor(dotrangey * np.random.rand() + 1).astype(np.int8)
+            z = np.floor(dotrangez * np.random.rand() + 1).astype(np.int8)
 
             r = 1
 
             inten = 800 * np.random.rand() + 50
-            k1 = np.floor(np.random.rand() * Ldot) + 1
-            k2 = np.floor(np.random.rand() * Ldot) + 1
+            k1 = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
+            k2 = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
             A[z : z + k2 + 1, y : y + k1 + 1, x : x + 2] = inten
 
         for _ in range(n_dots):
-            x = np.floor(dotrangex * np.random.rand() + 1)
-            y = np.floor(dotrangey * np.random.rand() + 1)
-            z = np.floor(dotrangez * np.random.rand() + 1)
+            x = np.floor(dotrangex * np.random.rand() + 1).astype(np.int8)
+            y = np.floor(dotrangey * np.random.rand() + 1).astype(np.int8)
+            z = np.floor(dotrangez * np.random.rand() + 1).astype(np.int8)
 
             r = 1
 
             inten = 800 * np.random.rand() + 50
-            k1 = np.floor(np.random.rand() * Ldot) + 1
-            k2 = np.floor(np.random.rand() * Ldot) + 1
-            k3 = np.floor(np.random.rand() * Ldot) + 1
+            k1 = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
+            k2 = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
+            k3 = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
 
             A[z : z + k3 + 1, y : y + k2 + 1, x : x + k1 + 1] = inten
 
         if is_with_background:
             A = A + 30
 
-        A = torch.Tensor(A)[None, None]
-        GaussM = torch.Tensor(GaussM)[None, None]
+        A_torch = torch.Tensor(A)[None, None]
+        GaussM_torch = torch.Tensor(GaussM)[None, None]
+
         A_conv = torch.nn.functional.conv3d(
-            input=A, weight=GaussM, padding="same"
+            input=A_torch, weight=GaussM_torch, padding="same"
         )
 
         A_conv = A_conv.cpu().detach().numpy()
@@ -220,5 +223,7 @@ if __name__ == "__main__":
     num_simulation = 2
 
     generate_phantom_3D(
-        output_path=output_path, shape=shape, num_simulation=num_simulation
+        output_path=output_path,
+        shape=shape,
+        num_simulation=num_simulation,
     )

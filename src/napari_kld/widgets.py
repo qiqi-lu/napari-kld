@@ -858,3 +858,34 @@ class WidgetKLDeconvPredict(QGroupBox):
 
     def _on_succeed(self):
         self._worker.set_output()
+
+
+class WidgetKLDeconvSimulation(QGroupBox):
+    def __init__(self, logger=None):
+        super().__init__()
+        self.logger = logger
+
+        self.setTitle("Simulation")
+        grid_layout = QGridLayout()
+        self.setLayout(grid_layout)
+
+        # ----------------------------------------------------------------------
+        grid_layout.addWidget(QLabel("Output Directory"), 0, 0, 1, 1)
+        self.output_directory_widget = DirectorySelectWidget()
+        grid_layout.addWidget(self.output_directory_widget, 0, 1, 1, 3)
+
+        # ----------------------------------------------------------------------
+        grid_layout.addWidget(QLabel("PSF directory"), 1, 0, 1, 1)
+        self.psf_path_box = FileSelectWidget()
+        grid_layout.addWidget(self.psf_path_box, 1, 1, 1, 3)
+
+        # ----------------------------------------------------------------------
+        grid_layout.addWidget(QLabel("Image shape (z,x,y)"), 2, 0, 1, 1)
+        self.shape_z_box = SpinBox(vmin=1, vmax=999, vinit=128)
+        grid_layout.addWidget(self.shape_z_box, 2, 1, 1, 1)
+        self.shape_y_box = SpinBox(vmin=1, vmax=999, vinit=128)
+        grid_layout.addWidget(self.shape_y_box, 2, 2, 1, 1)
+        self.shape_x_box = SpinBox(vmin=1, vmax=999, vinit=128)
+        grid_layout.addWidget(self.shape_x_box, 2, 3, 1, 1)
+
+        # ----------------------------------------------------------------------

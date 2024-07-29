@@ -13,6 +13,7 @@ from qtpy.QtWidgets import (
 
 from napari_kld.widgets import (
     WidgetKLDeconvPredict,
+    WidgetKLDeconvSimulation,
     WidgetKLDeconvTrain,
     WidgetRLDeconvButterworth,
     WidgetRLDeconvGaussian,
@@ -267,26 +268,38 @@ class KLDwidget(QWidget):
 
         logger = LogBox()
 
+        # ----------------------------------------------------------------------
         page_widget_train = QWidget()
         page_layout_train = QVBoxLayout()
         page_widget_train.setLayout(page_layout_train)
         page_layout_train.addWidget(WidgetKLDeconvTrain(logger=logger))
 
+        # ----------------------------------------------------------------------
         page_widget_prediction = QWidget()
         page_layout_prediction = QVBoxLayout()
         page_widget_prediction.setLayout(page_layout_prediction)
         page_layout_prediction.addWidget(WidgetKLDeconvPredict(viewer, logger))
         page_layout_prediction.addStretch()
 
+        # ----------------------------------------------------------------------
+        page_widget_simulation = QWidget()
+        page_layout_simulation = QVBoxLayout()
+        page_widget_simulation.setLayout(page_layout_simulation)
+        page_layout_simulation.addWidget(WidgetKLDeconvSimulation(logger))
+        page_layout_simulation.addStretch()
+
+        # ----------------------------------------------------------------------
         page_widget_log = QWidget()
         page_layout_log = QVBoxLayout()
         page_widget_log.setLayout(page_layout_log)
         page_layout_log.addWidget(logger)
         page_layout_log.addStretch()
 
+        # ----------------------------------------------------------------------
         tabwidget = QTabWidget()
         tabwidget.addTab(page_widget_train, "Training")
         tabwidget.addTab(page_widget_prediction, "Prediction")
+        tabwidget.addTab(page_widget_simulation, "Simulation")
         tabwidget.addTab(page_widget_log, "Log")
 
         layout = QVBoxLayout()
