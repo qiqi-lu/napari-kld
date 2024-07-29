@@ -873,7 +873,7 @@ class WorkerKLDeconvSimulation(WorkerBase):
         print("run simulation worker ...")
         try:
             generate_simulation_data(**self.params_dict)
-        except (RuntimeError, TypeError) as e:
+        except (RuntimeError, TypeError, UnboundLocalError) as e:
             print(str(e))
             self.observer.notify("Run failed.")
         self.finish_signal.emit()
