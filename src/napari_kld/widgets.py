@@ -2,6 +2,7 @@
 import os
 
 import napari
+from napari.utils.notifications import show_info
 import qtpy.QtCore
 from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import (
@@ -282,7 +283,7 @@ class WidgetKLDeconvTrain(QGroupBox):
         if psf_path != "":
             self.fp_widget.setVisible(False)
             if not os.path.exists(psf_path):
-                napari.utils.notifications.show_info("ERROR: PSF Not Exists.")
+                show_info("ERROR: PSF Not Exists.")
                 self.bp_widget.run_btn.setEnabled(False)
         else:
             self.fp_widget.setVisible(True)
@@ -296,7 +297,7 @@ class WidgetKLDeconvTrain(QGroupBox):
                 self.fp_widget.enable_run(True)
                 self.bp_widget.enable_run(True)
             else:
-                napari.utils.notifications.show_info(
+                show_info(
                     "ERROR: Data Path Unexists."
                 )
         else:
@@ -304,18 +305,18 @@ class WidgetKLDeconvTrain(QGroupBox):
             self.bp_widget.enable_run(False)
 
     def _on_params_change(self):
-        dim = self.dim_box.currentText()
+        dim = int(self.dim_box.currentText())
         num_channel = self.channel_box.value()
         data_path = self.data_directory_widget.get_path()
         output_path = self.output_directory_widget.get_path()
         psf_path = self.psf_directory_widget.get_path()
 
         params_dict = {
-            'data_dim': int(dim),
-            'num_channel':num_channel,
-            'data_path':data_path,
-            'output_path':output_path,
-            'psf_path':psf_path
+            "data_dim": dim,
+            "num_channel": num_channel,
+            "data_path": data_path,
+            "output_path": output_path,
+            "psf_path": psf_path,
         }
         self.fp_widget.set_params(params_dict)
         self.bp_widget.set_params(params_dict)
