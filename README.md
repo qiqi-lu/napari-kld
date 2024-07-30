@@ -40,11 +40,11 @@ This plugin includes two part:
 
 - `KL Deconvolution` : KLD using learned forward/backward kernels.
 
-### RL Deconvolution
+## RL Deconvolution
 
-### KL Deconvolution
+## KL Deconvolution
 
-#### When only with Point Spread Function (PSF)
+### When only with Point Spread Function (PSF)
 
 When you only have a PSF to do deconvolution, you can train the model using simulated data.
 
@@ -54,7 +54,7 @@ When you only have a PSF to do deconvolution, you can train the model using simu
 
 3. apply the trained model on real data
 
-**Simulation data generation**
+#### Simulation data generation
 
 1. load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
 
@@ -97,7 +97,7 @@ The generated simulation data will be save in `Output directory`, such as: `"D:\
 
 After you generate simulated data, you can use them to train the model.
 
-**Training with known PSF and simulated data**
+#### Training with known PSF and simulated data
 
 The simulated data should be those generated using the known PSF.
 
