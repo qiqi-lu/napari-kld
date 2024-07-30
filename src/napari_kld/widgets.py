@@ -2,13 +2,12 @@
 import os
 
 import napari
-from napari.utils.notifications import show_info
 import qtpy.QtCore
+from napari.utils.notifications import show_info
 from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import (
     QCheckBox,
     QComboBox,
-    QDoubleSpinBox,
     QGridLayout,
     QGroupBox,
     QLabel,
@@ -49,12 +48,10 @@ class WidgetRLDeconvTraditional(QWidget):
         self.layout_grid.setContentsMargins(3, 11, 3, 11)
 
         self.layout_grid.addWidget(QLabel("Iterations:"), 0, 0)
-        self.iteration_box = QSpinBox()
-        self.iteration_box.setMinimum(1)
-        self.iteration_box.setValue(30)
-        self.progress_bar.setMaximum(30)
+        self.iteration_box = SpinBox(vmin=1, vmax=1000,vinit=30)
         self.iteration_box.valueChanged.connect(self._on_num_iter_change)
         self.layout_grid.addWidget(self.iteration_box, 0, 1)
+        self.progress_bar.setMaximum(30)
 
         self.params_group.setLayout(self.layout_grid)
         self.layout.addWidget(self.params_group)
@@ -137,10 +134,9 @@ class WidgetRLDeconvButterworth(WidgetRLDeconvTraditional):
 
         # beta box
         self.layout_grid.addWidget(QLabel("beta:"), 1, 0)
-        self.beta_box = QDoubleSpinBox()
+        self.beta_box = DoubleSpinBox(vmin=0, vmax=10, vinit=0.01)
         self.beta_box.setDecimals(5)
         self.beta_box.setSingleStep(0.01)
-        self.beta_box.setValue(0.01)
         self.layout_grid.addWidget(self.beta_box, 1, 1)
 
         # n box
@@ -181,10 +177,9 @@ class WidgetRLDeconvWB(WidgetRLDeconvButterworth):
 
         # alpha box
         self.layout_grid.addWidget(QLabel("alpha"), 3, 0)
-        self.alpha_box = QDoubleSpinBox()
+        self.alpha_box = DoubleSpinBox(vmin=0, vmax=10, vinit=0.005)
         self.alpha_box.setDecimals(5)
         self.alpha_box.setSingleStep(0.001)
-        self.alpha_box.setValue(0.005)
         self.layout_grid.addWidget(self.alpha_box, 3, 1)
 
         self.beta_box.setValue(0.1)
@@ -297,9 +292,7 @@ class WidgetKLDeconvTrain(QGroupBox):
                 self.fp_widget.enable_run(True)
                 self.bp_widget.enable_run(True)
             else:
-                show_info(
-                    "ERROR: Data Path Unexists."
-                )
+                show_info("ERROR: Data Path Unexists.")
         else:
             self.fp_widget.enable_run(False)
             self.bp_widget.enable_run(False)
