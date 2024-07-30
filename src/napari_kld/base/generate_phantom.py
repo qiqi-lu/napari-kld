@@ -415,10 +415,7 @@ def generate_phantom_3D(
                     inten = 800 * np.random.rand() + 50
                     k = (np.floor(np.random.rand() * 9) + 1).astype(np.int8)
 
-                    A[y : y + k + 1, x : x + 2] = (
-                        inten + 50 * np.random.rand()
-                    )
-
+                    A[y : y + k + 1, x : x + 2] = inten + 50 * np.random.rand()
 
                 for _ in range(n_dots):
                     x = np.floor(dotrangex * np.random.rand() + 1).astype(
@@ -437,7 +434,6 @@ def generate_phantom_3D(
                         np.int8
                     )
                     A[y : y + k2 + 1, x : x + k1 + 1] = inten
-
 
                 if is_with_background:
                     A = A + 30
