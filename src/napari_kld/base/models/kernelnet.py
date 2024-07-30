@@ -601,7 +601,7 @@ class KernelNet(nn.Module):
 
         for i in range(self.num_iter):
             if self.observer is not None:
-                self.observer.progress(i+1)
+                self.observer.progress(i + 1)
 
             fp = self.FP(xk)
             dv = x / (fp + self.eps)
