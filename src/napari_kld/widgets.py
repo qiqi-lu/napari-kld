@@ -218,58 +218,67 @@ class WorkerRLDeconvWB(WorkerRLDeconvTraditional):
 class WidgetKLDeconvTrain(QGroupBox):
     def __init__(self, logger=None):
         super().__init__()
-        self.setTitle("Train")
 
+        self.setTitle("Train")
         grid_layout = QGridLayout()
         self.setLayout(grid_layout)
 
+        # ----------------------------------------------------------------------
         self.fp_widget = WidgetKLDeconvTrainFP(logger=logger)
         grid_layout.addWidget(self.fp_widget, 4, 0, 1, 3)
 
+        # ----------------------------------------------------------------------
         self.bp_widget = WidgetKLDeconvTrainBP(logger=logger)
         grid_layout.addWidget(self.bp_widget, 5, 0, 1, 3)
 
+        # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Data Directory"), 0, 0, 1, 1)
         self.data_directory_widget = DirectorySelectWidget()
         self.data_directory_widget.path_edit.textChanged.connect(
             self._on_data_path_change
         )
+        self.data_directory_widget.path_edit.textChanged.connect(
+            self._on_params_change
+        )
         grid_layout.addWidget(self.data_directory_widget, 0, 1, 1, 2)
 
+        # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Output Directory"), 1, 0, 1, 1)
         self.output_directory_widget = DirectorySelectWidget()
         self.output_directory_widget.path_edit.textChanged.connect(
-            self._on_output_path_change
+            self._on_params_change
         )
         grid_layout.addWidget(self.output_directory_widget, 1, 1, 1, 2)
 
+        # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("PSF Directory"), 2, 0, 1, 1)
         self.psf_directory_widget = FileSelectWidget()
         self.psf_directory_widget.path_edit.textChanged.connect(
             self._on_psf_path_change
         )
+        self.psf_directory_widget.path_edit.textChanged.connect(
+            self._on_params_change
+        )
         grid_layout.addWidget(self.psf_directory_widget, 2, 1, 1, 2)
 
+        # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Image Channels/Dimension"), 3, 0, 1, 1)
         self.channel_box = SpinBox(vmin=1, vmax=10, vinit=1)
-        self.channel_box.valueChanged.connect(self._on_channel_change)
+        self.channel_box.valueChanged.connect(self._on_params_change)
         grid_layout.addWidget(self.channel_box, 3, 1, 1, 1)
         self.dim_box = QComboBox()
-        self.dim_box.currentTextChanged.connect(self._on_dim_change)
+        self.dim_box.currentTextChanged.connect(self._on_params_change)
         self.dim_box.addItems(["3", "2"])
         grid_layout.addWidget(self.dim_box, 3, 2, 1, 1)
 
+        # ----------------------------------------------------------------------
         grid_layout.setAlignment(qtpy.QtCore.Qt.AlignTop)
 
         # initialization
-        self._on_dim_change()
+        self._on_params_change()
 
     def _on_psf_path_change(self):
-        print("psf path change")
         psf_path = self.psf_directory_widget.get_path()
-        self.fp_widget.set_params({"psf_path": psf_path})
-        self.bp_widget.set_params({"psf_path": psf_path})
-
         if psf_path != "":
             self.fp_widget.setVisible(False)
             if not os.path.exists(psf_path):
@@ -278,18 +287,8 @@ class WidgetKLDeconvTrain(QGroupBox):
         else:
             self.fp_widget.setVisible(True)
 
-    def _on_output_path_change(self):
-        print("output path change")
-        path = self.output_directory_widget.get_path()
-        self.fp_widget.set_params({"output_path": path})
-        self.bp_widget.set_params({"output_path": path})
-
     def _on_data_path_change(self):
-        print("data path change")
         path = self.data_directory_widget.get_path()
-
-        self.fp_widget.set_params({"data_path": path})
-        self.bp_widget.set_params({"data_path": path})
 
         if path != "":
             # check path exist
@@ -304,17 +303,22 @@ class WidgetKLDeconvTrain(QGroupBox):
             self.fp_widget.enable_run(False)
             self.bp_widget.enable_run(False)
 
-    def _on_dim_change(self):
+    def _on_params_change(self):
         dim = self.dim_box.currentText()
-        print(f"data dimension change to {int(dim)}")
-        self.fp_widget.set_params({"data_dim": int(dim)})
-        self.bp_widget.set_params({"data_dim": int(dim)})
-
-    def _on_channel_change(self):
         num_channel = self.channel_box.value()
-        print(f"data channel change to {num_channel}")
-        self.fp_widget.set_params({"num_channel": num_channel})
-        self.bp_widget.set_params({"num_channel": num_channel})
+        data_path = self.data_directory_widget.get_path()
+        output_path = self.output_directory_widget.get_path()
+        psf_path = self.psf_directory_widget.get_path()
+
+        params_dict = {
+            'data_dim': int(dim),
+            'num_channel':num_channel,
+            'data_path':data_path,
+            'output_path':output_path,
+            'psf_path':psf_path
+        }
+        self.fp_widget.set_params(params_dict)
+        self.bp_widget.set_params(params_dict)
 
 
 class WorkerKLDeconvTrainFP(WorkerBase):
