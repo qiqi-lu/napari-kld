@@ -20,6 +20,7 @@ def generate_simulation_data(
     ratio=1,
     scale_factor=1,
     observer=None,
+    **kwargs,
 ):
     def notify(value):
         print(value)

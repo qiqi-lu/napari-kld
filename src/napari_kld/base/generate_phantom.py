@@ -18,6 +18,7 @@ def generate_phantom_3D(
     num_simulation=1,
     is_with_background=False,
     observer=None,
+    **kwargs,
 ):
     delta = 0.7
     Rsphere = 9

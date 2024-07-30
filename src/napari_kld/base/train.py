@@ -31,7 +31,7 @@ def train(
     learning_rate=0.001,  # start learning rate
     observer=None,
     abort_flag=None,
-    **kwargs
+    **kwargs,
 ):
 
     def notify(value):
