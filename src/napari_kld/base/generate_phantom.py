@@ -5,6 +5,7 @@ Python version of the MATLAB code: "https://github.com/MeatyPlus/Richardson-Lucy
 
 import os
 import pathlib
+from math import ceil
 
 import numpy as np
 import skimage.io as io
@@ -25,7 +26,8 @@ def generate_phantom_3D(
     if shape[0] == 1:
         print("make 2D image")
         data_dim = 2
-        more_obj = (shape[1] // 128 + 1) * (shape[2] // 128 + 1)
+        more_obj = (shape[1] / 128) * (shape[2] / 128)
+
         n_spheres = 5 * more_obj
         n_ellipsoidal = 5 * more_obj
         n_dots = 10 * more_obj
@@ -34,13 +36,18 @@ def generate_phantom_3D(
         print("make 3D image")
         data_dim = 3
         more_obj = (
-            (shape[0] // 128 + 1)
-            * (shape[1] // 128 + 1)
-            * (shape[2] // 128 + 1)
+            (shape[0] / 128 )
+            * (shape[1] / 128)
+            * (shape[2] / 128)
         )
+
         n_spheres = 200 * more_obj
         n_ellipsoidal = 200 * more_obj
         n_dots = 50 * more_obj
+
+    n_spheres, n_ellipsoidal, n_dots = ceil(n_spheres), ceil(n_ellipsoidal), ceil(n_dots)
+    n_spheres, n_ellipsoidal, n_dots = np.maximum(n_spheres, 10), np.maximum(n_ellipsoidal, 10), np.maximum(n_dots,10)
+
 
     # create Gaussian filter
     Ggrid = range(-2, 2 + 1)
@@ -112,6 +119,7 @@ def generate_phantom_3D(
                     x, y, z, r1, r2, r3 = (
                         int(x),
                         int(y),
+                        int(z),
                         int(r1),
                         int(r2),
                         int(r3),
@@ -130,7 +138,9 @@ def generate_phantom_3D(
                                     ((i - x) ** 2) / r1**2
                                     + ((j - y) ** 2) / r2**2
                                     + ((k - z) ** 2) / r3**2
-                                ) >= 0.8:
+                                ) >= 0.8 and (
+                                    0 <= i < Sx and 0 <= j < Sy and 0 <= k < Sz
+                                ):
                                     A[k, j, i] = inten
 
                 # --------------------------------------------------------------
@@ -390,7 +400,7 @@ if __name__ == "__main__":
         "D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory"
     )
     shape = (128, 128, 128)
-    shape = (2, 256, 256)
+    shape = (2, 128, 128)
     num_simulation = 2
 
     generate_phantom_3D(
