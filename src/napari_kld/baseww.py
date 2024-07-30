@@ -100,7 +100,7 @@ class LogBox(QGroupBox):
 
         self.log_box = QTextEdit()
         self.log_box.setReadOnly(True)
-        grid_layout.addWidget(self.log_box, 1, 0, 4, 3)
+        grid_layout.addWidget(self.log_box, 1, 0, 4, 4)
 
         self.clear_btn = QPushButton("clear")
         grid_layout.addWidget(self.clear_btn, 0, 0, 1, 1)
@@ -204,3 +204,6 @@ class WidgetBase(QGroupBox):
 
     def _on_click_run(self):
         print("run ...")
+
+    def enable_run(self, enable):
+        self.run_btn.setEnabled(enable)

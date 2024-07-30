@@ -893,11 +893,15 @@ class WidgetKLDeconvSimulation(WidgetBase):
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Output Directory"), 0, 0, 1, 1)
         self.output_path_box = DirectorySelectWidget()
+        self.output_path_box.path_edit.textChanged.connect(
+            self._on_change_path
+        )
         grid_layout.addWidget(self.output_path_box, 0, 1, 1, 3)
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("PSF directory"), 1, 0, 1, 1)
         self.psf_path_box = FileSelectWidget()
+        self.psf_path_box.path_edit.textChanged.connect(self._on_change_path)
         grid_layout.addWidget(self.psf_path_box, 1, 1, 1, 3)
 
         # ----------------------------------------------------------------------
@@ -946,6 +950,8 @@ class WidgetKLDeconvSimulation(WidgetBase):
         grid_layout.addWidget(self.run_btn, 7, 0, 1, 4)
         grid_layout.addWidget(self.progress_bar, 8, 0, 1, 4)
 
+        # ----------------------------------------------------------------------
+        self._on_change_path()
         self.reconnect()
 
     def get_params(self):
@@ -993,3 +999,16 @@ class WidgetKLDeconvSimulation(WidgetBase):
         self.print_params(params_dict=params_dict)
         self._worker.set_params(params_dict=params_dict)
         self._thread.start()
+
+    def _on_change_path(self):
+        data_path = self.output_path_box.get_path()
+        psf_path = self.psf_path_box.get_path()
+
+        if (
+            data_path == ""
+            or psf_path == ""
+            or (not os.path.exists(data_path) or not os.path.exists(psf_path))
+        ):
+            self.enable_run(False)
+        else:
+            self.enable_run(True)
