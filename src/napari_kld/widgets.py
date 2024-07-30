@@ -903,10 +903,10 @@ class WidgetKLDeconvSimulation(WidgetBase):
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Image shape (z,x,y)"), 2, 0, 1, 1)
         self.shape_z_box = SpinBox(vmin=1, vmax=999, vinit=128)
+        self.shape_y_box = SpinBox(vmin=32, vmax=999, vinit=128)
+        self.shape_x_box = SpinBox(vmin=32, vmax=999, vinit=128)
         grid_layout.addWidget(self.shape_z_box, 2, 1, 1, 1)
-        self.shape_y_box = SpinBox(vmin=1, vmax=999, vinit=128)
         grid_layout.addWidget(self.shape_y_box, 2, 2, 1, 1)
-        self.shape_x_box = SpinBox(vmin=1, vmax=999, vinit=128)
         grid_layout.addWidget(self.shape_x_box, 2, 3, 1, 1)
 
         # ----------------------------------------------------------------------

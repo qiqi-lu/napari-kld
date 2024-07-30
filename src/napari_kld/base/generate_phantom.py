@@ -406,7 +406,7 @@ if __name__ == "__main__":
         "D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory"
     )
     shape = (128, 128, 128)
-    shape = (2, 128, 128)
+    shape = (10, 64, 64)
     num_simulation = 2
 
     generate_phantom_3D(
