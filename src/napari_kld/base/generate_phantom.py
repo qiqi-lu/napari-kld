@@ -35,19 +35,17 @@ def generate_phantom_3D(
     elif shape[0] > 1:
         print("make 3D image")
         data_dim = 3
-        more_obj = (
-            (shape[0] / 128 )
-            * (shape[1] / 128)
-            * (shape[2] / 128)
-        )
+        more_obj = (shape[0] / 128) * (shape[1] / 128) * (shape[2] / 128)
 
         n_spheres = 200 * more_obj
         n_ellipsoidal = 200 * more_obj
         n_dots = 50 * more_obj
 
-    n_spheres, n_ellipsoidal, n_dots = ceil(n_spheres), ceil(n_ellipsoidal), ceil(n_dots)
-    n_spheres, n_ellipsoidal, n_dots = np.maximum(n_spheres, 10), np.maximum(n_ellipsoidal, 10), np.maximum(n_dots,10)
-
+    n_spheres, n_ellipsoidal, n_dots = (
+        np.maximum(ceil(n_spheres), 10),
+        np.maximum(ceil(n_ellipsoidal), 10),
+        np.maximum(ceil(n_dots), 10),
+    )
 
     # create Gaussian filter
     Ggrid = range(-2, 2 + 1)
@@ -131,15 +129,23 @@ def generate_phantom_3D(
                         for j in range(y - r2, y + r2 + 1):
                             for k in range(z - r3, z + r3 + 1):
                                 if (
-                                    ((i - x) ** 2) / r1**2
-                                    + ((j - y) ** 2) / r2**2
-                                    + ((k - z) ** 2) / r3**2
-                                ) <= 1.3 and (
-                                    ((i - x) ** 2) / r1**2
-                                    + ((j - y) ** 2) / r2**2
-                                    + ((k - z) ** 2) / r3**2
-                                ) >= 0.8 and (
-                                    0 <= i < Sx and 0 <= j < Sy and 0 <= k < Sz
+                                    (
+                                        ((i - x) ** 2) / r1**2
+                                        + ((j - y) ** 2) / r2**2
+                                        + ((k - z) ** 2) / r3**2
+                                    )
+                                    <= 1.3
+                                    and (
+                                        ((i - x) ** 2) / r1**2
+                                        + ((j - y) ** 2) / r2**2
+                                        + ((k - z) ** 2) / r3**2
+                                    )
+                                    >= 0.8
+                                    and (
+                                        0 <= i < Sx
+                                        and 0 <= j < Sy
+                                        and 0 <= k < Sz
+                                    )
                                 ):
                                     A[k, j, i] = inten
 
