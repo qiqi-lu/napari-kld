@@ -48,7 +48,7 @@ class WidgetRLDeconvTraditional(QWidget):
         self.layout_grid.setContentsMargins(3, 11, 3, 11)
 
         self.layout_grid.addWidget(QLabel("Iterations:"), 0, 0)
-        self.iteration_box = SpinBox(vmin=1, vmax=1000,vinit=30)
+        self.iteration_box = SpinBox(vmin=1, vmax=1000, vinit=30)
         self.iteration_box.valueChanged.connect(self._on_num_iter_change)
         self.layout_grid.addWidget(self.iteration_box, 0, 1)
         self.progress_bar.setMaximum(30)
