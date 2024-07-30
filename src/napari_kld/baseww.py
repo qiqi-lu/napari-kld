@@ -146,9 +146,10 @@ class SpinBox(QSpinBox):
 
 
 class DoubleSpinBox(QDoubleSpinBox):
-    def __init__(self, vmin, vmax, vinit):
+    def __init__(self, vmin, vmax, vinit, decimals=8):
         super().__init__()
 
+        self.setDecimals(decimals)
         self.setMinimum(vmin)
         self.setMaximum(vmax)
         self.setValue(vinit)

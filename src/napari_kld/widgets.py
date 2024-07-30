@@ -526,7 +526,7 @@ class WidgetKLDeconvTrainBP(WidgetBase):
 
         params_dict = self.get_params()
         self._on_notify("Parameters: ")
-        for item in self.params_dict:
+        for item in params_dict:
             self._on_notify(f"{item} : {params_dict[item]}")
 
         self._worker.set_params(params_dict)

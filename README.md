@@ -130,20 +130,19 @@ The simulated data should be those generated using the known PSF.
 
 9. Wait the `progress bar` to reach 100%.
 
+10. Training finished.
 
+When the training finished, a checkpoints folder will be created in Ouput Directory such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/simulation/checkpoints"`.
 
+The models is save in `/checkpoints` folder, which is named as `"backward_bs_{batch size}_lr_{learning rate}_iter_{num of RL iterations}_ks_{kernel size (z)}_{kernel size (xy)}"`, such as `"/checkpoints/backward_bs_1_lr_1e-06_iter_2_ks_1_31"`, consists of:
 
+- a `log` folder saved the `Tensorboard` log, which can be open with `Tensorboard`.
+- many model checkpoints, named as `epoch_{epoch}.pt`.
+- a `parameters.json` file saving the parameters used to training the model.
 
-
-
-
-
-
-
-
-
-
-
+### Others
+The `log` tab print the message during run.
+Press `clean` button will clean all the text in the `log` box.
 
 ## Contributing
 
