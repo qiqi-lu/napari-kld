@@ -44,7 +44,7 @@ This plugin includes two part:
 
 ### KL Deconvolution
 
-#### Only with Point Spread Function (PSF)
+#### When only with Point Spread Function (PSF)
 
 When you only have a PSF to do deconvolution, you can train the model using simulated data.
 
@@ -54,7 +54,7 @@ When you only have a PSF to do deconvolution, you can train the model using simu
 
 3. apply the trained model on real data
 
-**simulation data generation**
+*simulation data generation*
 
 1. load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
 
