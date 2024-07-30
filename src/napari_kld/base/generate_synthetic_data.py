@@ -6,6 +6,7 @@ import napari_kld.base.utils.dataset_utils as utils_data
 import napari_kld.base.utils.evaluation as eva
 import numpy as np
 import skimage.io as io
+from napari.utils.notifications import show_info
 from napari_kld.base.generate_phantom import generate_phantom
 
 
@@ -40,9 +41,15 @@ def generate_simulation_data(
     notify(path_dataset_gt)
     notify(path_dataset_raw)
     # --------------------------------------------------------------------------
+    # load psf
+    notify(f"load psf from: {path_psf}")
+    psf = io.imread(path_psf).astype(np.float32)
+
     data_dim = 2 if image_shape[0] == 1 else 3
-    if data_dim == 2:
-        pass
+
+    if len(psf.shape) != data_dim:
+        show_info(f"ERROR: {data_dim}D image but with {len(psf.shape)}D PSF.")
+        return 0
 
     # --------------------------------------------------------------------------
     # generate ground truth phantom.
@@ -63,24 +70,15 @@ def generate_simulation_data(
 
     # --------------------------------------------------------------------------
     # generate raw image with blurring and noise.
-
-    # load psf
-    notify(f"load psf from: {path_psf}")
-    psf = io.imread(path_psf).astype(np.float32)
-
     # interpolate psf with even shape to odd shape
     psf_odd = utils_data.even2odd(psf)
     notify(f"convert psf shape from {psf.shape} to {psf_odd.shape}.")
 
     # crop psf
-    if psf_crop_shape is not None:
-        size_crop = (
-            np.minimum(psf_crop_shape[0], image_shape[0]),
-            np.minimum(psf_crop_shape[1], image_shape[1]),
-            np.minimum(psf_crop_shape[2], image_shape[2]),
-        )
-        psf_crop = utils_data.center_crop(psf_odd, size=size_crop)
+    if data_dim == 3:
+        psf_crop = utils_data.center_crop(psf_odd, size=psf_crop_shape)
         notify(f"crop PSF from {psf_odd.shape} to a shape of {psf_crop.shape}")
+
     else:
         psf_crop = psf_odd
 

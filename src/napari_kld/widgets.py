@@ -784,10 +784,16 @@ class WidgetKLDeconvSimulation(WidgetBase):
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("PSF crop (z,x,y)"), 3, 0, 1, 1)
         self.crop_z_box = SpinBox(vmin=1, vmax=999, vinit=0)
-        grid_layout.addWidget(self.crop_z_box, 3, 1, 1, 1)
         self.crop_y_box = SpinBox(vmin=3, vmax=999, vinit=0)
-        grid_layout.addWidget(self.crop_y_box, 3, 2, 1, 1)
         self.crop_x_box = SpinBox(vmin=3, vmax=999, vinit=0)
+        self.crop_z_box.setSingleStep(2)
+        self.crop_y_box.setSingleStep(2)
+        self.crop_x_box.setSingleStep(2)
+        self.crop_z_box.valueChanged.connect(self._on_psf_crop_shape_change)
+        self.crop_y_box.valueChanged.connect(self._on_psf_crop_shape_change)
+        self.crop_x_box.valueChanged.connect(self._on_psf_crop_shape_change)
+        grid_layout.addWidget(self.crop_z_box, 3, 1, 1, 1)
+        grid_layout.addWidget(self.crop_y_box, 3, 2, 1, 1)
         grid_layout.addWidget(self.crop_x_box, 3, 3, 1, 1)
 
         # ----------------------------------------------------------------------
@@ -828,13 +834,41 @@ class WidgetKLDeconvSimulation(WidgetBase):
             try:
                 psf_shape = get_image_shape(psf_path)
 
-                self.crop_z_box.setValue(psf_shape[0])
-                self.crop_y_box.setValue(psf_shape[1])
-                self.crop_x_box.setValue(psf_shape[2])
+                if len(psf_shape) == 3:
+                    ks_z, ks_y, ks_x = psf_shape
 
-                self.crop_z_box.setMaximum(psf_shape[0])
-                self.crop_y_box.setMaximum(psf_shape[1])
-                self.crop_x_box.setMaximum(psf_shape[2])
+                    if (ks_z % 2) == 0:
+                        ks_z -= 1
+                    if (ks_y % 2) == 0:
+                        ks_y -= 1
+                    if (ks_x % 2) == 0:
+                        ks_x -= 1
+
+                    self.crop_z_box.setValue(ks_z)
+                    self.crop_y_box.setValue(ks_y)
+                    self.crop_x_box.setValue(ks_x)
+
+                    self.crop_z_box.setMaximum(ks_z)
+                    self.crop_z_box.setMinimum(3)
+                    self.crop_y_box.setMaximum(ks_y)
+                    self.crop_x_box.setMaximum(ks_x)
+
+                if len(psf_shape) == 2:
+                    ks_y, ks_x = psf_shape
+
+                    if (ks_y % 2) == 0:
+                        ks_y -= 1
+                    if (ks_x % 2) == 0:
+                        ks_x -= 1
+
+                    self.crop_z_box.setValue(1)
+                    self.crop_y_box.setValue(ks_y)
+                    self.crop_x_box.setValue(ks_x)
+
+                    self.crop_z_box.setMaximum(1)
+                    self.crop_y_box.setMaximum(ks_y)
+                    self.crop_x_box.setMaximum(ks_x)
+
             except RuntimeError as e:
                 self._observer.notify(e)
                 show_info(
@@ -856,9 +890,6 @@ class WidgetKLDeconvSimulation(WidgetBase):
             int(self.crop_y_box.value()),
             int(self.crop_x_box.value()),
         )
-
-        if psf_crop[0] == 0 or psf_crop[1] == 0 or psf_crop[2] == 0:
-            psf_crop = None
 
         num_simulation = self.num_simu_box.value()
         std_gauss = self.gauss_std_box.value()
@@ -901,3 +932,19 @@ class WidgetKLDeconvSimulation(WidgetBase):
             self.enable_run(False)
         else:
             self.enable_run(True)
+
+    def _on_psf_crop_shape_change(self):
+        ks_z = self.crop_z_box.value()
+        if (ks_z % 2) == 0:
+            ks_z -= 1
+            self.crop_z_box.setValue(ks_z)
+
+        ks_y = self.crop_y_box.value()
+        if (ks_y % 2) == 0:
+            ks_y -= 1
+            self.crop_y_box.setValue(ks_y)
+
+        ks_x = self.crop_x_box.value()
+        if (ks_x % 2) == 0:
+            ks_x -= 1
+            self.crop_x_box.setValue(ks_x)
