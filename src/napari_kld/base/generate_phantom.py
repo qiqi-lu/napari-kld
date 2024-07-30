@@ -22,6 +22,11 @@ def generate_phantom_3D(
     Rsphere = 9
     Ldot = 9
 
+    if shape[0] == 1:
+        data_dim = 2
+    elif shape[0] > 1:
+        data_dim = 3
+
     more_obj = (shape[0] // 128) * (shape[1] // 128) * (shape[2] // 128)
     n_spheres = 200 * more_obj
     n_ellipsoidal = 200 * more_obj
@@ -29,9 +34,14 @@ def generate_phantom_3D(
 
     # create Gaussian filter
     Ggrid = range(-2, 2 + 1)
-    [X, Y, Z] = np.meshgrid(Ggrid, Ggrid, Ggrid)
-    # create Guassian mask
-    GaussM = np.exp(-(X**2 + Y**2 + Z**2)) / (2 * delta**2)
+    if data_dim == 3:
+        [Z, Y, X] = np.meshgrid(Ggrid, Ggrid, Ggrid)
+        GaussM = np.exp(-(X**2 + Y**2 + Z**2)) / (2 * delta**2)
+
+    if data_dim == 2:
+        [Y, X] = np.meshgrid(Ggrid, Ggrid)
+        GaussM = np.exp(-(X**2 + Y**2)) / (2 * delta**2)
+
     # normalize so thant total area (sum of all weights) is 1
     GaussM = GaussM / np.sum(GaussM)
 
