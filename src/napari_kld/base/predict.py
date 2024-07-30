@@ -16,6 +16,7 @@ def predict(
     bp_path="",
     num_iter=2,
     observer=None,
+    **kwargs
 ):
     data_dim = len(img.shape)
     in_channels = 1

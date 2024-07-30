@@ -269,8 +269,8 @@ class WidgetKLDeconvTrain(QGroupBox):
     def _on_psf_path_change(self):
         print("psf path change")
         psf_path = self.psf_directory_widget.get_path()
-        self.fp_widget.update_params_dict({"psf_path": psf_path})
-        self.bp_widget.update_params_dict({"psf_path": psf_path})
+        self.fp_widget.set_params({"psf_path": psf_path})
+        self.bp_widget.set_params({"psf_path": psf_path})
 
         if psf_path != "":
             self.fp_widget.setVisible(False)
@@ -283,15 +283,15 @@ class WidgetKLDeconvTrain(QGroupBox):
     def _on_output_path_change(self):
         print("output path change")
         path = self.output_directory_widget.get_path()
-        self.fp_widget.update_params_dict({"output_path": path})
-        self.bp_widget.update_params_dict({"output_path": path})
+        self.fp_widget.set_params({"output_path": path})
+        self.bp_widget.set_params({"output_path": path})
 
     def _on_data_path_change(self):
         print("data path change")
         path = self.data_directory_widget.get_path()
 
-        self.fp_widget.update_params_dict({"data_path": path})
-        self.bp_widget.update_params_dict({"data_path": path})
+        self.fp_widget.set_params({"data_path": path})
+        self.bp_widget.set_params({"data_path": path})
 
         if path != "":
             # check path exist
@@ -309,14 +309,14 @@ class WidgetKLDeconvTrain(QGroupBox):
     def _on_dim_change(self):
         dim = self.dim_box.currentText()
         print(f"data dimension change to {int(dim)}")
-        self.fp_widget.update_params_dict({"data_dim": int(dim)})
-        self.bp_widget.update_params_dict({"data_dim": int(dim)})
+        self.fp_widget.set_params({"data_dim": int(dim)})
+        self.bp_widget.set_params({"data_dim": int(dim)})
 
     def _on_channel_change(self):
         num_channel = self.channel_box.value()
         print(f"data channel change to {num_channel}")
-        self.fp_widget.update_params_dict({"num_channel": num_channel})
-        self.bp_widget.update_params_dict({"num_channel": num_channel})
+        self.fp_widget.set_params({"num_channel": num_channel})
+        self.bp_widget.set_params({"num_channel": num_channel})
 
 
 class WorkerKLDeconvTrainFP(QObject):
@@ -457,7 +457,7 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         if self.logger is not None:
             self.logger.add_text(value)
 
-    def update_params_dict(self, path_dict):
+    def set_params(self, path_dict):
         self.params_dict.update(path_dict)
 
     def _on_param_change(self):
@@ -486,13 +486,9 @@ class WidgetKLDeconvTrainFP(QGroupBox):
         )
 
 
-class WorkerKLDeconvTrainBP(QObject):
-    finish_signal = Signal()
-
+class WorkerKLDeconvTrainBP(WorkerBase):
     def __init__(self, observer):
-        super().__init__()
-        self.observer = observer
-        self.params_dict = {}
+        super().__init__(observer=observer)
         self.abort_flag = [False]
 
     def run(self):
@@ -509,9 +505,6 @@ class WorkerKLDeconvTrainBP(QObject):
             print(str(e))
             self.observer.notify("Run Failed.")
         self.finish_signal.emit()
-
-    def set_params(self, params_dict):
-        self.params_dict = params_dict
 
     def stop(self):
         self.abort_flag[0] = True
@@ -539,9 +532,8 @@ class WidgetKLDeconvTrainBP(WidgetBase):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Epoch/Batch Size"), 2, 0, 1, 1)
-        self.epoch_box = SpinBox(vmin=1, vmax=10000, vinit=100)
+        self.epoch_box = SpinBox(vmin=1, vmax=20000, vinit=100)
         grid_layout.addWidget(self.epoch_box, 2, 1, 1, 1)
-
         self.bs_box = SpinBox(vmin=1, vmax=1000, vinit=1)
         grid_layout.addWidget(self.bs_box, 2, 2, 1, 1)
 
@@ -550,7 +542,6 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         self.ks_box_z = SpinBox(vmin=1, vmax=1000, vinit=1)
         self.ks_box_z.setSingleStep(2)
         grid_layout.addWidget(self.ks_box_z, 3, 1, 1, 1)
-
         self.ks_box_xy = SpinBox(vmin=3, vmax=999, vinit=31)
         self.ks_box_xy.setSingleStep(2)
         grid_layout.addWidget(self.ks_box_xy, 3, 2, 1, 1)
@@ -562,18 +553,15 @@ class WidgetKLDeconvTrainBP(WidgetBase):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Learning Rate"), 5, 0, 1, 1)
-        self.learning_rate_box = QDoubleSpinBox()
-        self.learning_rate_box.setMinimum(0)
+        self.learning_rate_box = DoubleSpinBox(vmin=0, vmax=10, vinit=0.000001)
         self.learning_rate_box.setSingleStep(0.000001)
         self.learning_rate_box.setDecimals(9)
-        self.learning_rate_box.setValue(0.000001)
         grid_layout.addWidget(self.learning_rate_box, 5, 1, 1, 2)
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(self.run_btn, 6, 0, 1, 2)
         self.stop_btn = QPushButton("stop")
         grid_layout.addWidget(self.stop_btn, 6, 2, 1, 1)
-        self.stop_btn.clicked.connect(self._on_click_stop)
         grid_layout.addWidget(self.progress_bar, 7, 0, 1, 3)
 
         # ----------------------------------------------------------------------
@@ -581,6 +569,7 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         self.enable_run(False)
 
         # ----------------------------------------------------------------------
+        self.stop_btn.clicked.connect(self._on_click_stop)
         self.reconnect()
 
     def _on_click_run(self):
@@ -599,15 +588,12 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         print("user stops")
         self._worker.stop()
 
-    def update_params_dict(self, params_dict):
+    def set_params(self, params_dict):
         self._worker.set_params(params_dict=params_dict)
 
     def get_params(self):
-        num_iter = self.iteration_box_rl.value()
-        num_epoch = self.epoch_box.value()
-        batch_size = self.bs_box.value()
-        learning_rate = self.learning_rate_box.value()
         fp_path = self.fp_path_box.get_path()
+        num_iter = self.iteration_box_rl.value()
 
         ks_z = self.ks_box_z.value()
         if (ks_z % 2) == 0:
@@ -619,11 +605,14 @@ class WidgetKLDeconvTrainBP(WidgetBase):
             ks_xy += 1
             self.ks_box_xy.setValue(ks_xy)
 
+        num_epoch = self.epoch_box.value()
+        batch_size = self.bs_box.value()
         training_strategy = self.training_strategy_box.currentText()
-        if training_strategy == "self-supervised learning":
+        if training_strategy == "self-supervised":
             self_supervised = True
         else:
             self_supervised = False
+        learning_rate = self.learning_rate_box.value()
 
         params_dict = {
             "fp_path": fp_path,
