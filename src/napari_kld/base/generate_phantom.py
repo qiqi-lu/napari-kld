@@ -25,10 +25,10 @@ def generate_phantom_3D(
     if shape[0] == 1:
         print("make 2D image")
         data_dim = 2
-        more_obj = (shape[1] // 128) * (shape[2] // 128)
-        n_spheres = 200 * more_obj
-        n_ellipsoidal = 200 * more_obj
-        n_dots = 50 * more_obj
+        more_obj = (shape[1] // 128+1) * (shape[2] // 128+1)
+        n_spheres = 5 * more_obj
+        n_ellipsoidal = 5 * more_obj
+        n_dots = 10 * more_obj
 
     elif shape[0] > 1:
         print("make 3D image")
@@ -81,21 +81,14 @@ def generate_phantom_3D(
 
                 # --------------------------------------------------------------
                 for _ in range(n_spheres):
-                    x = np.floor(xrange * np.random.rand() + Rsphere).astype(
-                        np.int8
-                    )
-                    y = np.floor(yrange * np.random.rand() + Rsphere).astype(
-                        np.int8
-                    )
-                    z = np.floor(zrange * np.random.rand() + Rsphere).astype(
-                        np.int8
-                    )
+                    x = np.floor(xrange * np.random.rand() + Rsphere)
+                    y = np.floor(yrange * np.random.rand() + Rsphere)
+                    z = np.floor(zrange * np.random.rand() + Rsphere)
 
-                    r = np.floor(rrange * np.random.rand() + rrange).astype(
-                        np.int8
-                    )
+                    r = np.floor(rrange * np.random.rand() + rrange)
                     inten = 800 * np.random.rand() + 50
 
+                    x,y,z,r=int(x), int(y), int(z), int(r)
                     for i in range(x - r, x + r + 1):
                         for j in range(y - r, y + r + 1):
                             for k in range(z - r, z + r + 1):
@@ -106,25 +99,15 @@ def generate_phantom_3D(
 
                 # --------------------------------------------------------------
                 for _ in range(n_ellipsoidal):
-                    x = np.floor(xrange * np.random.rand() + Rsphere).astype(
-                        np.int8
-                    )
-                    y = np.floor(yrange * np.random.rand() + Rsphere).astype(
-                        np.int8
-                    )
-                    z = np.floor(zrange * np.random.rand() + Rsphere).astype(
-                        np.int8
-                    )
+                    x = np.floor(xrange * np.random.rand() + Rsphere)
+                    y = np.floor(yrange * np.random.rand() + Rsphere)
+                    z = np.floor(zrange * np.random.rand() + Rsphere)
 
-                    r1 = np.floor(rrange * np.random.rand() + rrange).astype(
-                        np.int8
-                    )
-                    r2 = np.floor(rrange * np.random.rand() + rrange).astype(
-                        np.int8
-                    )
-                    r3 = np.floor(rrange * np.random.rand() + rrange).astype(
-                        np.int8
-                    )
+                    r1 = np.floor(rrange * np.random.rand() + rrange)
+                    r2 = np.floor(rrange * np.random.rand() + rrange)
+                    r3 = np.floor(rrange * np.random.rand() + rrange)
+
+                    x, y, z, r1, r2, r3 = int(x), int(y), int(r1), int(r2), int(r3)
 
                     inten = 800 * np.random.rand() + 50
 
@@ -148,170 +131,111 @@ def generate_phantom_3D(
                 dotrangez = Sz - Ldot - 1
 
                 for _ in range(n_dots):
-                    x = np.floor((Sx - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    y = np.floor((Sy - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    z = np.floor((Sz - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
+                    x = np.floor((Sx - 3) * np.random.rand() + 1)
+                    y = np.floor((Sy - 3) * np.random.rand() + 1)
+                    z = np.floor((Sz - 3) * np.random.rand() + 1)
+
+                    x, y, z = int(x), int(y), int(z)
 
                     r = 1
-
                     inten = 800 * np.random.rand() + 50
-
                     A[z : z + 2, y : y + 2, x : x + 2] = inten
 
                 for _ in range(n_dots):
-                    x = np.floor(dotrangex * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    y = np.floor((Sy - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    z = np.floor((Sz - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
+                    x = np.floor(dotrangex * np.random.rand() + 1)
+                    y = np.floor((Sy - 3) * np.random.rand() + 1)
+                    z = np.floor((Sz - 3) * np.random.rand() + 1)
 
                     r = 1
 
                     inten = 800 * np.random.rand() + 50
-                    k = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
+                    k = (np.floor(np.random.rand() * Ldot) + 1)
+
+                    x, y, z, k = int(x), int(y), int(z), int(k)
 
                     A[z : z + 2, y : y + 2, x : x + k + 1] = inten
 
                 for _ in range(n_dots):
-                    x = np.floor((Sx - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    y = np.floor(dotrangey * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    z = np.floor((Sz - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
+                    x = np.floor((Sx - 3) * np.random.rand() + 1)
+                    y = np.floor(dotrangey * np.random.rand() + 1)
+                    z = np.floor((Sz - 3) * np.random.rand() + 1)
 
                     r = 1
-
                     inten = 800 * np.random.rand() + 50
+                    k = (np.floor(np.random.rand() * 9) + 1)
 
-                    k = (np.floor(np.random.rand() * 9) + 1).astype(np.int8)
+                    x,y,z,k = int(x), int(y), int(z), int(k)
 
                     A[z : z + 2, y : y + k + 1, x : x + 2] = (
                         inten + 50 * np.random.rand()
                     )
 
                 for _ in range(n_dots):
-                    x = np.floor((Sx - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    y = np.floor((Sy - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    z = np.floor(dotrangez * np.random.rand() + 1).astype(
-                        np.int8
-                    )
+                    x = np.floor((Sx - 3) * np.random.rand() + 1)
+                    y = np.floor((Sy - 3) * np.random.rand() + 1)
+                    z = np.floor(dotrangez * np.random.rand() + 1)
 
                     r = 1
-
                     inten = 800 * np.random.rand() + 50
-                    k = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
+                    k = (np.floor(np.random.rand() * Ldot) + 1)
 
+                    x,y,z,k = int(x), int(y), int(z), int(k)
                     A[z : z + k + 1, y : y + 2, x : x + 2] = inten
 
                 for _ in range(n_dots):
-                    x = np.floor(dotrangex * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    y = np.floor((Sy - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    z = np.floor(dotrangez * np.random.rand() + 1).astype(
-                        np.int8
-                    )
+                    x = np.floor(dotrangex * np.random.rand() + 1)
+                    y = np.floor((Sy - 3) * np.random.rand() + 1)
+                    z = np.floor(dotrangez * np.random.rand() + 1)
 
                     r = 1
-
                     inten = 800 * np.random.rand() + 50
-                    k1 = (np.floor(np.random.rand() * Ldot) + 1).astype(
-                        np.int8
-                    )
-                    k2 = (np.floor(np.random.rand() * Ldot) + 1).astype(
-                        np.int8
-                    )
+                    k1 = (np.floor(np.random.rand() * Ldot) + 1)
+                    k2 = (np.floor(np.random.rand() * Ldot) + 1)
+
+                    x,y,z,k1, k2 = int(x), int(y), int(z), int(k1), int(k2)
+
 
                     A[z : z + k2 + 1, y : y + 2, x : x + k1 + 1] = inten
 
                 for _ in range(n_dots):
-                    x = np.floor(dotrangex * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    y = np.floor(dotrangey * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    z = np.floor((Sz - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
+                    x = np.floor(dotrangex * np.random.rand() + 1)
+                    y = np.floor(dotrangey * np.random.rand() + 1)
+                    z = np.floor((Sz - 3) * np.random.rand() + 1)
 
                     r = 1
-
                     inten = 800 * np.random.rand() + 50
+                    k1 = (np.floor(np.random.rand() * Ldot) + 1)
+                    k2 = (np.floor(np.random.rand() * Ldot) + 1)
+                    x,y,z,k1, k2 = int(x), int(y), int(z), int(k1), int(k2)
 
-                    k1 = (np.floor(np.random.rand() * Ldot) + 1).astype(
-                        np.int8
-                    )
-                    k2 = (np.floor(np.random.rand() * Ldot) + 1).astype(
-                        np.int8
-                    )
                     A[z : z + 2, y : y + k2 + 1, x : x + k1 + 1] = inten
 
                 for _ in range(n_dots):
-                    x = np.floor((Sx - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    y = np.floor(dotrangey * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    z = np.floor(dotrangez * np.random.rand() + 1).astype(
-                        np.int8
-                    )
+                    x = np.floor((Sx - 3) * np.random.rand() + 1)
+                    y = np.floor(dotrangey * np.random.rand() + 1)
+                    z = np.floor(dotrangez * np.random.rand() + 1)
 
                     r = 1
-
                     inten = 800 * np.random.rand() + 50
-                    k1 = (np.floor(np.random.rand() * Ldot) + 1).astype(
-                        np.int8
-                    )
-                    k2 = (np.floor(np.random.rand() * Ldot) + 1).astype(
-                        np.int8
-                    )
+                    k1 = (np.floor(np.random.rand() * Ldot) + 1)
+                    k2 = (np.floor(np.random.rand() * Ldot) + 1)
+
+                    x,y,z,k1, k2 = int(x), int(y), int(z), int(k1), int(k2)
                     A[z : z + k2 + 1, y : y + k1 + 1, x : x + 2] = inten
 
                 for _ in range(n_dots):
-                    x = np.floor(dotrangex * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    y = np.floor(dotrangey * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    z = np.floor(dotrangez * np.random.rand() + 1).astype(
-                        np.int8
-                    )
+                    x = np.floor(dotrangex * np.random.rand() + 1)
+                    y = np.floor(dotrangey * np.random.rand() + 1)
+                    z = np.floor(dotrangez * np.random.rand() + 1)
 
                     r = 1
-
                     inten = 800 * np.random.rand() + 50
-                    k1 = (np.floor(np.random.rand() * Ldot) + 1).astype(
-                        np.int8
-                    )
-                    k2 = (np.floor(np.random.rand() * Ldot) + 1).astype(
-                        np.int8
-                    )
-                    k3 = (np.floor(np.random.rand() * Ldot) + 1).astype(
-                        np.int8
-                    )
+                    k1 = (np.floor(np.random.rand() * Ldot) + 1)
+                    k2 = (np.floor(np.random.rand() * Ldot) + 1)
+                    k3 = (np.floor(np.random.rand() * Ldot) + 1)
+
+                    x,y,z,k1, k2,k3 = int(x), int(y), int(z), int(k1), int(k2), int(k3)
+
 
                     A[z : z + k3 + 1, y : y + k2 + 1, x : x + k1 + 1] = inten
 
@@ -340,17 +264,13 @@ def generate_phantom_3D(
 
                 # --------------------------------------------------------------
                 for _ in range(n_spheres):
-                    x = np.floor(xrange * np.random.rand() + Rsphere).astype(
-                        np.int8
-                    )
-                    y = np.floor(yrange * np.random.rand() + Rsphere).astype(
-                        np.int8
-                    )
+                    x = np.floor(xrange * np.random.rand() + Rsphere)
+                    y = np.floor(yrange * np.random.rand() + Rsphere)
 
-                    r = np.floor(rrange * np.random.rand() + rrange).astype(
-                        np.int8
-                    )
+                    r = np.floor(rrange * np.random.rand() + rrange)
                     inten = 800 * np.random.rand() + 50
+
+                    x, y, r = int(x), int(y), int(r)
 
                     for i in range(x - r, x + r + 1):
                         for j in range(y - r, y + r + 1):
@@ -359,21 +279,15 @@ def generate_phantom_3D(
 
                 # --------------------------------------------------------------
                 for _ in range(n_ellipsoidal):
-                    x = np.floor(xrange * np.random.rand() + Rsphere).astype(
-                        np.int8
-                    )
-                    y = np.floor(yrange * np.random.rand() + Rsphere).astype(
-                        np.int8
-                    )
+                    x = np.floor(xrange * np.random.rand() + Rsphere)
+                    y = np.floor(yrange * np.random.rand() + Rsphere)
 
-                    r1 = np.floor(rrange * np.random.rand() + rrange).astype(
-                        np.int8
-                    )
-                    r2 = np.floor(rrange * np.random.rand() + rrange).astype(
-                        np.int8
-                    )
+                    r1 = np.floor(rrange * np.random.rand() + rrange)
+                    r2 = np.floor(rrange * np.random.rand() + rrange)
 
                     inten = 800 * np.random.rand() + 50
+
+                    x,y,r1, r2 = int(x), int(y), int(r1), int(r2)
 
                     for i in range(x - r1, x + r1 + 1):
                         for j in range(y - r2, y + r2 + 1):
@@ -389,61 +303,46 @@ def generate_phantom_3D(
                 dotrangey = Sy - Ldot - 1
 
                 for _ in range(n_dots):
-                    x = np.floor((Sx - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    y = np.floor((Sy - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
+                    x = np.floor((Sx - 3) * np.random.rand() + 1)
+                    y = np.floor((Sy - 3) * np.random.rand() + 1)
 
                     r = 1
                     inten = 800 * np.random.rand() + 50
+
+                    x,y=int(x), int(y)
                     A[y : y + 2, x : x + 2] = inten
 
                 for _ in range(n_dots):
-                    x = np.floor(dotrangex * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    y = np.floor((Sy - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
+                    x = np.floor(dotrangex * np.random.rand() + 1)
+                    y = np.floor((Sy - 3) * np.random.rand() + 1)
 
                     r = 1
                     inten = 800 * np.random.rand() + 50
-                    k = (np.floor(np.random.rand() * Ldot) + 1).astype(np.int8)
+                    k = (np.floor(np.random.rand() * Ldot) + 1)
 
+                    x,y,k = int(x), int(y), int(k)
                     A[y : y + 2, x : x + k + 1] = inten
 
                 for _ in range(n_dots):
-                    x = np.floor((Sx - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    y = np.floor(dotrangey * np.random.rand() + 1).astype(
-                        np.int8
-                    )
+                    x = np.floor((Sx - 3) * np.random.rand() + 1)
+                    y = np.floor(dotrangey * np.random.rand() + 1)
 
                     r = 1
                     inten = 800 * np.random.rand() + 50
-                    k = (np.floor(np.random.rand() * 9) + 1).astype(np.int8)
+                    k = (np.floor(np.random.rand() * 9) + 1)
+                    x,y,k = int(x), int(y), int(k)
 
                     A[y : y + k + 1, x : x + 2] = inten + 50 * np.random.rand()
 
                 for _ in range(n_dots):
-                    x = np.floor(dotrangex * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    y = np.floor(dotrangey * np.random.rand() + 1).astype(
-                        np.int8
-                    )
+                    x = np.floor(dotrangex * np.random.rand() + 1)
+                    y = np.floor(dotrangey * np.random.rand() + 1)
 
                     r = 1
                     inten = 800 * np.random.rand() + 50
-                    k1 = (np.floor(np.random.rand() * Ldot) + 1).astype(
-                        np.int8
-                    )
-                    k2 = (np.floor(np.random.rand() * Ldot) + 1).astype(
-                        np.int8
-                    )
+                    k1 = (np.floor(np.random.rand() * Ldot) + 1)
+                    k2 = (np.floor(np.random.rand() * Ldot) + 1)
+                    x,y,k1, k2 = int(x), int(y), int(k1), int(k2)
                     A[y : y + k2 + 1, x : x + k1 + 1] = inten
 
                 if is_with_background:
@@ -478,7 +377,7 @@ if __name__ == "__main__":
         "D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory"
     )
     shape = (128, 128, 128)
-    shape = (1, 128, 128)
+    shape = (1, 256, 256)
     num_simulation = 2
 
     generate_phantom_3D(
