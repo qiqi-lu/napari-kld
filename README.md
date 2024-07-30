@@ -54,7 +54,7 @@ When you only have a PSF to do deconvolution, you can train the model using simu
 
 3. apply the trained model on real data
 
-*simulation data generation*
+**simulation data generation**
 
 1. load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
 
@@ -92,6 +92,8 @@ The generated simulation data will be save in `Output directory`, such as: `"D:\
 - `"data\train\parameters.json"` is the dictionary of parameter used to generate the simulated data.
 - `"data\train\psf.tif"` is the psf used in generation of simulation data (as the original PSF may be cropped)
 - `"data\train\train.txt` save all the image used to train the model.
+
+*You may need to adjust the noise level in the image accordding to the real acuqired data.*
 
 
 
