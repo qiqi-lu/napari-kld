@@ -348,9 +348,6 @@ def generate_phantom_3D(
                     y = np.floor(yrange * np.random.rand() + Rsphere).astype(
                         np.int8
                     )
-                    z = np.floor(zrange * np.random.rand() + Rsphere).astype(
-                        np.int8
-                    )
 
                     r1 = np.floor(rrange * np.random.rand() + rrange).astype(
                         np.int8
@@ -358,39 +355,29 @@ def generate_phantom_3D(
                     r2 = np.floor(rrange * np.random.rand() + rrange).astype(
                         np.int8
                     )
-                    r3 = np.floor(rrange * np.random.rand() + rrange).astype(
-                        np.int8
-                    )
 
                     inten = 800 * np.random.rand() + 50
 
                     for i in range(x - r1, x + r1 + 1):
                         for j in range(y - r2, y + r2 + 1):
-                            for k in range(z - r3, z + r3 + 1):
                                 if (
                                     ((i - x) ** 2) / r1**2
                                     + ((j - y) ** 2) / r2**2
-                                    + ((k - z) ** 2) / r3**2
                                 ) <= 1.3 and (
                                     ((i - x) ** 2) / r1**2
                                     + ((j - y) ** 2) / r2**2
-                                    + ((k - z) ** 2) / r3**2
                                 ) >= 0.8:
                                     A[k, j, i] = inten
 
                 # ----------------------------------------------------------------------
                 dotrangex = Sx - Ldot - 1
                 dotrangey = Sy - Ldot - 1
-                dotrangez = Sz - Ldot - 1
 
                 for _ in range(n_dots):
                     x = np.floor((Sx - 3) * np.random.rand() + 1).astype(
                         np.int8
                     )
                     y = np.floor((Sy - 3) * np.random.rand() + 1).astype(
-                        np.int8
-                    )
-                    z = np.floor((Sz - 3) * np.random.rand() + 1).astype(
                         np.int8
                     )
 
