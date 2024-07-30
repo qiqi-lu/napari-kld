@@ -236,6 +236,7 @@ def predict(
         interpolation=interpolation,
         shared_bp=shared_bp,
         conv_mode=conv_mode,
+        observer=observer,
     ).to(device)
 
     # --------------------------------------------------------------------------

@@ -803,8 +803,8 @@ class WidgetKLDeconvPredict(WidgetBase):
 
     def _on_click_run(self):
         print("Predicting ...")
-        self.progress_bar.setValue(0)
-        self._thread.quit()
+        self.restart()
+        self.progress_bar.setMaximum(self.iteration_box_rl.value())
 
         params_dict = self.get_params()
         self._on_notify("Parameters:")
