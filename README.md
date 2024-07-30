@@ -54,7 +54,7 @@ When you only have a PSF to do deconvolution, you can train the model using simu
 
 3. apply the trained model on real data
 
-:page_facing_u: **Simulation data generation**
+**Simulation data generation**
 
 1. load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
 
@@ -83,7 +83,7 @@ When you only have a PSF to do deconvolution, you can train the model using simu
 
 6. Press `run` button.
 
-7. Wait the processing bar to 100%.
+7. Wait the `progress bar` to reach 100%.
 
 The generated simulation data will be save in `Output directory`, such as: `"D:\GitHub\napari-kld\src\napari_kld\_tests\work_directory\data\simulation\data\train"`
 
@@ -97,7 +97,42 @@ The generated simulation data will be save in `Output directory`, such as: `"D:\
 
 After you generate simulated data, you can use them to train the model.
 
-**Training with known PSF and simulated data using it**
+**Training with known PSF and simulated data**
+The simulated data should be those generated using the known PSF.
+
+1. load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
+
+2. choose `Training` tab.
+
+3. choose `Data Directory ` (such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/simulation/data/train"`) which saves the data used to train the model in should include:
+    - a `gt` folder saves the GT images
+    - a `raw` folder save the low-resolution raw input images with the same file name of GT images
+    - a `train.txt` file saves all the file name used to train the model (does not need to list all the file in `gt`/`raw` folder).
+
+4. choose a `Output Directory` to save the model checkpoints, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/simulation"`.
+
+5. choose `PSF Directory` of the PSF used to generate the data, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/simulation/data/train/psf.tif"`. Then the `Forward Projection` group box will be invisible as we do not need to learn the forward kernel when we know the PSF. Just use the PSF as the froward kernel.
+
+6. Set the `Image Channels` and the `Dimension` of input data.
+
+7. Then set parameters to learn the backward kernel.
+
+    - `Training strategy` : `supervised` training or `self-supervised` training. Set as `supervised`, as we have the GT images.
+    - `Iteration (RL)` : The number of iterations of RL iterative procedure. Default: 2.
+    - `Epoch` : The number fo epochs used to traing the model.
+    - `Batch Size` : The batch size used to training the model.
+    - `Kernel Size (z, xy)`: The size of backward kernel, `x` and `y` have the same size.
+    - `FP directory` : the directory of the forward projeciton model. Here, it is empty (i.e., `""`) as the PSF is known.
+    - `Learning Rate` : The learning rate used to trianing the model.
+
+8. Press `run` button. You can press the `stop` button to end the training.
+
+9. Wait the `progress bar` to reach 100%.
+
+
+
+
+
 
 
 
