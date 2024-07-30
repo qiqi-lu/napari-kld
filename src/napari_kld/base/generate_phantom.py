@@ -23,7 +23,7 @@ def generate_phantom_3D(
     Ldot = 9
 
     if shape[0] == 1:
-        print('make 2D image')
+        print("make 2D image")
         data_dim = 2
         more_obj = (shape[1] // 128) * (shape[2] // 128)
         n_spheres = 200 * more_obj
@@ -31,9 +31,13 @@ def generate_phantom_3D(
         n_dots = 50 * more_obj
 
     elif shape[0] > 1:
-        print('make 3D image')
+        print("make 3D image")
         data_dim = 3
-        more_obj = (shape[0] // 128 +1) * (shape[1] // 128+1) * (shape[2] // 128+1)
+        more_obj = (
+            (shape[0] // 128 + 1)
+            * (shape[1] // 128 + 1)
+            * (shape[2] // 128 + 1)
+        )
         n_spheres = 200 * more_obj
         n_ellipsoidal = 200 * more_obj
         n_dots = 50 * more_obj
@@ -422,10 +426,7 @@ def generate_phantom_3D(
                     inten = 800 * np.random.rand() + 50
                     k = (np.floor(np.random.rand() * 9) + 1).astype(np.int8)
 
-                    A[y : y + k + 1, x : x + 2] = (
-                        inten + 50 * np.random.rand()
-                    )
-
+                    A[y : y + k + 1, x : x + 2] = inten + 50 * np.random.rand()
 
                 for _ in range(n_dots):
                     x = np.floor(dotrangex * np.random.rand() + 1).astype(
@@ -444,7 +445,6 @@ def generate_phantom_3D(
                         np.int8
                     )
                     A[y : y + k2 + 1, x : x + k1 + 1] = inten
-
 
                 if is_with_background:
                     A = A + 30
