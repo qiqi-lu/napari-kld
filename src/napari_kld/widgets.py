@@ -588,10 +588,13 @@ class WidgetKLDeconvTrainBP(WidgetBase):
     def _on_click_run(self):
         print("[BP run]")
         self.restart()
+
+        params_dict = self.get_params()
         self._on_notify("Parameters: ")
         for item in self.params_dict:
-            self._on_notify(f"{item} : {self.params_dict[item]}")
-        self._worker.set_params(self.params_dict)
+            self._on_notify(f"{item} : {params_dict[item]}")
+
+        self._worker.set_params(params_dict)
         self._thread.start()
 
     def _on_click_stop(self):
