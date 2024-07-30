@@ -3,7 +3,7 @@ import os
 
 import napari
 import qtpy.QtCore
-from qtpy.QtCore import QObject, QThread, Signal
+from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -11,7 +11,6 @@ from qtpy.QtWidgets import (
     QGridLayout,
     QGroupBox,
     QLabel,
-    QProgressBar,
     QPushButton,
     QSpinBox,
     QVBoxLayout,
@@ -24,7 +23,6 @@ from napari_kld.baseww import (
     DirectorySelectWidget,
     DoubleSpinBox,
     FileSelectWidget,
-    ProgressObserver,
     SpinBox,
     WidgetBase,
     WorkerBase,
@@ -426,12 +424,12 @@ class WidgetKLDeconvTrainFP(WidgetBase):
         learning_rate = self.lr_box.value()
 
         params_dict = {
-                "num_epoch": num_epoch,
-                "batch_size": batch_size,
-                "ks_z": ks_z,
-                "ks_xy": ks_xy,
-                "learning_rate": learning_rate,
-            }
+            "num_epoch": num_epoch,
+            "batch_size": batch_size,
+            "ks_z": ks_z,
+            "ks_xy": ks_xy,
+            "learning_rate": learning_rate,
+        }
 
         return params_dict
 
