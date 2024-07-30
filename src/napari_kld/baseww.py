@@ -164,7 +164,7 @@ class WorkerBase(QObject):
         self.params_dict = {}
 
     def set_params(self, params_dict):
-        self.params_dict = params_dict
+        self.params_dict.update(params_dict)
 
     def run(self):
         print("worker run ...")
