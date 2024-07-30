@@ -98,6 +98,7 @@ The generated simulation data will be save in `Output directory`, such as: `"D:\
 After you generate simulated data, you can use them to train the model.
 
 **Training with known PSF and simulated data**
+
 The simulated data should be those generated using the known PSF.
 
 1. load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
