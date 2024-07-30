@@ -77,10 +77,9 @@ def generate_simulation_data(
     # crop psf
     if data_dim == 3:
         psf_crop = utils_data.center_crop(psf_odd, size=psf_crop_shape)
-        notify(f"crop PSF from {psf_odd.shape} to a shape of {psf_crop.shape}")
-
-    else:
-        psf_crop = psf_odd
+    if data_dim == 2:
+        psf_crop = utils_data.center_crop(psf_odd, size=(psf_crop_shape[1], psf_crop_shape[2]))
+    notify(f"crop PSF from {psf_odd.shape} to a shape of {psf_crop.shape}")
 
     # save cropped psf
     io.imsave(
