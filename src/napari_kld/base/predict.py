@@ -88,7 +88,7 @@ def predict(
     ks_z_bp = params_bp["ks_z"]
     ks_xy_bp = params_bp["ks_xy"]
 
-    if params_bp["model_name"] != "kernet_bp":
+    if params_bp["model_name"] != "kernet":
         notify("ERROR: The BP path does not point to a BP model.")
         return 0
 

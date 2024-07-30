@@ -1,5 +1,6 @@
 import pathlib
 
+from napari.utils.notifications import show_info
 from qtpy.QtCore import QObject, QThread, Signal
 from qtpy.QtWidgets import (
     QDoubleSpinBox,
@@ -90,6 +91,9 @@ class ProgressObserver(QObject):
     def notify(self, message):
         self.notify_signal.emit(message)
 
+    def pop_info(self, info):
+        show_info(info)
+
 
 class LogBox(QGroupBox):
     def __init__(self):
@@ -175,10 +179,10 @@ class WidgetBase(QGroupBox):
         self._worker = WorkerBase()
 
         self.run_btn = QPushButton("run")
-        self.run_btn.clicked.connect(self._on_click_run)
         self.progress_bar = QProgressBar()
 
     def reconnect(self):
+        self.run_btn.clicked.connect(self._on_click_run)
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.finish_signal.connect(self._thread.quit)

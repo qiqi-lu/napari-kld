@@ -689,15 +689,13 @@ class WidgetKLDeconvTrainBP(QGroupBox):
         )
 
 
-class WorkerKLDeconvPredict(QObject):
+class WorkerKLDeconvPredict(WorkerBase):
     finish_signal = Signal()
     succeed_signal = Signal()
 
     def __init__(self, viewer, observer):
-        super().__init__()
+        super().__init__(observer=observer)
         self.viewer = viewer
-        self.observer = observer
-        self.params_dict = {}
         self.input_name = ""
         self.img_output = None
 
@@ -712,38 +710,35 @@ class WorkerKLDeconvPredict(QObject):
     def set_input(self, name):
         self.input_name = name
 
-    def set_params(self, params_dict):
-        self.params_dict = params_dict
-
     def run(self):
         print("start predicting ...")
         img_input = self.viewer.layers[self.input_name].data
-        print(img_input.shape)
+        print(f"input shape: {img_input.shape}")
 
         try:
             self.img_output = predict.predict(
                 img_input, observer=self.observer, **self.params_dict
             )
-            self.observer.notify("Succeed.")
-            self.succeed_signal.emit()
+            if self.img_output != 0:
+                self.observer.pop_info("Succeed")
+                self.succeed_signal.emit()
+            else:
+                self.observer.pop_info("Failed")
 
         except (RuntimeError, TypeError) as e:
             self.observer.notify(str(e))
-            self.observer.notify("Run Failed.")
+            self.observer.pop_info("Failed")
 
         self.finish_signal.emit()
 
 
-class WidgetKLDeconvPredict(QGroupBox):
+class WidgetKLDeconvPredict(WidgetBase):
     def __init__(self, viewer: napari.Viewer, logger=None):
-        super().__init__()
-        self.logger = logger
+        super().__init__(logger=logger)
         self.viewer = viewer
         self.viewer.layers.events.inserted.connect(self._on_change_layer)
         self.viewer.layers.events.removed.connect(self._on_change_layer)
 
-        self._thread = QThread()
-        self._observer = ProgressObserver()
         self._worker = WorkerKLDeconvPredict(self.viewer, self._observer)
 
         self.setTitle("Predict")
@@ -777,11 +772,7 @@ class WidgetKLDeconvPredict(QGroupBox):
         grid_layout.addWidget(self.iteration_box_rl, 4, 1, 1, 2)
 
         # ----------------------------------------------------------------------
-        self.run_btn = QPushButton("run")
         grid_layout.addWidget(self.run_btn, 5, 0, 1, 3)
-        self.run_btn.clicked.connect(self._on_click_run)
-
-        self.progress_bar = QProgressBar()
         grid_layout.addWidget(self.progress_bar, 6, 0, 1, 3)
 
         # ----------------------------------------------------------------------
@@ -791,13 +782,8 @@ class WidgetKLDeconvPredict(QGroupBox):
 
         # ----------------------------------------------------------------------
         # connect the thread
-        self._worker.moveToThread(self._thread)
-        self._thread.started.connect(self._worker.run)
-        self._worker.finish_signal.connect(self._thread.quit)
+        self.reconnect()
         self._worker.succeed_signal.connect(self._on_succeed)
-
-        self._observer.progress_signal.connect(self._on_progress)
-        self._observer.notify_signal.connect(self._on_notify)
 
     def get_params(self):
         psf_path = self.psf_path_box.get_path()
@@ -839,16 +825,6 @@ class WidgetKLDeconvPredict(QGroupBox):
             self.run_btn.setEnabled(False)
         else:
             self.run_btn.setEnabled(True)
-
-    def enable_run(self, enable):
-        self.run_btn.setEnabled(enable)
-
-    def _on_progress(self, value):
-        self.progress_bar.setValue(value)
-
-    def _on_notify(self, value):
-        if self.logger is not None:
-            self.logger.add_text(value)
 
     def _on_bp_path_change(self):
         bp_path = self.bp_path_box.get_path()

@@ -547,7 +547,7 @@ def train(
         "num_iter": num_iter,
         "ks_z": ks_z,
         "ks_xy": ks_xy,
-        "model_name": "kernet_fp",  # "kernet" or "kernet_fp"
+        "model_name": model_name,  # "kernet" or "kernet_fp"
         "num_epoch": num_epoch,
         "batch_size": batch_size,
         "self_supervised": self_supervised,
