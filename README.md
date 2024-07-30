@@ -62,7 +62,9 @@ When you only have a PSF to do deconvolution, you can train the model using simu
 
 3. choose the `Output directory` of the generated simulation data.
 
-4. choose the `PSF directory` (only support 3D PSF file save as .tif)
+4. choose the `PSF directory` (only support 2D/3D PSF file save as .tif, axes = (z, y, x))
+
+
 
 
 
