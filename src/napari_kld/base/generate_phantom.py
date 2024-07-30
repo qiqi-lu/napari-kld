@@ -94,7 +94,9 @@ def generate_phantom_3D(
                             for k in range(z - r, z + r + 1):
                                 if (
                                     (i - x) ** 2 + (j - y) ** 2 + (k - z) ** 2
-                                ) < r**2 and (0<=i<Sx and 0<=j<Sy and 0<=k<Sz):
+                                ) < r**2 and (
+                                    0 <= i < Sx and 0 <= j < Sy and 0 <= k < Sz
+                                ):
                                     A[k, j, i] = inten
 
                 # --------------------------------------------------------------
