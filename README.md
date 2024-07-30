@@ -1,15 +1,18 @@
 # napari-kld
 
-[![License](https://img.shields.io/pypi/l/napari-kld.svg?color=green)](https://github.com/qiqi-lu/napari-kld/blob/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/napari-kld.svg?color=green)](https://github.com/qiqi-lu/napari-kld/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-kld.svg?color=green)](https://pypi.org/project/napari-kld)
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-kld.svg?color=green)](https://python.org)
-[![tests](https://github.com/qiqi-lu/napari-kld/workflows/tests/badge.svg)](https://github.com/qiqi-lu/napari-kld/actions)
-[![codecov](https://codecov.io/gh/qiqi-lu/napari-kld/branch/main/graph/badge.svg)](https://codecov.io/gh/qiqi-lu/napari-kld)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-kld)](https://napari-hub.org/plugins/napari-kld)
 
-<font color=red> This plugin is not completed. </font>
+<font color=red> **This plugin is not completed.** </font>
 
-Kernel learning deconvolution (KLD) is a rapid deconvolution algorithm for fluorescence microscopic image, which learns the forward and backward kernels in Richardson-Lucy Deconvolution (KLD) from paired low-/high-resolution images.
+----
+### Kernel Learning Deconvolution (KLD)
+
+Kernel learning deconvolution  is a rapid deconvolution algorithm for fluorescence microscopic image, which learns the forward and backward kernels in Richardson-Lucy Deconvolution (KLD) from paired low-/high-resolution images.
+
+It only requires one sample to training the model, and two iteration to achieve a superior deconvolution perfromance compared to RLD and its variants using unmatched backward projection.
 
 ----------------------------------
 
@@ -28,6 +31,40 @@ https://napari.org/stable/plugins/index.html
 You can install `napari-kld` via [pip]:
 
     pip install napari-kld
+
+
+## Instruction
+This plugin includes two part:
+
+- `RL Deconvolution` : Conventional RLD algorithm using different type of backward kernels (including matched backward kernel [`Traditional`] and unmatched backward kernels [`Guassian`, `Butterworth`, `Wiener-Butterworth`]). The forward kernel (i.e., PSF) must to be known.
+
+- `KL Deconvolution` : KLD using learned forward/backward kernels.
+
+### RL Deconvolution
+
+### KL Deconvolution
+
+#### Only with Point Spread Function (PSF)
+
+When you only have a PSF to do deconvolution, you can train the model using simulated data.
+
+1. generate simulaiton data
+
+2. train the model under supervised mode
+
+3. apply the trained model on real data
+
+**simulation data generation**
+
+1. load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
+
+2. choose `Simulation` tab.
+
+3. choose the `Output directory` of the generated simulation data.
+
+4. choose the `PSF directory` (only support 3D PSF file save as .tif)
+
+
 
 
 

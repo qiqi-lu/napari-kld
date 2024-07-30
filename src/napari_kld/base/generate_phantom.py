@@ -12,7 +12,7 @@ import skimage.io as io
 import torch
 
 
-def generate_phantom_3D(
+def generate_phantom(
     output_path,
     shape=(128, 128, 128),
     num_simulation=1,
@@ -410,7 +410,7 @@ if __name__ == "__main__":
     shape = (10, 64, 64)
     num_simulation = 2
 
-    generate_phantom_3D(
+    generate_phantom(
         output_path=output_path,
         shape=shape,
         num_simulation=num_simulation,

@@ -1,1 +1,1 @@
-{"path_psf": "D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/simulation/PSF.tif", "image_shape": [128, 128, 128], "num_simulation": 2, "psf_crop_shape": null, "std_gauss": 0.0, "poisson": 0, "ratio": 1.0, "scale_factor": 1}
+{"path_psf": "D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/simulation/PSF.tif", "image_shape": [128, 128, 128], "num_simulation": 1, "psf_crop_shape": null, "std_gauss": 0.0, "poisson": 0, "ratio": 1.0, "scale_factor": 1}

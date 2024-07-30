@@ -6,7 +6,7 @@ import napari_kld.base.utils.dataset_utils as utils_data
 import napari_kld.base.utils.evaluation as eva
 import numpy as np
 import skimage.io as io
-from napari_kld.base.generate_phantom import generate_phantom_3D
+from napari_kld.base.generate_phantom import generate_phantom
 
 
 def generate_simulation_data(
@@ -27,6 +27,7 @@ def generate_simulation_data(
         if observer is not None:
             observer.notify(value)
 
+    # --------------------------------------------------------------------------
     path_dataset_train = os.path.join(path_dataset, "data", "train")
     path_dataset_gt = os.path.join(path_dataset_train, "gt")
     path_dataset_raw = os.path.join(path_dataset_train, "raw")
@@ -38,10 +39,14 @@ def generate_simulation_data(
     notify("save to:")
     notify(path_dataset_gt)
     notify(path_dataset_raw)
+    # --------------------------------------------------------------------------
+    data_dim = 2 if image_shape[0] == 1 else 3
+    if data_dim == 2:
+        pass
 
     # --------------------------------------------------------------------------
     # generate ground truth phantom.
-    generate_phantom_3D(
+    generate_phantom(
         output_path=path_dataset_gt,
         shape=image_shape,
         num_simulation=num_simulation,

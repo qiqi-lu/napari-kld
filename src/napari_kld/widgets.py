@@ -19,6 +19,7 @@ from qtpy.QtWidgets import (
 
 from napari_kld.base import methods, predict, train
 from napari_kld.base.generate_synthetic_data import generate_simulation_data
+from napari_kld.base.utils.dataset_utils import get_image_shape
 from napari_kld.baseww import (
     DirectorySelectWidget,
     DoubleSpinBox,
@@ -755,7 +756,7 @@ class WidgetKLDeconvSimulation(WidgetBase):
         grid_layout = QGridLayout()
         self.setLayout(grid_layout)
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Output Directory"), 0, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Output directory"), 0, 0, 1, 1)
         self.output_path_box = DirectorySelectWidget()
         self.output_path_box.path_edit.textChanged.connect(
             self._on_change_path
@@ -766,6 +767,9 @@ class WidgetKLDeconvSimulation(WidgetBase):
         grid_layout.addWidget(QLabel("PSF directory"), 1, 0, 1, 1)
         self.psf_path_box = FileSelectWidget()
         self.psf_path_box.path_edit.textChanged.connect(self._on_change_path)
+        self.psf_path_box.path_edit.textChanged.connect(
+            self._on_psf_path_change
+        )
         grid_layout.addWidget(self.psf_path_box, 1, 1, 1, 3)
 
         # ----------------------------------------------------------------------
@@ -779,11 +783,11 @@ class WidgetKLDeconvSimulation(WidgetBase):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("PSF crop (z,x,y)"), 3, 0, 1, 1)
-        self.crop_z_box = SpinBox(vmin=0, vmax=999, vinit=0)
+        self.crop_z_box = SpinBox(vmin=1, vmax=999, vinit=0)
         grid_layout.addWidget(self.crop_z_box, 3, 1, 1, 1)
-        self.crop_y_box = SpinBox(vmin=0, vmax=999, vinit=0)
+        self.crop_y_box = SpinBox(vmin=3, vmax=999, vinit=0)
         grid_layout.addWidget(self.crop_y_box, 3, 2, 1, 1)
-        self.crop_x_box = SpinBox(vmin=0, vmax=999, vinit=0)
+        self.crop_x_box = SpinBox(vmin=3, vmax=999, vinit=0)
         grid_layout.addWidget(self.crop_x_box, 3, 3, 1, 1)
 
         # ----------------------------------------------------------------------
@@ -817,6 +821,27 @@ class WidgetKLDeconvSimulation(WidgetBase):
         # ----------------------------------------------------------------------
         self._on_change_path()
         self.reconnect()
+
+    def _on_psf_path_change(self):
+        psf_path = self.psf_path_box.get_path()
+        if os.path.exists(psf_path):
+            try:
+                psf_shape = get_image_shape(psf_path)
+
+                self.crop_z_box.setValue(psf_shape[0])
+                self.crop_y_box.setValue(psf_shape[1])
+                self.crop_x_box.setValue(psf_shape[2])
+
+                self.crop_z_box.setMaximum(psf_shape[0])
+                self.crop_y_box.setMaximum(psf_shape[1])
+                self.crop_x_box.setMaximum(psf_shape[2])
+            except RuntimeError as e:
+                self._observer.notify(e)
+                show_info(
+                    "ERROR: The selected file is not a PSF or not supported."
+                )
+        else:
+            show_info(f"ERROR: {psf_path} does not exsits.")
 
     def get_params(self):
         data_path = self.output_path_box.get_path()

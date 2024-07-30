@@ -1,12 +1,16 @@
 import os
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pydicom
+import skimage.io as skio
 import torch
 from skimage import io, transform
-from torch.utils.data import DataLoader, Dataset
-from torchvision import transforms
+from torch.utils.data import Dataset
+
+
+def get_image_shape(path):
+    img = skio.imread(path)
+    return img.shape
 
 
 def interp(x, ps_xy=1, ps_z=1):
@@ -321,107 +325,6 @@ class SRDataset(Dataset):
         return {"lr": torch.tensor(image_lr), "hr": torch.tensor(image_hr)}
 
 
-class CytoDataset(Dataset):
-    """
-    Super-Resolution dataset.
-    - A total of 239100 tile LR and HR registered image pairs from 28 different whole slide image.
-    - The registered image pairs were divided into training and testing according to an 8:2 ration.
-    - There are 191280 pairs of tile images in the training set and 47820 pairs of tile images in
-    the testing set.
-    """
-
-    def __init__(self, txt_file, root_dir, id_range=None, transform=None):
-        super().__init__()
-        txt_file_lr = os.path.join(txt_file, "lr.txt")
-        txt_file_hr = os.path.join(txt_file, "hr.txt")
-
-        with open(txt_file_lr) as f:
-            self.file_names_lr = f.read().splitlines()
-        with open(txt_file_hr) as f:
-            self.file_names_hr = f.read().splitlines()
-
-        if id_range is not None:
-            data_size = len(self.file_names_lr)
-            self.file_names_lr = self.file_names_lr[id_range[0] : id_range[1]]
-            self.file_names_hr = self.file_names_hr[id_range[0] : id_range[1]]
-            print(
-                f"Use only part of datasets. ({len(self.file_names_lr)}|{data_size})"
-            )
-
-        self.root_dir = root_dir
-        self.transform = transform
-
-    def __len__(self):
-        return len(self.file_names_lr)
-
-    def __getitem__(self, idx):
-        if torch.is_tensor(idx):
-            idx = idx.tolist()
-
-        img_dir_lr = os.path.join(self.root_dir, self.file_names_lr[idx])
-        img_dir_hr = os.path.join(self.root_dir, self.file_names_hr[idx])
-
-        image_lr = io.imread(img_dir_lr)
-        image_hr = io.imread(img_dir_hr)
-
-        if self.transform:
-            image_lr = self.transform(image_lr)
-            image_hr = self.transform(image_hr)
-
-        sample = {"lr": image_lr, "hr": image_hr}
-
-        return sample
-
-
-class CytoDataset_synth(Dataset):
-    def __init__(
-        self, txt_file, dir_hr, dir_synth, id_range=None, transform=None
-    ):
-        super().__init__()
-        print("Training on synthetic datasets: ", dir_synth)
-        txt_file_hr = os.path.join(txt_file, "hr.txt")
-
-        with open(txt_file_hr) as f:
-            self.file_names_hr = f.read().splitlines()
-
-        if id_range is not None:
-            data_size = len(self.file_names_hr)
-            self.file_names_hr = self.file_names_hr[id_range[0] : id_range[1]]
-            print(
-                f"Use only part of datasets. ({len(self.file_names_hr)}|{data_size})"
-            )
-        else:
-            print(f"Use all datasets, total {len(self.file_names_hr)}.")
-
-        self.dir_hr = dir_hr
-        self.dir_synth = dir_synth
-        self.transform = transform
-
-    def __len__(self):
-        return len(self.file_names_hr)
-
-    def __getitem__(self, idx):
-        if torch.is_tensor(idx):
-            idx = idx.tolist()
-
-        p = os.path.split(self.file_names_hr[idx])
-        subject = os.path.split(p[0])[1]
-
-        img_dir_lr = os.path.join(self.dir_synth, subject, p[1])
-        img_dir_hr = os.path.join(self.dir_hr, self.file_names_hr[idx])
-
-        image_lr = io.imread(img_dir_lr)
-        image_hr = io.imread(img_dir_hr)
-
-        if self.transform:
-            image_lr = self.transform(image_lr)
-            image_hr = self.transform(image_hr)
-
-        sample = {"lr": image_lr, "hr": image_hr}
-
-        return sample
-
-
 class Rescale:
     """
     Rescale the image in a sample to a given size.
@@ -487,171 +390,9 @@ def tensor2gray(x):
 
 
 if __name__ == "__main__":
-    # data_set_name = 'tinymicro_synth'
-    # data_set_name = 'tinymicro_real'
-    # data_set_name = 'biosr_real'
-    data_set_name = "lung3_synth"
-    # data_set_name = 'msi_synth'
+    import pathlib
 
-    # --------------------------------------------------------------------------
-    if data_set_name == "tinymicro_synth":
-        # TinyMicro (synth)
-        hr_root_path = os.path.join(
-            "data", "raw", "cyto_potable_microscope", "data1"
-        )
-        lr_root_path = os.path.join(
-            "data",
-            "raw",
-            "cyto_potable_microscope",
-            "data_synth",
-            "train",
-            "sf_4_k_2.0_gaussian_mix_ave",
-        )  # TinyMicro (synth)
-
-        hr_txt_file_path = os.path.join(
-            "data", "raw", "cyto_potable_microscope", "train_txt", "hr.txt"
-        )
-        lr_txt_file_path = os.path.join(
-            "data", "raw", "cyto_potable_microscope", "train_txt", "lr.txt"
-        )
-        normalization = (False, False)
-
-    if data_set_name == "tinymicro_real":
-        # TinyMicro (real)
-        hr_root_path = os.path.join(
-            "data", "raw", "cyto_potable_microscope", "data1"
-        )
-        lr_root_path = os.path.join(
-            "data", "raw", "cyto_potable_microscope", "data1"
-        )
-
-        hr_txt_file_path = os.path.join(
-            "data", "raw", "cyto_potable_microscope", "train_txt", "hr.txt"
-        )
-        lr_txt_file_path = os.path.join(
-            "data", "raw", "cyto_potable_microscope", "train_txt", "lr.txt"
-        )
-        normalization = (False, False)
-
-    if data_set_name == "biosr_real":
-        pass
-    if data_set_name == "lung3_synth":
-        # Lung3 (synth)
-        # F:\Datasets\Lung3\manifest-41uMmeOh151290643884877939
-        # F:\Datasets\Lung3\manifest-41uMmeOh151290643884877939\data_synth\train\sf_4_k_2.0_gaussian_mix_ave
-        hr_root_path = os.path.join(
-            "F:",
-            os.sep,
-            "Datasets",
-            "Lung3",
-            "manifest-41uMmeOh151290643884877939",
-        )
-        lr_root_path = os.path.join(
-            "F:",
-            os.sep,
-            "Datasets",
-            "Lung3",
-            "manifest-41uMmeOh151290643884877939",
-            "data_synth",
-            "train",
-            "sf_4_k_2.0_gaussian_mix_ave",
-        )
-
-        hr_txt_file_path = os.path.join(
-            "F:",
-            os.sep,
-            "Datasets",
-            "Lung3",
-            "manifest-41uMmeOh151290643884877939",
-            "train_txt",
-            "hr.txt",
-        )
-        lr_txt_file_path = os.path.join(
-            "F:",
-            os.sep,
-            "Datasets",
-            "Lung3",
-            "manifest-41uMmeOh151290643884877939",
-            "train_txt",
-            "lr.txt",
-        )
-        normalization = (False, True)
-    if data_set_name == "msi_synth":
-        pass
-
-    fig_dir = os.path.join("outputs", "figures")
-
-    # --------------------------------------------------------------------------
-    trans = transforms.Compose(
-        [
-            transforms.ToTensor(),
-        ]
+    path = pathlib.Path(
+        "D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\simulation\\PSF.tif"
     )
-
-    # --------------------------------------------------------------------------
-    paired_dataset = SRDataset(
-        hr_root_path=hr_root_path,
-        lr_root_path=lr_root_path,
-        hr_txt_file_path=hr_txt_file_path,
-        lr_txt_file_path=lr_txt_file_path,
-        transform=trans,
-        id_range=[0, 1000],
-        normalization=normalization,
-    )
-
-    print("Datasize: ", paired_dataset.__len__())
-
-    dataloader = DataLoader(
-        dataset=paired_dataset, batch_size=5, shuffle=False, num_workers=0
-    )
-
-    # --------------------------------------------------------------------------
-    i_batch_show = 0
-    for i_batch, sample in enumerate(dataloader):
-        print(
-            i_batch,
-            sample["lr"].size(),
-            sample["hr"].size(),
-            "max: ",
-            torch.max(sample["hr"]).item(),
-            "min: ",
-            torch.min(sample["hr"]).item(),
-        )
-        if i_batch == i_batch_show:
-            fig, axes = plt.subplots(
-                nrows=2,
-                ncols=5,
-                figsize=(12, 5),
-                dpi=600,
-                constrained_layout=True,
-            )
-            [ax.set_axis_off() for ax in axes.ravel()]
-
-            images_lr_batch, images_hr_batch = sample["lr"], sample["hr"]
-
-            cm = "gray" if images_hr_batch.shape[1] == 1 else None
-
-            for i in range(5):
-                axes[0, i].imshow(
-                    images_lr_batch[i].transpose(0, -1).transpose(0, 1),
-                    cmap=cm,
-                    vmin=0.0,
-                    vmax=1.0,
-                )
-                axes[1, i].imshow(
-                    images_hr_batch[i].transpose(0, -1).transpose(0, 1),
-                    cmap=cm,
-                    vmin=0.0,
-                    vmax=1.0,
-                )
-
-            save_to = os.path.join(fig_dir, data_set_name)
-            if not os.path.exists(save_to):
-                os.makedirs(save_to, exist_ok=True)
-            plt.savefig(
-                os.path.join(
-                    fig_dir, data_set_name, f"sample_batch_{i_batch_show}"
-                )
-            )
-            break
-    print("end")
+    print(get_image_shape(path))
