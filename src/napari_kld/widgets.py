@@ -711,9 +711,10 @@ class WorkerKLDeconvPredict(WorkerBase):
         self.input_name = name
 
     def run(self):
-        print("start predicting ...")
         img_input = self.viewer.layers[self.input_name].data
-        print(f"input shape: {img_input.shape}")
+
+        self.observer.notify("start predicting ...")
+        self.observer.notify(f"input shape: {img_input.shape}")
 
         try:
             self.img_output = predict.predict(
@@ -721,6 +722,7 @@ class WorkerKLDeconvPredict(WorkerBase):
             )
             if not isinstance(self.img_output, int):
                 self.observer.pop_info("Succeed")
+                self.observer.notify(f"output shape: {self.img_output.shape}")
                 self.succeed_signal.emit()
             else:
                 self.observer.pop_info("Failed")
