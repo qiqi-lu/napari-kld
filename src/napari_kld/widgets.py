@@ -529,9 +529,7 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Training strategy"), 0, 0, 1, 1)
         self.training_strategy_box = QComboBox()
-        self.training_strategy_box.addItems(
-            ["supervised", "self-supervised"]
-        )
+        self.training_strategy_box.addItems(["supervised", "self-supervised"])
         grid_layout.addWidget(self.training_strategy_box, 0, 1, 1, 2)
 
         # ----------------------------------------------------------------------
