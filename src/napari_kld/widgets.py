@@ -719,7 +719,7 @@ class WorkerKLDeconvPredict(WorkerBase):
             self.img_output = predict.predict(
                 img_input, observer=self.observer, **self.params_dict
             )
-            if self.img_output != 0:
+            if self.img_output is 0:
                 self.observer.pop_info("Succeed")
                 self.succeed_signal.emit()
             else:
