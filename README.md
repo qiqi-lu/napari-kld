@@ -60,9 +60,39 @@ When you only have a PSF to do deconvolution, you can train the model using simu
 
 2. choose `Simulation` tab.
 
-3. choose the `Output directory` of the generated simulation data.
+3. choose the `Output directory` of the generated simulation data, such as `"napari-kld\src\napari_kld\_tests\work_directory\data\simulation"`.
 
-4. choose the `PSF directory` (only support 2D/3D PSF file save as .tif, axes = (z, y, x))
+4. choose the `PSF directory` (only support 2D/3D PSF file save as .tif, axes = (z, y, x)), such as `"D:\GitHub\napari-kld\src\napari_kld\_tests\work_directory\data\simulation\PSF.tif"`.
+
+5. Adjust the parameters as needed.
+    - `Image shape` : the shape of simulated image, when `z=1`, 2D images will be generated.
+
+    - `PSF crop` : when the input PSF is too large, you can crop the PSF to acuqire a smaller PSF, which is normalized after cropping. All the PSF will be converted to have an odd shape.
+
+    - `Num of simulation` : number of generated images.
+
+    - `Gaussian (std)` : The standard deviation of Gaussian noise added in the generated low-resolution raw images. The mean of Gaussian noise = 0. Default: 0 (i.e., without gaussian noise).
+
+    - `Poisson` : whether to add Poisson noise, if `True`, make the `Enable` checked.
+
+    - `Ratio` : the ratio multiply on ground truth (GT) image to control the level of Poisson noise, thus
+
+    $$ RAW = Possion((GT \cdot Ratio)\times PSF) + Gaussian $$
+
+    - `Scale factor` : downsampling scale factor. Default: 1.
+
+6. Press `run` button.
+
+7. Wait the processing bar to 100%.
+
+The generated simulation data will be save in `Output directory`, such as: `"D:\GitHub\napari-kld\src\napari_kld\_tests\work_directory\data\simulation\data\train"`
+
+- `"data\train\gt"` save the GT images.
+- `"data\train\raw"` save the RAW images with blur and noise.
+- `"data\train\parameters.json"` is the dictionary of parameter used to generate the simulated data.
+- `"data\train\psf.tif"` is the psf used in generation of simulation data (as the original PSF may be cropped)
+- `"data\train\train.txt` save all the image used to train the model.
+
 
 
 
