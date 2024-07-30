@@ -94,7 +94,7 @@ def generate_phantom_3D(
                             for k in range(z - r, z + r + 1):
                                 if (
                                     (i - x) ** 2 + (j - y) ** 2 + (k - z) ** 2
-                                ) < r**2:
+                                ) < r**2 and (0<=i<Sx and 0<=j<Sy and 0<=k<Sz):
                                     A[k, j, i] = inten
 
                 # --------------------------------------------------------------
@@ -388,7 +388,7 @@ if __name__ == "__main__":
         "D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory"
     )
     shape = (128, 128, 128)
-    shape = (1, 256, 256)
+    shape = (2, 256, 256)
     num_simulation = 2
 
     generate_phantom_3D(
