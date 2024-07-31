@@ -2,7 +2,6 @@ name: napari-kld
 display_name: Kernel Learning Deconvolution
 # use 'hidden' to remove plugin from napari hub search results
 visibility: public
-# visibility: hidden
 # see https://napari.org/stable/plugins/manifest.html for valid categories
 categories: ["Image Processing"]
 contributions:
