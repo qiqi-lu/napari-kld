@@ -56,13 +56,13 @@ When you only have a PSF to do deconvolution, you can train the model using simu
 
 #### Simulation data generation
 
-1. load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
+1. Load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
 
-2. choose `Simulation` tab.
+2. Choose `Simulation` tab.
 
-3. choose the `Output directory` of the generated simulation data, such as `"napari-kld\src\napari_kld\_tests\work_directory\data\simulation"`.
+3. Choose the `Output directory` of the generated simulation data, such as `"napari-kld\src\napari_kld\_tests\work_directory\data\simulation"`.
 
-4. choose the `PSF directory` (only support 2D/3D PSF file save as .tif, axes = (z, y, x)), such as `"D:\GitHub\napari-kld\src\napari_kld\_tests\work_directory\data\simulation\PSF.tif"`.
+4. Choose the `PSF directory` (only support 2D/3D PSF file save as .tif, axes = (z, y, x)), such as `"D:\GitHub\napari-kld\src\napari_kld\_tests\work_directory\data\simulation\PSF.tif"`.
 
 5. Adjust the parameters as needed.
     - `Image shape` : the shape of simulated image, when `z=1`, 2D images will be generated.
