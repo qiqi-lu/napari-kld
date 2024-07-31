@@ -144,11 +144,39 @@ The models is save in `/checkpoints` folder, which is named as `"backward_bs_{ba
 
 When we only have paired LR image and HR image, we can first learned the forward kernel and then learn the backward kernel in a supervised strategy.
 
+#### Training of Forward Projection
+
 1. load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
 
 2. choose `Training` tab.
 
-3. choose
+3. choose `Data Directory`, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/real/train"`.
+
+4. choose `Output Directory`, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/real"`.
+
+5. `PSF Directory` is no required as the PSF is unknown.
+
+6. set parameter of parameters about data.
+    - `Image Channel` : the channel of input image.
+    - `Dimension` : dimension of input image.
+
+7. In the `Forward Projection` box, set the parameters of training:
+    - `Epoch` : number of epochs of training.
+    - `Batch Size` : batch size of training data used during training.
+    - `Kernel size (z, xy)` : the size of forward kernel to learned.
+    - `Learning Rate` : learning rate of training.
+
+8. Press `run` button. You can press the `stop` button to end the training.
+
+9. Wait the `progress bar` to reach 100%.
+
+10. Training finished.
+
+After the training of forward projection, the results will be save in the `/checkpoints` folder in `Output Directory`, the model was named as `forward_bs_{batch size}_lr_{learning rate}_ks_{kernel size (z)}_{kernel size (xy)}`, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/real/checkpoints/forward_bs_1_lr_0.001_ks_1_31"`, which consists of:
+- a `log` folder saved the `Tensorboard` log, which can be open with `Tensorboard`.
+- many model checkpoints, named as `epoch_{epoch}.pt`.
+- a `parameters.json` file saving the parameters used to training the model.
+
 
 ### Others
 The `log` tab print the message during running.

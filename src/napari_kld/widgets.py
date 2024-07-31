@@ -318,7 +318,7 @@ class WidgetKLDeconvTrain(QGroupBox):
 
 class WorkerKLDeconvTrainFP(WorkerBase):
     def __init__(self, observer):
-        super().__init__()
+        super().__init__(observer=observer)
         self.abort_flag = [False]
 
     def run(self):
@@ -352,31 +352,32 @@ class WidgetKLDeconvTrainFP(WidgetBase):
         grid_layout = QGridLayout()
         self.setLayout(grid_layout)
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Epoch/Batch Size"), 1, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Epoch | Batch Size"), 1, 0, 1, 1)
         self.epoch_box = SpinBox(vmin=1, vmax=20000, vinit=100)
-        grid_layout.addWidget(self.epoch_box, 1, 1, 1, 1)
         self.bs_box = SpinBox(vmin=1, vmax=1000, vinit=1)
+        grid_layout.addWidget(self.epoch_box, 1, 1, 1, 1)
         grid_layout.addWidget(self.bs_box, 1, 2, 1, 1)
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Kernel Size (z, xy)"), 2, 0, 1, 1)
         self.ks_box_z = SpinBox(vmin=1, vmax=1000, vinit=1)
         self.ks_box_z.setSingleStep(2)
-        grid_layout.addWidget(self.ks_box_z, 2, 1, 1, 1)
+        self.ks_box_z.valueChanged.connect(self._on_ks_change)
         self.ks_box_xy = SpinBox(vmin=3, vmax=999, vinit=31)
         self.ks_box_xy.setSingleStep(2)
+        self.ks_box_xy.valueChanged.connect(self._on_ks_change)
+        grid_layout.addWidget(self.ks_box_z, 2, 1, 1, 1)
         grid_layout.addWidget(self.ks_box_xy, 2, 2, 1, 1)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Learning rate"), 3, 0, 1, 1)
-        self.lr_box = DoubleSpinBox(vmin=0, vmax=10, vinit=0.001)
+        grid_layout.addWidget(QLabel("Learning Rate"), 3, 0, 1, 1)
+        self.lr_box = DoubleSpinBox(vmin=0, vmax=10, vinit=0.001, decimals=7)
         self.lr_box.setSingleStep(0.001)
-        self.lr_box.setDecimals(7)
         grid_layout.addWidget(self.lr_box, 3, 1, 1, 2)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(self.run_btn, 4, 0, 1, 2)
         self.stop_btn = QPushButton("stop")
+        grid_layout.addWidget(self.run_btn, 4, 0, 1, 2)
         grid_layout.addWidget(self.stop_btn, 4, 2, 1, 1)
         grid_layout.addWidget(self.progress_bar, 5, 0, 1, 3)
 
@@ -395,7 +396,7 @@ class WidgetKLDeconvTrainFP(WidgetBase):
 
         params_dict = self.get_params()
         self._on_notify("Parameters: ")
-        for item in self.params_dict:
+        for item in params_dict:
             self._on_notify(f"{item} : {params_dict[item]}")
 
         self._worker.set_params(params_dict)
@@ -409,15 +410,7 @@ class WidgetKLDeconvTrainFP(WidgetBase):
 
     def get_params(self):
         ks_z = self.ks_box_z.value()
-        if (ks_z % 2) == 0:
-            ks_z += 1
-            self.ks_box_z.setValue(ks_z)
-
         ks_xy = self.ks_box_xy.value()
-        if (ks_xy % 2) == 0:
-            ks_xy += 1
-            self.ks_box_xy.setValue(ks_xy)
-
         num_epoch = self.epoch_box.value()
         batch_size = self.bs_box.value()
         learning_rate = self.lr_box.value()
@@ -431,6 +424,17 @@ class WidgetKLDeconvTrainFP(WidgetBase):
         }
 
         return params_dict
+
+    def _on_ks_change(self):
+        ks_z = self.ks_box_z.value()
+        if (ks_z % 2) == 0:
+            ks_z += 1
+            self.ks_box_z.setValue(ks_z)
+
+        ks_xy = self.ks_box_xy.value()
+        if (ks_xy % 2) == 0:
+            ks_xy += 1
+            self.ks_box_xy.setValue(ks_xy)
 
 
 class WorkerKLDeconvTrainBP(WorkerBase):
@@ -468,7 +472,7 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         grid_layout = QGridLayout()
         self.setLayout(grid_layout)
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Training strategy"), 0, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Training Strategy"), 0, 0, 1, 1)
         self.training_strategy_box = QComboBox()
         self.training_strategy_box.addItems(["supervised", "self-supervised"])
         grid_layout.addWidget(self.training_strategy_box, 0, 1, 1, 2)
@@ -479,7 +483,7 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         grid_layout.addWidget(self.iteration_box_rl, 1, 1, 1, 2)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Epoch/Batch Size"), 2, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Epoch | Batch Size"), 2, 0, 1, 1)
         self.epoch_box = SpinBox(vmin=1, vmax=20000, vinit=100)
         grid_layout.addWidget(self.epoch_box, 2, 1, 1, 1)
         self.bs_box = SpinBox(vmin=1, vmax=1000, vinit=1)
@@ -495,7 +499,7 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         grid_layout.addWidget(self.ks_box_xy, 3, 2, 1, 1)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("FP directory"), 4, 0, 1, 1)
+        grid_layout.addWidget(QLabel("FP Directory"), 4, 0, 1, 1)
         self.fp_path_box = FileSelectWidget()
         grid_layout.addWidget(self.fp_path_box, 4, 1, 1, 2)
 

@@ -1,0 +1,1 @@
+{"num_channel": 1, "data_dim": 2, "num_iter": 1, "ks_z": 25, "ks_xy": 3, "model_name": "kernet_fp", "num_epoch": 100, "batch_size": 1, "self_supervised": false, "learning_rate": 0.001}
