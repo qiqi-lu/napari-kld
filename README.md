@@ -48,7 +48,7 @@ This plugin includes two part:
 
 When you only have a PSF to do deconvolution, you can train the model using simulated data.
 
-1. generate simulaiton data
+1. Generate simulaiton data
 
 2. train the model under supervised mode
 
