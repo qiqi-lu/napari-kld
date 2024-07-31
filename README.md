@@ -148,15 +148,15 @@ When we only have paired LR image and HR image, we can first learned the forward
 
 1. Load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
 
-2. choose `Training` tab.
+2. Choose `Training` tab.
 
-3. choose `Data Directory`, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/real/train"`.
+3. Choose `Data Directory`, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/real/train"`.
 
-4. choose `Output Directory`, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/real"`.
+4. Choose `Output Directory`, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/real"`.
 
 5. `PSF Directory` is no required as the PSF is unknown.
 
-6. set parameter of parameters about data.
+6. Set parameter of parameters about data.
     - `Image Channel` : the channel of input image.
     - `Dimension` : dimension of input image.
 
