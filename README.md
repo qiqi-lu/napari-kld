@@ -140,7 +140,7 @@ The models is save in `/checkpoints` folder, which is named as `"backward_bs_{ba
 - many model checkpoints, named as `epoch_{epoch}.pt`.
 - a `parameters.json` file saving the parameters used to training the model.
 
-### When only with paired low-resolution image (as RAW) and high-resolution image (as GT)
+### When only with paired low-resolution (LR) image (as RAW) and high-resolution (HR) image (as GT)
 
 When we only have paired LR image and HR image, we can first learned the forward kernel and then learn the backward kernel in a supervised strategy.
 
@@ -151,7 +151,7 @@ When we only have paired LR image and HR image, we can first learned the forward
 3. choose
 
 ### Others
-The `log` tab print the message during run.
+The `log` tab print the message during running.
 Press `clean` button will clean all the text in the `log` box.
 
 ## Contributing
