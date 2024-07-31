@@ -5,8 +5,6 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-kld.svg?color=green)](https://python.org)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-kld)](https://napari-hub.org/plugins/napari-kld)
 
-<font color=red> **This plugin is not completed.** </font>
-
 ----
 ### Kernel Learning Deconvolution (KLD)
 
