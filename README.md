@@ -180,13 +180,13 @@ After the training of forward projection, the results will be save in the `/chec
 #### Training of Backward Projection
 After training of dorward projeciton, we can freeze the forward projeciton and then train the backward projeciton.
 
-1. load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
+1. Load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
 
-2. choose `Training` tab.
+2. Choose `Training` tab.
 
-3. choose `Data Directory`, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/real/train"`.
+3. Choose `Data Directory`, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/real/train"`.
 
-4. choose `Output Directory`, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/real"`.
+4. Choose `Output Directory`, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/real"`.
 
 5. `PSF Directory` is no required as the PSF is unknown.
 
