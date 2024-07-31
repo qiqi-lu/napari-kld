@@ -50,7 +50,7 @@ When you only have a PSF to do deconvolution, you can train the model using simu
 
 1. Generate simulaiton data
 
-2. train the model under supervised mode
+2. Train the model under supervised mode
 
 3. apply the trained model on real data
 
