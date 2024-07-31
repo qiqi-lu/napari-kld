@@ -52,7 +52,7 @@ When you only have a PSF to do deconvolution, you can train the model using simu
 
 2. Train the model under supervised mode
 
-3. apply the trained model on real data
+3. Apply the trained model on real data
 
 #### Simulation data generation
 
@@ -101,18 +101,18 @@ After you generate simulated data, you can use them to train the model.
 
 The simulated data should be those generated using the known PSF.
 
-1. load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
+1. Load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
 
-2. choose `Training` tab.
+2. Choose `Training` tab.
 
-3. choose `Data Directory ` (such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/simulation/data/train"`) which saves the data used to train the model in should include:
-    - a `gt` folder saves the GT images
-    - a `raw` folder save the low-resolution raw input images with the same file name of GT images
-    - a `train.txt` file saves all the file name used to train the model (does not need to list all the file in `gt`/`raw` folder).
+3. Choose `Data Directory ` (such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/simulation/data/train"`) which saves the data used to train the model in should include:
+    - A `gt` folder saves the GT images
+    - A `raw` folder save the low-resolution raw input images with the same file name of GT images
+    - A `train.txt` file saves all the file name used to train the model (does not need to list all the file in `gt`/`raw` folder).
 
-4. choose a `Output Directory` to save the model checkpoints, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/simulation"`.
+4. Choose a `Output Directory` to save the model checkpoints, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/simulation"`.
 
-5. choose `PSF Directory` of the PSF used to generate the data, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/simulation/data/train/psf.tif"`. Then the `Forward Projection` group box will be invisible as we do not need to learn the forward kernel when we know the PSF. Just use the PSF as the froward kernel.
+5. Choose `PSF Directory` of the PSF used to generate the data, such as `"D:/GitHub/napari-kld/src/napari_kld/_tests/work_directory/data/simulation/data/train/psf.tif"`. Then the `Forward Projection` group box will be invisible as we do not need to learn the forward kernel when we know the PSF. Just use the PSF as the froward kernel.
 
 6. Set the `Image Channels` and the `Dimension` of input data.
 
@@ -136,9 +136,9 @@ When the training finished, a checkpoints folder will be created in Ouput Direct
 
 The models is save in `/checkpoints` folder, which is named as `"backward_bs_{batch size}_lr_{learning rate}_iter_{num of RL iterations}_ks_{kernel size (z)}_{kernel size (xy)}"`, such as `"/checkpoints/backward_bs_1_lr_1e-06_iter_2_ks_1_31"`, consists of:
 
-- a `log` folder saved the `Tensorboard` log, which can be open with `Tensorboard`.
-- many model checkpoints, named as `epoch_{epoch}.pt`.
-- a `parameters.json` file saving the parameters used to training the model.
+- A `log` folder saved the `Tensorboard` log, which can be open with `Tensorboard`.
+- Many model checkpoints, named as `epoch_{epoch}.pt`.
+- A `parameters.json` file saving the parameters used to training the model.
 
 ### When only with paired low-resolution (LR) image (as RAW) and high-resolution (HR) image (as GT)
 
@@ -146,7 +146,7 @@ When we only have paired LR image and HR image, we can first learned the forward
 
 #### Training of Forward Projection
 
-1. load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
+1. Load `napari-kld` plugin: `Plugins` > `Kernel Learning Deconvolution` > `KL Deconvolution`
 
 2. choose `Training` tab.
 
