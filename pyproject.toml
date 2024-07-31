@@ -29,9 +29,12 @@ dependencies = [
     "magicgui",
     "qtpy",
     "scikit-image",
-    "torch",
+    "torch==2.0",
     "torchvision",
     "fft-conv-pytorch",
+    "pytorch_msssim"
+    "tensorboard"
+    "pydicom"
 ]
 
 [project.optional-dependencies]
