@@ -286,12 +286,14 @@ class SRDataset(Dataset):
         id_range=None,
         transform=None,
         normalization=(False, False),
+        preprocess=0,
     ):
         super().__init__()
         self.hr_root_path = hr_root_path
         self.lr_root_path = lr_root_path
         self.transform = transform
         self.normalization = normalization
+        self.preprocess = preprocess
 
         with open(lr_txt_file_path) as f:
             self.file_names_lr = f.read().splitlines()
@@ -326,9 +328,20 @@ class SRDataset(Dataset):
             image_lr = self.transform(image_lr)
             image_hr = self.transform(image_hr)
 
+        if self.preprocess == 1:
+            image_lr = preprocess_real_data(image_lr)
+            image_hr = preprocess_real_data(image_hr)
+
         # scale = np.percentile(image_hr, 95)
         # return {'lr': torch.tensor(image_lr/scale), 'hr': torch.tensor(image_hr/scale)}
         return {"lr": torch.tensor(image_lr), "hr": torch.tensor(image_hr)}
+
+
+def preprocess_real_data(img):
+    ave_intensity = 100.0
+    img = np.maximum(img, 0.0)
+    intensity_sum = ave_intensity * np.prod(img.shape)
+    img = img / img.sum() * intensity_sum
 
 
 class Rescale:

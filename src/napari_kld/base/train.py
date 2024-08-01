@@ -31,11 +31,11 @@ def train(
     learning_rate=0.001,  # start learning rate
     observer=None,
     abort_flag=None,
+    preprocess=0,
     **kwargs,
 ):
 
     def notify(value):
-        print(value)
         if observer is not None:
             observer.notify(value)
 
@@ -131,6 +131,9 @@ def train(
 
     # --------------------------------------------------------------------------
     # Training data
+    if preprocess == 1:
+        notify("Enable image preprocessing.")
+
     training_data = dataset_utils.SRDataset(
         hr_root_path=hr_data_path,
         lr_root_path=lr_data_path,
@@ -138,6 +141,7 @@ def train(
         lr_txt_file_path=lr_txt_file_path,
         normalization=(False, False),
         id_range=id_range,
+        preprocess=preprocess,
     )
 
     training_data_size = training_data.__len__()

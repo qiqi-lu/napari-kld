@@ -269,16 +269,16 @@ class WidgetKLDeconvTrain(QGroupBox):
         grid_layout.addWidget(self.psf_path_box, 2, 1, 1, 2)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Image Channels | Dimension"), 3, 0, 1, 1)
-        self.channel_box = SpinBox(vmin=1, vmax=1, vinit=1)
-        self.channel_box.valueChanged.connect(self._on_params_change)
-
+        grid_layout.addWidget(QLabel("Dimension"), 3, 0, 1, 1)
         self.dim_box = QLineEdit()
         self.dim_box.setText("2")
         self.dim_box.setReadOnly(True)
         self.dim_box.textChanged.connect(self._on_params_change)
-        grid_layout.addWidget(self.channel_box, 3, 1, 1, 1)
-        grid_layout.addWidget(self.dim_box, 3, 2, 1, 1)
+        grid_layout.addWidget(self.dim_box, 3, 1, 1, 1)
+
+        self.preprocess_check_box = QCheckBox()
+        self.preprocess_check_box.setText("Preprocess")
+        grid_layout.addWidget(self.preprocess_check_box, 3, 2, 1, 1)
 
         grid_layout.setAlignment(qtpy.QtCore.Qt.AlignTop)
 
@@ -331,17 +331,18 @@ class WidgetKLDeconvTrain(QGroupBox):
 
     def _on_params_change(self):
         dim = int(self.dim_box.text())
-        num_channel = self.channel_box.value()
         data_path = self.data_directory_box.get_path()
         output_path = self.output_directory_box.get_path()
         psf_path = self.psf_path_box.get_path()
+        preprocess = 1 if self.preprocess_check_box.checkState() else 0
 
         params_dict = {
             "data_dim": dim,
-            "num_channel": num_channel,
+            "num_channel": 1,
             "data_path": data_path,
             "output_path": output_path,
             "psf_path": psf_path,
+            "preprocess": preprocess,
         }
 
         self.fp_widget.set_params(params_dict)
