@@ -100,6 +100,8 @@ def train(
         optimizer_type = "adam"
         start_learning_rate = learning_rate
 
+        notify(f"Use {FP_type} forward projection.")
+
     # --------------------------------------------------------------------------
     warm_up = 0
     use_lr_schedule = True
@@ -108,10 +110,6 @@ def train(
     scheduler_cus["every"] = 2000  # 300
     scheduler_cus["rate"] = 0.5
     scheduler_cus["min"] = 0.00000001
-
-    # --------------------------------------------------------------------------
-    # notify
-    notify(f"Use {FP_type} forward projection.")
 
     # --------------------------------------------------------------------------
     # Data
@@ -414,12 +412,19 @@ def train(
 
         start_time = time.time()
         model.train()
-        for i_batch in range(num_batches):
+
+        if batch_size < training_data_size:
+            sample_iter = train_dataloader
+
+        if batch_size == training_data_size:
+            sample_iter = range(num_batches)
+
+        for i_batch, sample in enumerate(sample_iter):
             i_iter = i_batch + i_epoch * num_batches  # index of iteration
 
             if batch_size < training_data_size:
-                x = train_dataloader[i_batch]["lr"].to(device)
-                y = train_dataloader[i_batch]["hr"].to(device)
+                x = sample["lr"].to(device)
+                y = sample["hr"].to(device)
 
             if model_name == "kernet_fp":
                 inpt, gt = y, x
@@ -569,39 +574,39 @@ def train(
 
 if __name__ == "__main__":
     # forward projection training
+    train(
+        data_path="D:/GitHub/napari-kld/test/data/simulation/data_128_128_128_gauss_0.5_poiss_1_ratio_0.1/train",
+        output_path="D:/GitHub/napari-kld/test/data/simulation/data_128_128_128_gauss_0.5_poiss_1_ratio_0.1",
+        psf_path='',
+        fp_path='',
+        num_channel=1,
+        data_dim=3,
+        num_iter=2,
+        ks_z=31,
+        ks_xy=31,
+        model_name="kernet_fp",  # "kernet" or "kernet_fp"
+        num_epoch=100,
+        batch_size=1,
+        self_supervised=False,
+        learning_rate=0.001,  # start learning rate
+        observer=None,
+    )
+
+    # backward projection training
     # train(
     #     data_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\train",
     #     output_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory",
-    #     psf_path='',
-    #     fp_path='',
+    #     psf_path="",
+    #     fp_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\checkpoints\\forward_bs_1_lr_0.001_ks_1_31\\epoch_100.pt",
     #     num_channel=1,
     #     data_dim=2,
     #     num_iter=2,
     #     ks_z=1,
     #     ks_xy=31,
-    #     model_name="kernet_fp",  # "kernet" or "kernet_fp"
+    #     model_name="kernet",  # "kernet" or "kernet_fp"
     #     num_epoch=100,
     #     batch_size=1,
     #     self_supervised=False,
-    #     learning_rate=0.001,  # start learning rate
+    #     learning_rate=0.00001,  # start learning rate
     #     observer=None,
     # )
-
-    # backward projection training
-    train(
-        data_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\train",
-        output_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory",
-        psf_path="",
-        fp_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\checkpoints\\forward_bs_1_lr_0.001_ks_1_31\\epoch_100.pt",
-        num_channel=1,
-        data_dim=2,
-        num_iter=2,
-        ks_z=1,
-        ks_xy=31,
-        model_name="kernet",  # "kernet" or "kernet_fp"
-        num_epoch=100,
-        batch_size=1,
-        self_supervised=False,
-        learning_rate=0.00001,  # start learning rate
-        observer=None,
-    )

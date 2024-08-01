@@ -359,7 +359,7 @@ class WidgetKLDeconvTrain(QGroupBox):
         if os.path.exists(os.path.join(path, "train.txt")):
             if os.path.exists(os.path.join(path, "raw")):
                 if not os.path.exists(os.path.join(path, "gt")):
-                    self.log("WARNNING: the [gt] folder does not exist.")
+                    show_info("WARNNING: the [gt] folder does not exist.")
 
                 name_list = read_txt(os.path.join(path, "train.txt"))
                 if len(name_list) > 0:
@@ -370,18 +370,18 @@ class WidgetKLDeconvTrain(QGroupBox):
                         self.log(f"Input image shape = {self.img_shape}")
                         self.enable_run(True)
                     else:
-                        self.log("ERROR : Image does not exist.")
+                        show_info("ERROR : Image does not exist.")
                         self.enable_run(False)
                 else:
-                    self.log(
+                    show_info(
                         "ERROR : No image name is listed in train.txt file."
                     )
                     self.enable_run(False)
             else:
-                self.log("ERROR: the [raw] folder does not exist.")
+                show_info("ERROR: the [raw] folder does not exist.")
                 self.enable_run(False)
         else:
-            self.log("ERROR: the [train.txt] file does not exist.")
+            show_info("ERROR: the [train.txt] file does not exist.")
             self.enable_run(False)
 
 
