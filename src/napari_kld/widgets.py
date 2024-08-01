@@ -247,6 +247,9 @@ class WidgetKLDeconvTrain(QGroupBox):
             title="Select the directory of output"
         )
         self.output_directory_box.path_edit.textChanged.connect(
+            self._on_path_change
+        )
+        self.output_directory_box.path_edit.textChanged.connect(
             self._on_params_change
         )
         grid_layout.addWidget(self.output_directory_box, 1, 1, 1, 2)
@@ -261,28 +264,31 @@ class WidgetKLDeconvTrain(QGroupBox):
         grid_layout.addWidget(self.psf_path_box, 2, 1, 1, 2)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Image Channels/Dimension"), 3, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Image Channels | Dimension"), 3, 0, 1, 1)
         self.channel_box = SpinBox(vmin=1, vmax=10, vinit=1)
         self.channel_box.valueChanged.connect(self._on_params_change)
-        grid_layout.addWidget(self.channel_box, 3, 1, 1, 1)
+
         self.dim_box = QComboBox()
+        self.dim_box.addItems(["2", "3"])
         self.dim_box.currentTextChanged.connect(self._on_params_change)
-        self.dim_box.addItems(["3", "2"])
+        grid_layout.addWidget(self.channel_box, 3, 1, 1, 1)
         grid_layout.addWidget(self.dim_box, 3, 2, 1, 1)
 
-        # ----------------------------------------------------------------------
         grid_layout.setAlignment(qtpy.QtCore.Qt.AlignTop)
 
-        # initialization
+        # ----------------------------------------------------------------------
+        # init
+        self._on_path_change()
         self._on_params_change()
 
     def _on_psf_path_change(self):
         psf_path = self.psf_path_box.get_path()
+
         if psf_path != "":
             self.fp_widget.setVisible(False)
             if not os.path.exists(psf_path):
-                show_info("ERROR: PSF Not Exists.")
-                self.bp_widget.run_btn.setEnabled(False)
+                show_info("ERROR: PSF does not exist.")
+                self.bp_widget.enable_run(False)
         else:
             self.fp_widget.setVisible(True)
 
@@ -297,7 +303,13 @@ class WidgetKLDeconvTrain(QGroupBox):
         if path_output != "" and not os.path.exists(path_output):
             show_info("ERROR: Output directory does not exist.")
 
-        if path_data !="" and path_output != "" and os.path.exists(path_data) and os.path.exists(path_output):
+        # enable run
+        if (
+            path_data != ""
+            and path_output != ""
+            and os.path.exists(path_data)
+            and os.path.exists(path_output)
+        ):
             self.fp_widget.enable_run(True)
             self.bp_widget.enable_run(True)
         else:
