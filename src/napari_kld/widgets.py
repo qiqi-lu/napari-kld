@@ -287,15 +287,19 @@ class WidgetKLDeconvTrain(QGroupBox):
             self.fp_widget.setVisible(True)
 
     def _on_path_change(self):
-        path = self.data_directory_box.get_path()
+        path_data = self.data_directory_box.get_path()
+        path_output = self.output_directory_box.get_path()
 
-        if path != "":
-            # check path exist
-            if os.path.exists(path):
-                self.fp_widget.enable_run(True)
-                self.bp_widget.enable_run(True)
-            else:
-                show_info("ERROR: Data Path Unexists.")
+        # check path exist
+        if path_data != "" and not os.path.exists(path_data):
+            show_info("ERROR: Data directory does not exist.")
+
+        if path_output != "" and not os.path.exists(path_output):
+            show_info("ERROR: Output directory does not exist.")
+
+        if path_data !="" and path_output != "" and os.path.exists(path_data) and os.path.exists(path_output):
+            self.fp_widget.enable_run(True)
+            self.bp_widget.enable_run(True)
         else:
             self.fp_widget.enable_run(False)
             self.bp_widget.enable_run(False)
