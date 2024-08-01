@@ -1,8 +1,8 @@
 # the widgets for each methods
 import os
-import numpy as np
 
 import napari
+import numpy as np
 import qtpy.QtCore
 import skimage.io as io
 from napari.utils.notifications import show_info
@@ -866,16 +866,17 @@ class WorkerKLDeconvSimulation(WorkerBase):
         super().__init__(observer)
 
     def run(self):
-        print("run simulation worker ...")
+        self.log("simulation data generating ...")
         try:
             generate_simulation_data(
                 observer=self.observer, **self.params_dict
             )
         except (RuntimeError, TypeError, UnboundLocalError) as e:
-            print(str(e))
-            self.observer.notify("Run failed.")
+            self.log(str(e))
+            self.log("Run failed.")
+
         self.finish_signal.emit()
-        print("finished.")
+        self.log("finished.")
 
 
 class WidgetKLDeconvSimulation(WidgetBase):
@@ -959,52 +960,53 @@ class WidgetKLDeconvSimulation(WidgetBase):
         self._on_change_path()
         self.reconnect()
 
-    def _on_psf_path_change(self):
-        psf_path = self.psf_path_box.get_path()
-        if os.path.exists(psf_path):
-            _, ext = os.path.splitext(psf_path)
-            if ext != ".tif":
-                self.enable_run(False)
-                show_info('ERROR : only support \".tif\" file.')
-            else:
-                psf_shape = get_image_shape(psf_path)
+    def set_psf_range(self, psf_path):
+        psf_shape = get_image_shape(psf_path)
 
-                if len(psf_shape) == 3:
-                    ks_z, ks_y, ks_x = psf_shape
+        if len(psf_shape) == 3:
+            ks_z, ks_y, ks_x = psf_shape
 
-                    if (ks_z % 2) == 0:
-                        ks_z -= 1
-                    if (ks_y % 2) == 0:
-                        ks_y -= 1
-                    if (ks_x % 2) == 0:
-                        ks_x -= 1
+            if (ks_z % 2) == 0:
+                ks_z -= 1
+            if (ks_y % 2) == 0:
+                ks_y -= 1
+            if (ks_x % 2) == 0:
+                ks_x -= 1
 
-                    self.crop_z_box.setMaximum(np.minimum(ks_z, self.shape_z_box.value()))
-                    self.crop_z_box.setMinimum(3)
-                    self.crop_y_box.setMaximum(np.minimum(ks_y, self.shape_y_box.value()))
-                    self.crop_x_box.setMaximum(np.minimum(ks_x, self.shape_x_box.value()))
+            self.crop_z_box.setMaximum(
+                np.minimum(ks_z, self.shape_z_box.value())
+            )
+            self.crop_z_box.setMinimum(3)
+            self.crop_y_box.setMaximum(
+                np.minimum(ks_y, self.shape_y_box.value())
+            )
+            self.crop_x_box.setMaximum(
+                np.minimum(ks_x, self.shape_x_box.value())
+            )
 
-                    self.crop_z_box.setValue(ks_z)
-                    self.crop_y_box.setValue(ks_y)
-                    self.crop_x_box.setValue(ks_x)
+            self.crop_z_box.setValue(ks_z)
+            self.crop_y_box.setValue(ks_y)
+            self.crop_x_box.setValue(ks_x)
 
-                if len(psf_shape) == 2:
-                    ks_y, ks_x = psf_shape
+        if len(psf_shape) == 2:
+            ks_y, ks_x = psf_shape
 
-                    if (ks_y % 2) == 0:
-                        ks_y -= 1
-                    if (ks_x % 2) == 0:
-                        ks_x -= 1
+            if (ks_y % 2) == 0:
+                ks_y -= 1
+            if (ks_x % 2) == 0:
+                ks_x -= 1
 
-                    self.crop_z_box.setMaximum(1)
-                    self.crop_y_box.setMaximum(np.minimum(ks_y, self.shape_y_box.value()))
-                    self.crop_x_box.setMaximum(np.minimum(ks_x, self.shape_x_box.value()))
+            self.crop_z_box.setMaximum(1)
+            self.crop_y_box.setMaximum(
+                np.minimum(ks_y, self.shape_y_box.value())
+            )
+            self.crop_x_box.setMaximum(
+                np.minimum(ks_x, self.shape_x_box.value())
+            )
 
-                    self.crop_z_box.setValue(1)
-                    self.crop_y_box.setValue(ks_y)
-                    self.crop_x_box.setValue(ks_x)
-        else:
-            show_info(f"ERROR: \"{psf_path}\" does not exsits.")
+            self.crop_z_box.setValue(1)
+            self.crop_y_box.setValue(ks_y)
+            self.crop_x_box.setValue(ks_x)
 
     def get_params(self):
         data_path = self.output_path_box.get_path()
@@ -1041,7 +1043,6 @@ class WidgetKLDeconvSimulation(WidgetBase):
         return params_dict
 
     def _on_click_run(self):
-        print("Simulation data generating ...")
         self.restart()
         self.progress_bar.setMaximum(self.num_simu_box.value())
         params_dict = self.get_params()
@@ -1050,17 +1051,28 @@ class WidgetKLDeconvSimulation(WidgetBase):
         self._thread.start()
 
     def _on_change_path(self):
-        data_path = self.output_path_box.get_path()
+        output_path = self.output_path_box.get_path()
         psf_path = self.psf_path_box.get_path()
 
         if (
-            data_path == ""
-            or psf_path == ""
-            or (not os.path.exists(data_path) or not os.path.exists(psf_path))
+            output_path != ""
+            and psf_path != ""
+            and os.path.exists(output_path)
         ):
-            self.enable_run(False)
+            if os.path.exists(psf_path):
+                _, ext = os.path.splitext(psf_path)
+
+                if ext != ".tif":
+                    self.enable_run(False)
+                    show_info('ERROR : only support ".tif" file.')
+                else:
+                    self.enable_run(True)
+                    self.set_psf_range(psf_path)
+            else:
+                show_info(f'ERROR: "{psf_path}" does not exsits.')
+                self.enable_run(False)
         else:
-            self.enable_run(True)
+            self.enable_run(False)
 
     def _on_psf_crop_shape_change(self):
         ks_z = self.crop_z_box.value()
