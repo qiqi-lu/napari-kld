@@ -387,7 +387,7 @@ class WorkerKLDeconvTrainFP(WorkerBase):
         self.abort_flag = [False]
 
     def run(self):
-        print("worker run")
+        self.observer.notify('Start training Forward Projection ...')
         try:
             train.train(
                 fp_path=None,
