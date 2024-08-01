@@ -3,6 +3,7 @@ import os
 
 import napari
 import qtpy.QtCore
+import skimage.io as io
 from napari.utils.notifications import show_info
 from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import (
@@ -15,11 +16,12 @@ from qtpy.QtWidgets import (
     QSpinBox,
     QVBoxLayout,
     QWidget,
+    QLineEdit,
 )
 
 from napari_kld.base import methods, predict, train
 from napari_kld.base.generate_synthetic_data import generate_simulation_data
-from napari_kld.base.utils.dataset_utils import get_image_shape
+from napari_kld.base.utils.dataset_utils import get_image_shape, read_txt
 from napari_kld.baseww import (
     DirectorySelectWidget,
     DoubleSpinBox,
@@ -216,6 +218,7 @@ class WidgetKLDeconvTrain(QGroupBox):
     def __init__(self, logger=None):
         super().__init__()
         self.logger = logger
+        self.img_shape = None
 
         self.setTitle("Model Training")
         grid_layout = QGridLayout()
@@ -266,12 +269,13 @@ class WidgetKLDeconvTrain(QGroupBox):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Image Channels | Dimension"), 3, 0, 1, 1)
-        self.channel_box = SpinBox(vmin=1, vmax=10, vinit=1)
+        self.channel_box = SpinBox(vmin=1, vmax=1, vinit=1)
         self.channel_box.valueChanged.connect(self._on_params_change)
 
-        self.dim_box = QComboBox()
-        self.dim_box.addItems(["2", "3"])
-        self.dim_box.currentTextChanged.connect(self._on_params_change)
+        self.dim_box = QLineEdit()
+        self.dim_box.setText('2')
+        self.dim_box.setReadOnly(True)
+        self.dim_box.textChanged.connect(self._on_params_change)
         grid_layout.addWidget(self.channel_box, 3, 1, 1, 1)
         grid_layout.addWidget(self.dim_box, 3, 2, 1, 1)
 
@@ -311,7 +315,10 @@ class WidgetKLDeconvTrain(QGroupBox):
             and os.path.exists(path_data)
             and os.path.exists(path_output)
         ):
-            self.enable_run(True)
+            self.check_training_data()
+            if self.img_shape is not None:
+                dim = len(self.img_shape)
+                self.dim_box.setText(str(dim))
         else:
             self.enable_run(False)
 
@@ -320,7 +327,7 @@ class WidgetKLDeconvTrain(QGroupBox):
         self.bp_widget.enable_run(enable)
 
     def _on_params_change(self):
-        dim = int(self.dim_box.currentText())
+        dim = int(self.dim_box.text())
         num_channel = self.channel_box.value()
         data_path = self.data_directory_box.get_path()
         output_path = self.output_directory_box.get_path()
@@ -333,28 +340,44 @@ class WidgetKLDeconvTrain(QGroupBox):
             "output_path": output_path,
             "psf_path": psf_path,
         }
+
         self.fp_widget.set_params(params_dict)
         self.bp_widget.set_params(params_dict)
+
+    def log(self, text):
+        print(text)
+        if self.logger is not None:
+            self.logger.add_text(text)
 
     def check_training_data(self):
         path = self.data_directory_box.get_path()
 
         if os.path.exists(os.path.join(path, "train.txt")):
-            if not os.path.exists(os.path.join(path, "raw")):
-                message = "ERROR: the [raw] folder does not exist."
-                print(message)
-                if self.logger is not None:
-                    self.logger.add_text(message)
+            if os.path.exists(os.path.join(path, "raw")):
+                if not os.path.exists(os.path.join(path, "gt")):
+                    self.log("WARNNING: the [gt] folder does not exist.")
 
-            if not os.path.exists(os.path.join(path, "gt")):
-                message = "WARNNING: the [gt] folder does not exist."
-                print(message)
-
+                name_list = read_txt(os.path.join(path, "train.txt"))
+                if len(name_list) > 0:
+                    img_path = os.path.join(path, "raw", name_list[0])
+                    if os.path.exists(img_path):
+                        img = io.imread(img_path)
+                        self.img_shape = img.shape
+                        self.log(f"Input image shape = {self.img_shape}")
+                        self.enable_run(True)
+                    else:
+                        self.log("ERROR : Image does not exist.")
+                        self.enable_run(False)
+                else:
+                    self.log(
+                        "ERROR : No image name is listed in train.txt file."
+                    )
+                    self.enable_run(False)
+            else:
+                self.log("ERROR: the [raw] folder does not exist.")
+                self.enable_run(False)
         else:
-            message = "ERROR: the [train.txt] file does not exist."
-            print(message)
-            if self.logger is not None:
-                self.logger.add_text(message)
+            self.log("ERROR: the [train.txt] file does not exist.")
             self.enable_run(False)
 
 

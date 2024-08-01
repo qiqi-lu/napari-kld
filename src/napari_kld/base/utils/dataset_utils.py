@@ -8,6 +8,12 @@ from skimage import io, transform
 from torch.utils.data import Dataset
 
 
+def read_txt(path):
+    with open(path) as f:
+        name_list = f.read().split("\n")
+    return name_list[0:-1]
+
+
 def get_image_shape(path):
     img = skio.imread(path)
     return img.shape
