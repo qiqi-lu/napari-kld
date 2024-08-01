@@ -22,7 +22,7 @@ def train(
     num_channel=1,
     data_dim=3,
     num_iter=2,
-    ks_z=1,
+    ks_z=31,
     ks_xy=31,
     model_name="kernet_fp",  # "kernet" or "kernet_fp"
     num_epoch=10000,
@@ -36,6 +36,7 @@ def train(
 ):
 
     def notify(value):
+        print(value)
         if observer is not None:
             observer.notify(value)
 
