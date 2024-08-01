@@ -230,7 +230,9 @@ class WidgetKLDeconvTrain(QGroupBox):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Data Directory"), 0, 0, 1, 1)
-        self.data_directory_box = DirectorySelectWidget(title='Select the directory of training data')
+        self.data_directory_box = DirectorySelectWidget(
+            title="Select the directory of training data"
+        )
         self.data_directory_box.path_edit.textChanged.connect(
             self._on_path_change
         )
@@ -241,7 +243,9 @@ class WidgetKLDeconvTrain(QGroupBox):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Output Directory"), 1, 0, 1, 1)
-        self.output_directory_box = DirectorySelectWidget(title='Select the directory of output')
+        self.output_directory_box = DirectorySelectWidget(
+            title="Select the directory of output"
+        )
         self.output_directory_box.path_edit.textChanged.connect(
             self._on_params_change
         )
@@ -249,13 +253,11 @@ class WidgetKLDeconvTrain(QGroupBox):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("PSF Directory"), 2, 0, 1, 1)
-        self.psf_path_box = FileSelectWidget(title='Select the PSF')
+        self.psf_path_box = FileSelectWidget(title="Select the PSF")
         self.psf_path_box.path_edit.textChanged.connect(
             self._on_psf_path_change
         )
-        self.psf_path_box.path_edit.textChanged.connect(
-            self._on_params_change
-        )
+        self.psf_path_box.path_edit.textChanged.connect(self._on_params_change)
         grid_layout.addWidget(self.psf_path_box, 2, 1, 1, 2)
 
         # ----------------------------------------------------------------------
