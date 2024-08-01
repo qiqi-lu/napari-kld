@@ -1,6 +1,5 @@
 import os
 
-from napari.utils.notifications import show_info
 from qtpy.QtCore import QObject, QThread, Signal
 from qtpy.QtWidgets import (
     QDoubleSpinBox,
@@ -47,7 +46,6 @@ class FileSelectWidget(QWidget):
             self.path_edit.setText(file[0])
 
     def get_path(self):
-        print(self.path_edit.text())
         return self.path_edit.text()
 
     def set_enabled(self, enable):
@@ -95,9 +93,6 @@ class ProgressObserver(QObject):
 
     def notify(self, message):
         self.notify_signal.emit(message)
-
-    def pop_info(self, info):
-        show_info(info)
 
 
 class LogBox(QGroupBox):
@@ -199,19 +194,20 @@ class WidgetBase(QGroupBox):
         self._worker.finish_signal.connect(self._thread.quit)
 
         self._observer.progress_signal.connect(self._on_progress)
-        self._observer.notify_signal.connect(self._on_notify)
+        self._observer.notify_signal.connect(self.log)
 
     def _on_progress(self, value):
         self.progress_bar.setValue(value)
 
-    def _on_notify(self, value):
+    def log(self, value):
+        print(value)
         if self.logger is not None:
             self.logger.add_text(value)
 
     def print_params(self, params_dict):
-        self._on_notify("Parameters:")
+        self.log("Parameters:")
         for item in params_dict:
-            self._on_notify(f"{item} : {params_dict[item]}")
+            self.log(f"{item} : {params_dict[item]}")
 
     def restart(self):
         self.progress_bar.setValue(0)

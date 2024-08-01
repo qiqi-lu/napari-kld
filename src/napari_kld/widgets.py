@@ -461,9 +461,7 @@ class WidgetKLDeconvTrainFP(WidgetBase):
         self.restart()
 
         params_dict = self.get_params()
-        self._on_notify("Parameters: ")
-        for item in params_dict:
-            self._on_notify(f"{item} : {params_dict[item]}")
+        self.print_params(params_dict)
 
         self._worker.set_params(params_dict)
         self._thread.start()
@@ -594,9 +592,7 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         self.restart()
 
         params_dict = self.get_params()
-        self._on_notify("Parameters: ")
-        for item in params_dict:
-            self._on_notify(f"{item} : {params_dict[item]}")
+        self.print_params(params_dict)
 
         self._worker.set_params(params_dict)
         self._thread.start()
@@ -662,6 +658,7 @@ class WorkerKLDeconvPredict(WorkerBase):
     def set_output(self):
         num_iter = self.params_dict["num_iter"]
         output_name = f"{self.input_name}_deconv_iter_{num_iter}"
+        self.log(f'Save as "{output_name}"')
 
         self.viewer.add_image(
             self.img_output,
@@ -674,25 +671,28 @@ class WorkerKLDeconvPredict(WorkerBase):
     def run(self):
         img_input = self.viewer.layers[self.input_name].data
 
-        self.observer.notify("start predicting ...")
-        self.observer.notify(f"input shape: {img_input.shape}")
+        self.log("-" * 80)
+        self.log("start predicting ...")
+        self.log(f"input shape: {img_input.shape}")
 
         try:
             self.img_output = predict.predict(
                 img_input, observer=self.observer, **self.params_dict
             )
+
             if not isinstance(self.img_output, int):
-                self.observer.pop_info("Succeed")
-                self.observer.notify(f"output shape: {self.img_output.shape}")
+                show_info("Succeed")
+                self.log(f"output shape: {self.img_output.shape}")
                 self.succeed_signal.emit()
             else:
-                self.observer.pop_info("Failed")
+                show_info("Failed")
 
         except (RuntimeError, TypeError) as e:
-            self.observer.notify(str(e))
-            self.observer.pop_info("Failed")
+            self.log(str(e))
+            show_info("Failed")
 
         self.finish_signal.emit()
+        self.log("-" * 80)
 
 
 class WidgetKLDeconvPredict(WidgetBase):
@@ -716,20 +716,26 @@ class WidgetKLDeconvPredict(WidgetBase):
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("PSF directory"), 1, 0, 1, 1)
         self.psf_path_box = FileSelectWidget()
+        self.psf_path_box.path_edit.textChanged.connect(
+            self._on_psf_path_change
+        )
         grid_layout.addWidget(self.psf_path_box, 1, 1, 1, 2)
 
         # ----------------------------------------------------------------------
         # forward projection model
         grid_layout.addWidget(QLabel("Forward Projection"), 2, 0, 1, 1)
         self.fp_path_box = FileSelectWidget()
+        self.fp_path_box.path_edit.textChanged.connect(self._on_fp_path_change)
         grid_layout.addWidget(self.fp_path_box, 2, 1, 1, 2)
 
+        # ----------------------------------------------------------------------
         # backward projeciton model
         grid_layout.addWidget(QLabel("Backward Projection"), 3, 0, 1, 1)
         self.bp_path_box = FileSelectWidget()
         self.bp_path_box.path_edit.textChanged.connect(self._on_bp_path_change)
         grid_layout.addWidget(self.bp_path_box, 3, 1, 1, 2)
 
+        # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Iterations (RL)"), 4, 0, 1, 1)
         self.iteration_box_rl = SpinBox(vmin=1, vmax=999, vinit=2)
         grid_layout.addWidget(self.iteration_box_rl, 4, 1, 1, 2)
@@ -763,21 +769,17 @@ class WidgetKLDeconvPredict(WidgetBase):
         return params_dict
 
     def _on_click_run(self):
-        print("Predicting ...")
         self.restart()
         self.progress_bar.setMaximum(self.iteration_box_rl.value())
 
         params_dict = self.get_params()
-        self._on_notify("Parameters:")
-        for item in params_dict:
-            self._on_notify(f"{item} : {params_dict[item]}")
+        self.print_params(params_dict)
 
         self._worker.set_params(params_dict)
         self._worker.set_input(self.input_raw_data_box.currentText())
         self._thread.start()
 
     def _on_change_layer(self):
-        print("layer change.")
         self.input_raw_data_box.clear()
 
         for layer in self.viewer.layers:
@@ -785,20 +787,74 @@ class WidgetKLDeconvPredict(WidgetBase):
                 self.input_raw_data_box.addItem(layer.name)
 
         if self.input_raw_data_box.count() < 1:
-            self.run_btn.setEnabled(False)
-        else:
-            self.run_btn.setEnabled(True)
+            self.enable_run(False)
 
     def _on_bp_path_change(self):
         bp_path = self.bp_path_box.get_path()
+        psf_path = self.psf_path_box.get_path()
+        fp_path = self.fp_path_box.get_path()
 
         if bp_path != "":
-            if not os.path.exists(bp_path):
-                self.enable_run(False)
+            if os.path.exists(bp_path):
+                _, ext = os.path.splitext(bp_path)
+                if ext == ".pt":
+                    self.log(f'Backward Projeciton Directory: "{bp_path}"')
+                    if psf_path != "" or fp_path != "":
+                        self.enable_run(True)
+                else:
+                    self.enable_run(False)
+                    show_info(
+                        'ERROR: the backward projection should be a model with a ".pt" extension.'
+                    )
             else:
-                self.enable_run(True)
+                show_info(f'WARNING: "{bp_path}" does not exist.')
+                self.enable_run(False)
         else:
             self.enable_run(False)
+
+    def _on_fp_path_change(self):
+        fp_path = self.fp_path_box.get_path()
+
+        if fp_path != "":
+            if os.path.exists(fp_path):
+                _, ext = os.path.splitext(fp_path)
+                if ext == ".pt":
+                    self.log(f'Forward Projeciton Directory: "{fp_path}"')
+                else:
+                    show_info(
+                        'ERROR: the forward projection should be a model with a ".pt" extension.'
+                    )
+                    self.enable_run(False)
+            else:
+                show_info(f'ERROR: "{fp_path}" does not exist.')
+                self.enable_run(False)
+        else:
+            psf_path = self.psf_path_box.get_path()
+            if psf_path == "":
+                show_info("ERROR : a PSF or forward projeciton is required.")
+                self.enable_run(False)
+
+    def _on_psf_path_change(self):
+        psf_path = self.psf_path_box.get_path()
+
+        if psf_path != "":
+            if os.path.exists(psf_path):
+                _, ext = os.path.splitext(psf_path)
+                if ext == ".tif":
+                    self.log(f'PSF Directory: "{psf_path}"')
+                else:
+                    show_info(
+                        'ERROR: the PSF file should be with a ".tif" extension.'
+                    )
+                    self.enable_run(False)
+            else:
+                show_info(f'ERROR: "{psf_path}" does not exist.')
+                self.enable_run(False)
+        else:
+            fp_path = self.fp_path_box.get_path()
+            if fp_path == "":
+                show_info("ERROR : a PSF or forward projeciton is required.")
+                self.enable_run(False)
 
     def _on_succeed(self):
         self._worker.set_output()
