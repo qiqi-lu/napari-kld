@@ -27,7 +27,7 @@ def generate_simulation_data(
         if observer is not None:
             observer.notify(value)
 
-    data_name = f'data_{image_shape[0]}_{image_shape[1]}_{image_shape[2]}_gauss_{std_gauss}_poiss_{poisson}_ratio_{ratio}'
+    data_name = f"data_{image_shape[0]}_{image_shape[1]}_{image_shape[2]}_gauss_{std_gauss}_poiss_{poisson}_ratio_{ratio}"
     # --------------------------------------------------------------------------
     path_dataset_train = os.path.join(path_dataset, data_name, "train")
     path_dataset_gt = os.path.join(path_dataset_train, "gt")
