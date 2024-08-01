@@ -24,12 +24,12 @@ def generate_simulation_data(
     **kwargs,
 ):
     def notify(value):
-        print(value)
         if observer is not None:
             observer.notify(value)
 
+    data_name = f'data_{image_shape[0]}_{image_shape[1]}_gauss_{str(std_gauss).rstrip("0")}_poiss_{str(poisson).rstrip("0")}_ratio_{str(ratio).rstrip("0")}'
     # --------------------------------------------------------------------------
-    path_dataset_train = os.path.join(path_dataset, "data", "train")
+    path_dataset_train = os.path.join(path_dataset, data_name, "train")
     path_dataset_gt = os.path.join(path_dataset_train, "gt")
     path_dataset_raw = os.path.join(path_dataset_train, "raw")
 

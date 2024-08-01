@@ -883,6 +883,7 @@ class WidgetKLDeconvSimulation(WidgetBase):
     def __init__(self, logger=None):
         super().__init__(logger)
         self._worker = WorkerKLDeconvSimulation(self._observer)
+        self.psf_shape = None
 
         self.setTitle("Simulation")
         grid_layout = QGridLayout()
@@ -899,9 +900,6 @@ class WidgetKLDeconvSimulation(WidgetBase):
         grid_layout.addWidget(QLabel("PSF directory"), 1, 0, 1, 1)
         self.psf_path_box = FileSelectWidget()
         self.psf_path_box.path_edit.textChanged.connect(self._on_change_path)
-        self.psf_path_box.path_edit.textChanged.connect(
-            self._on_psf_path_change
-        )
         grid_layout.addWidget(self.psf_path_box, 1, 1, 1, 3)
 
         # ----------------------------------------------------------------------
@@ -909,6 +907,9 @@ class WidgetKLDeconvSimulation(WidgetBase):
         self.shape_z_box = SpinBox(vmin=1, vmax=999, vinit=128)
         self.shape_y_box = SpinBox(vmin=32, vmax=999, vinit=128)
         self.shape_x_box = SpinBox(vmin=32, vmax=999, vinit=128)
+        self.shape_z_box.valueChanged.connect(self.set_psf_range)
+        self.shape_y_box.valueChanged.connect(self.set_psf_range)
+        self.shape_x_box.valueChanged.connect(self.set_psf_range)
         grid_layout.addWidget(self.shape_z_box, 2, 1, 1, 1)
         grid_layout.addWidget(self.shape_y_box, 2, 2, 1, 1)
         grid_layout.addWidget(self.shape_x_box, 2, 3, 1, 1)
@@ -960,53 +961,60 @@ class WidgetKLDeconvSimulation(WidgetBase):
         self._on_change_path()
         self.reconnect()
 
-    def set_psf_range(self, psf_path):
-        psf_shape = get_image_shape(psf_path)
+    def set_psf_range(self):
+        dim_psf = len(self.psf_shape)
+        dim_data = 2 if self.shape_z_box.value() == 1 else 3
 
-        if len(psf_shape) == 3:
-            ks_z, ks_y, ks_x = psf_shape
+        if dim_data == dim_psf:
+            if dim_psf == 3:
+                ks_z, ks_y, ks_x = self.psf_shape
 
-            if (ks_z % 2) == 0:
-                ks_z -= 1
-            if (ks_y % 2) == 0:
-                ks_y -= 1
-            if (ks_x % 2) == 0:
-                ks_x -= 1
+                if (ks_z % 2) == 0:
+                    ks_z -= 1
+                if (ks_y % 2) == 0:
+                    ks_y -= 1
+                if (ks_x % 2) == 0:
+                    ks_x -= 1
 
-            self.crop_z_box.setMaximum(
-                np.minimum(ks_z, self.shape_z_box.value())
-            )
-            self.crop_z_box.setMinimum(3)
-            self.crop_y_box.setMaximum(
-                np.minimum(ks_y, self.shape_y_box.value())
-            )
-            self.crop_x_box.setMaximum(
-                np.minimum(ks_x, self.shape_x_box.value())
-            )
+                self.crop_z_box.setMaximum(
+                    np.minimum(ks_z, self.shape_z_box.value())
+                )
+                self.crop_z_box.setMinimum(3)
+                self.crop_y_box.setMaximum(
+                    np.minimum(ks_y, self.shape_y_box.value())
+                )
+                self.crop_x_box.setMaximum(
+                    np.minimum(ks_x, self.shape_x_box.value())
+                )
 
-            self.crop_z_box.setValue(ks_z)
-            self.crop_y_box.setValue(ks_y)
-            self.crop_x_box.setValue(ks_x)
+                self.crop_z_box.setValue(ks_z)
+                self.crop_y_box.setValue(ks_y)
+                self.crop_x_box.setValue(ks_x)
 
-        if len(psf_shape) == 2:
-            ks_y, ks_x = psf_shape
+            if dim_psf == 2:
+                ks_y, ks_x = self.psf_shape
 
-            if (ks_y % 2) == 0:
-                ks_y -= 1
-            if (ks_x % 2) == 0:
-                ks_x -= 1
+                if (ks_y % 2) == 0:
+                    ks_y -= 1
+                if (ks_x % 2) == 0:
+                    ks_x -= 1
 
-            self.crop_z_box.setMaximum(1)
-            self.crop_y_box.setMaximum(
-                np.minimum(ks_y, self.shape_y_box.value())
-            )
-            self.crop_x_box.setMaximum(
-                np.minimum(ks_x, self.shape_x_box.value())
-            )
+                self.crop_z_box.setMaximum(1)
+                self.crop_y_box.setMaximum(
+                    np.minimum(ks_y, self.shape_y_box.value())
+                )
+                self.crop_x_box.setMaximum(
+                    np.minimum(ks_x, self.shape_x_box.value())
+                )
 
-            self.crop_z_box.setValue(1)
-            self.crop_y_box.setValue(ks_y)
-            self.crop_x_box.setValue(ks_x)
+                self.crop_z_box.setValue(1)
+                self.crop_y_box.setValue(ks_y)
+                self.crop_x_box.setValue(ks_x)
+
+            self.enable_run(True)
+        else:
+            show_info(f"ERROR : a {dim_data}D PSF is required.")
+            self.enable_run(False)
 
     def get_params(self):
         data_path = self.output_path_box.get_path()
@@ -1016,7 +1024,7 @@ class WidgetKLDeconvSimulation(WidgetBase):
             int(self.shape_y_box.value()),
             int(self.shape_x_box.value()),
         )
-        psf_crop = (
+        psf_crop_shape = (
             int(self.crop_z_box.value()),
             int(self.crop_y_box.value()),
             int(self.crop_x_box.value()),
@@ -1033,7 +1041,7 @@ class WidgetKLDeconvSimulation(WidgetBase):
             "path_psf": psf_path,
             "image_shape": image_shape,
             "num_simulation": num_simulation,
-            "psf_crop_shape": psf_crop,
+            "psf_crop_shape": psf_crop_shape,
             "std_gauss": std_gauss,
             "poisson": poisson,
             "ratio": ratio,
@@ -1063,11 +1071,11 @@ class WidgetKLDeconvSimulation(WidgetBase):
                 _, ext = os.path.splitext(psf_path)
 
                 if ext != ".tif":
-                    self.enable_run(False)
                     show_info('ERROR : only support ".tif" file.')
+                    self.enable_run(False)
                 else:
-                    self.enable_run(True)
-                    self.set_psf_range(psf_path)
+                    self.psf_shape = get_image_shape(psf_path)
+                    self.set_psf_range()
             else:
                 show_info(f'ERROR: "{psf_path}" does not exsits.')
                 self.enable_run(False)
