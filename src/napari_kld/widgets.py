@@ -1,5 +1,6 @@
 # the widgets for each methods
 import os
+import numpy as np
 
 import napari
 import qtpy.QtCore
@@ -961,7 +962,11 @@ class WidgetKLDeconvSimulation(WidgetBase):
     def _on_psf_path_change(self):
         psf_path = self.psf_path_box.get_path()
         if os.path.exists(psf_path):
-            try:
+            _, ext = os.path.splitext(psf_path)
+            if ext != ".tif":
+                self.enable_run(False)
+                show_info('ERROR : only support \".tif\" file.')
+            else:
                 psf_shape = get_image_shape(psf_path)
 
                 if len(psf_shape) == 3:
@@ -974,14 +979,14 @@ class WidgetKLDeconvSimulation(WidgetBase):
                     if (ks_x % 2) == 0:
                         ks_x -= 1
 
+                    self.crop_z_box.setMaximum(np.minimum(ks_z, self.shape_z_box.value()))
+                    self.crop_z_box.setMinimum(3)
+                    self.crop_y_box.setMaximum(np.minimum(ks_y, self.shape_y_box.value()))
+                    self.crop_x_box.setMaximum(np.minimum(ks_x, self.shape_x_box.value()))
+
                     self.crop_z_box.setValue(ks_z)
                     self.crop_y_box.setValue(ks_y)
                     self.crop_x_box.setValue(ks_x)
-
-                    self.crop_z_box.setMaximum(ks_z)
-                    self.crop_z_box.setMinimum(3)
-                    self.crop_y_box.setMaximum(ks_y)
-                    self.crop_x_box.setMaximum(ks_x)
 
                 if len(psf_shape) == 2:
                     ks_y, ks_x = psf_shape
@@ -991,21 +996,15 @@ class WidgetKLDeconvSimulation(WidgetBase):
                     if (ks_x % 2) == 0:
                         ks_x -= 1
 
+                    self.crop_z_box.setMaximum(1)
+                    self.crop_y_box.setMaximum(np.minimum(ks_y, self.shape_y_box.value()))
+                    self.crop_x_box.setMaximum(np.minimum(ks_x, self.shape_x_box.value()))
+
                     self.crop_z_box.setValue(1)
                     self.crop_y_box.setValue(ks_y)
                     self.crop_x_box.setValue(ks_x)
-
-                    self.crop_z_box.setMaximum(1)
-                    self.crop_y_box.setMaximum(ks_y)
-                    self.crop_x_box.setMaximum(ks_x)
-
-            except RuntimeError as e:
-                self._observer.notify(e)
-                show_info(
-                    "ERROR: The selected file is not a PSF or not supported."
-                )
         else:
-            show_info(f"ERROR: {psf_path} does not exsits.")
+            show_info(f"ERROR: \"{psf_path}\" does not exsits.")
 
     def get_params(self):
         data_path = self.output_path_box.get_path()
