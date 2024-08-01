@@ -389,7 +389,7 @@ class WorkerKLDeconvTrainFP(WorkerBase):
         self.abort_flag = [False]
 
     def run(self):
-        self.observer.notify("Start training Forward Projection ...")
+        self.log("Start training Forward Projection ...")
         try:
             train.train(
                 fp_path=None,
@@ -402,7 +402,7 @@ class WorkerKLDeconvTrainFP(WorkerBase):
             )
         except (RuntimeError, TypeError) as e:
             print(str(e))
-            self.observer.notify("Run failed.")
+            self.log("Run failed.")
         self.finish_signal.emit()
 
     def stop(self):
@@ -509,7 +509,7 @@ class WorkerKLDeconvTrainBP(WorkerBase):
         self.abort_flag = [False]
 
     def run(self):
-        print("start training Backward Projection ...")
+        self.log("start training Backward Projection ...")
         try:
             train.train(
                 model_name="kernet",
@@ -519,7 +519,7 @@ class WorkerKLDeconvTrainBP(WorkerBase):
             )
         except (RuntimeError, TypeError) as e:
             print(str(e))
-            self.observer.notify("Run failed.")
+            self.log("Run failed.")
         self.finish_signal.emit()
 
     def stop(self):
@@ -661,10 +661,11 @@ class WorkerKLDeconvPredict(WorkerBase):
 
     def set_output(self):
         num_iter = self.params_dict["num_iter"]
+        output_name = f"{self.input_name}_deconv_iter_{num_iter}"
 
         self.viewer.add_image(
             self.img_output,
-            name=f"{self.input_name}_deconv_iter_{num_iter}",
+            name=output_name,
         )
 
     def set_input(self, name):

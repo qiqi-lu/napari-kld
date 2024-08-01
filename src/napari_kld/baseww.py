@@ -175,6 +175,11 @@ class WorkerBase(QObject):
     def run(self):
         print("worker run ...")
 
+    def log(self, text):
+        print(text)
+        if self.observer is not None:
+            self.observer.notify(text)
+
 
 class WidgetBase(QGroupBox):
     def __init__(self, logger=None):
