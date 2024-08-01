@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (
 class FileSelectWidget(QWidget):
     """allow users to select files."""
 
-    def __init__(self):
+    def __init__(self, title="Select a file"):
         super().__init__()
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -29,14 +29,17 @@ class FileSelectWidget(QWidget):
 
         self.path_edit = QLineEdit()
         layout.addWidget(self.path_edit)
+
         btn_browse = QPushButton("Choose")
         btn_browse.released.connect(self._on_browse)
         layout.addWidget(btn_browse)
 
+        self.title = title
+
     def _on_browse(self):
         init_directory = os.getcwd()
         file = QFileDialog.getOpenFileName(
-            self, "Open a file", init_directory, "*.*"
+            self, self.title, init_directory, "*.*"
         )
         if file != "":
             self.path_edit.setText(file[0])
@@ -47,9 +50,8 @@ class FileSelectWidget(QWidget):
 
 
 class DirectorySelectWidget(FileSelectWidget):
-    def __init__(self, title=""):
-        super().__init__()
-        self.title = title
+    def __init__(self, title="Select a folder"):
+        super().__init__(title)
 
     def _on_browse(self):
         init_directory = os.getcwd()
