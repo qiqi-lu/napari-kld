@@ -12,11 +12,11 @@ from qtpy.QtWidgets import (
     QGridLayout,
     QGroupBox,
     QLabel,
+    QLineEdit,
     QPushButton,
     QSpinBox,
     QVBoxLayout,
     QWidget,
-    QLineEdit,
 )
 
 from napari_kld.base import methods, predict, train
@@ -273,7 +273,7 @@ class WidgetKLDeconvTrain(QGroupBox):
         self.channel_box.valueChanged.connect(self._on_params_change)
 
         self.dim_box = QLineEdit()
-        self.dim_box.setText('2')
+        self.dim_box.setText("2")
         self.dim_box.setReadOnly(True)
         self.dim_box.textChanged.connect(self._on_params_change)
         grid_layout.addWidget(self.channel_box, 3, 1, 1, 1)
