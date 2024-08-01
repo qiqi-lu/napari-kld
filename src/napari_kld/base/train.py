@@ -577,8 +577,8 @@ if __name__ == "__main__":
     train(
         data_path="D:/GitHub/napari-kld/test/data/simulation/data_128_128_128_gauss_0.5_poiss_1_ratio_0.1/train",
         output_path="D:/GitHub/napari-kld/test/data/simulation/data_128_128_128_gauss_0.5_poiss_1_ratio_0.1",
-        psf_path='',
-        fp_path='',
+        psf_path="",
+        fp_path="",
         num_channel=1,
         data_dim=3,
         num_iter=2,
