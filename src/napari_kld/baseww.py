@@ -30,11 +30,13 @@ class FileSelectWidget(QWidget):
         self.path_edit = QLineEdit()
         layout.addWidget(self.path_edit)
 
-        btn_browse = QPushButton("Choose")
-        btn_browse.released.connect(self._on_browse)
-        layout.addWidget(btn_browse)
+        self.btn_browse = QPushButton("Choose")
+        self.btn_browse.released.connect(self._on_browse)
+        layout.addWidget(self.btn_browse)
 
         self.title = title
+
+        self.set_enabled(True)
 
     def _on_browse(self):
         init_directory = os.getcwd()
@@ -47,6 +49,10 @@ class FileSelectWidget(QWidget):
     def get_path(self):
         print(self.path_edit.text())
         return self.path_edit.text()
+
+    def set_enabled(self, enable):
+        self.path_edit.setEnabled(enable)
+        self.btn_browse.setEnabled(enable)
 
 
 class DirectorySelectWidget(FileSelectWidget):

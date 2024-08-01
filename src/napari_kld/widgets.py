@@ -291,7 +291,9 @@ class WidgetKLDeconvTrain(QGroupBox):
 
         if psf_path != "":
             self.fp_widget.setVisible(False)
-            if not os.path.exists(psf_path):
+            if os.path.exists(psf_path):
+                self.bp_widget.fp_path_box.set_enabled(False)
+            else:
                 show_info("ERROR: PSF does not exist.")
                 self.enable_run(False)
         else:
@@ -400,7 +402,7 @@ class WorkerKLDeconvTrainFP(WorkerBase):
             )
         except (RuntimeError, TypeError) as e:
             print(str(e))
-            self.observer.notify("Run Failed.")
+            self.observer.notify("Run failed.")
         self.finish_signal.emit()
 
     def stop(self):
@@ -425,11 +427,11 @@ class WidgetKLDeconvTrainFP(WidgetBase):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Kernel Size (z, xy)"), 2, 0, 1, 1)
-        self.ks_box_z = SpinBox(vmin=1, vmax=1000, vinit=1)
+        self.ks_box_z = SpinBox(vmin=1, vmax=999, vinit=1)
         self.ks_box_z.setSingleStep(2)
-        self.ks_box_z.valueChanged.connect(self._on_ks_change)
         self.ks_box_xy = SpinBox(vmin=3, vmax=999, vinit=31)
         self.ks_box_xy.setSingleStep(2)
+        self.ks_box_z.valueChanged.connect(self._on_ks_change)
         self.ks_box_xy.valueChanged.connect(self._on_ks_change)
         grid_layout.addWidget(self.ks_box_z, 2, 1, 1, 1)
         grid_layout.addWidget(self.ks_box_xy, 2, 2, 1, 1)
@@ -456,7 +458,6 @@ class WidgetKLDeconvTrainFP(WidgetBase):
         self.reconnect()
 
     def _on_click_run(self):
-        print("run")
         self.restart()
 
         params_dict = self.get_params()
@@ -508,7 +509,7 @@ class WorkerKLDeconvTrainBP(WorkerBase):
         self.abort_flag = [False]
 
     def run(self):
-        print("start training ...")
+        print("start training Backward Projection ...")
         try:
             train.train(
                 model_name="kernet",
@@ -516,11 +517,9 @@ class WorkerKLDeconvTrainBP(WorkerBase):
                 abort_flag=self.abort_flag,
                 **self.params_dict,
             )
-            print("training done.")
-
         except (RuntimeError, TypeError) as e:
             print(str(e))
-            self.observer.notify("Run Failed.")
+            self.observer.notify("Run failed.")
         self.finish_signal.emit()
 
     def stop(self):
@@ -550,22 +549,24 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Epoch | Batch Size"), 2, 0, 1, 1)
         self.epoch_box = SpinBox(vmin=1, vmax=20000, vinit=100)
-        grid_layout.addWidget(self.epoch_box, 2, 1, 1, 1)
         self.bs_box = SpinBox(vmin=1, vmax=1000, vinit=1)
+        grid_layout.addWidget(self.epoch_box, 2, 1, 1, 1)
         grid_layout.addWidget(self.bs_box, 2, 2, 1, 1)
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Kernel Size (z, xy)"), 3, 0, 1, 1)
         self.ks_box_z = SpinBox(vmin=1, vmax=1000, vinit=1)
         self.ks_box_z.setSingleStep(2)
-        grid_layout.addWidget(self.ks_box_z, 3, 1, 1, 1)
         self.ks_box_xy = SpinBox(vmin=3, vmax=999, vinit=31)
         self.ks_box_xy.setSingleStep(2)
+        self.ks_box_z.valueChanged.connect(self._on_ks_change)
+        self.ks_box_xy.valueChanged.connect(self._on_ks_change)
+        grid_layout.addWidget(self.ks_box_z, 3, 1, 1, 1)
         grid_layout.addWidget(self.ks_box_xy, 3, 2, 1, 1)
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("FP Directory"), 4, 0, 1, 1)
-        self.fp_path_box = FileSelectWidget()
+        self.fp_path_box = FileSelectWidget("Select Forward Projection model")
         grid_layout.addWidget(self.fp_path_box, 4, 1, 1, 2)
 
         # ----------------------------------------------------------------------
@@ -590,7 +591,6 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         self.reconnect()
 
     def _on_click_run(self):
-        print("[BP run]")
         self.restart()
 
         params_dict = self.get_params()
@@ -602,7 +602,7 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         self._thread.start()
 
     def _on_click_stop(self):
-        print("user stops")
+        print("stop")
         self._worker.stop()
 
     def set_params(self, params_dict):
@@ -611,24 +611,17 @@ class WidgetKLDeconvTrainBP(WidgetBase):
     def get_params(self):
         fp_path = self.fp_path_box.get_path()
         num_iter = self.iteration_box_rl.value()
-
         ks_z = self.ks_box_z.value()
-        if (ks_z % 2) == 0:
-            ks_z += 1
-            self.ks_box_z.setValue(ks_z)
-
         ks_xy = self.ks_box_xy.value()
-        if (ks_xy % 2) == 0:
-            ks_xy += 1
-            self.ks_box_xy.setValue(ks_xy)
-
         num_epoch = self.epoch_box.value()
         batch_size = self.bs_box.value()
         training_strategy = self.training_strategy_box.currentText()
+
         if training_strategy == "self-supervised":
             self_supervised = True
         else:
             self_supervised = False
+
         learning_rate = self.learning_rate_box.value()
 
         params_dict = {
@@ -643,6 +636,17 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         }
 
         return params_dict
+
+    def _on_ks_change(self):
+        ks_z = self.ks_box_z.value()
+        if (ks_z % 2) == 0:
+            ks_z += 1
+            self.ks_box_z.setValue(ks_z)
+
+        ks_xy = self.ks_box_xy.value()
+        if (ks_xy % 2) == 0:
+            ks_xy += 1
+            self.ks_box_xy.setValue(ks_xy)
 
 
 class WorkerKLDeconvPredict(WorkerBase):
