@@ -215,6 +215,7 @@ class WorkerRLDeconvWB(WorkerRLDeconvTraditional):
 class WidgetKLDeconvTrain(QGroupBox):
     def __init__(self, logger=None):
         super().__init__()
+        self.logger = logger
 
         self.setTitle("Model Training")
         grid_layout = QGridLayout()
@@ -278,7 +279,7 @@ class WidgetKLDeconvTrain(QGroupBox):
 
         # ----------------------------------------------------------------------
         # init
-        self._on_path_change()
+        self.enable_run(False)
         self._on_params_change()
 
     def _on_psf_path_change(self):
@@ -288,7 +289,7 @@ class WidgetKLDeconvTrain(QGroupBox):
             self.fp_widget.setVisible(False)
             if not os.path.exists(psf_path):
                 show_info("ERROR: PSF does not exist.")
-                self.bp_widget.enable_run(False)
+                self.enable_run(False)
         else:
             self.fp_widget.setVisible(True)
 
@@ -310,11 +311,13 @@ class WidgetKLDeconvTrain(QGroupBox):
             and os.path.exists(path_data)
             and os.path.exists(path_output)
         ):
-            self.fp_widget.enable_run(True)
-            self.bp_widget.enable_run(True)
+            self.enable_run(True)
         else:
-            self.fp_widget.enable_run(False)
-            self.bp_widget.enable_run(False)
+            self.enable_run(False)
+
+    def enable_run(self, enable: bool):
+        self.fp_widget.enable_run(enable)
+        self.bp_widget.enable_run(enable)
 
     def _on_params_change(self):
         dim = int(self.dim_box.currentText())
@@ -332,6 +335,27 @@ class WidgetKLDeconvTrain(QGroupBox):
         }
         self.fp_widget.set_params(params_dict)
         self.bp_widget.set_params(params_dict)
+
+    def check_training_data(self):
+        path = self.data_directory_box.get_path()
+
+        if os.path.exists(os.path.join(path, "train.txt")):
+            if not os.path.exists(os.path.join(path, "raw")):
+                message = "ERROR: the [raw] folder does not exist."
+                print(message)
+                if self.logger is not None:
+                    self.logger.add_text(message)
+
+            if not os.path.exists(os.path.join(path, "gt")):
+                message = "WARNNING: the [gt] folder does not exist."
+                print(message)
+
+        else:
+            message = "ERROR: the [train.txt] file does not exist."
+            print(message)
+            if self.logger is not None:
+                self.logger.add_text(message)
+            self.enable_run(False)
 
 
 class WorkerKLDeconvTrainFP(WorkerBase):
