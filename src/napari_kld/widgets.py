@@ -484,7 +484,7 @@ class WidgetKLDeconvTrainFP(WidgetBase):
 
         params_dict = self.get_params()
         self.print_params(params_dict)
-        self.progress_bar.setMaximum(params_dict['num_epoch'])
+        self.progress_bar.setMaximum(params_dict["num_epoch"])
 
         self._worker.set_params(params_dict)
         self._thread.start()

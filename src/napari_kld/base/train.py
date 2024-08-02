@@ -358,7 +358,7 @@ def train(
     # --------------------------------------------------------------------------
     # OPTIMIZATION
     # --------------------------------------------------------------------------
-    notify(f'use {optimizer_type} optimizer.')
+    notify(f"use {optimizer_type} optimizer.")
     if optimizer_type == "Adam":
         optimizer = torch.optim.Adam(
             model.parameters(), lr=start_learning_rate
