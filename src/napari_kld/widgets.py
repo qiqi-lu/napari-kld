@@ -397,6 +397,7 @@ class WorkerKLDeconvTrainFP(WorkerBase):
     def run(self):
         self.log("-" * 80)
         self.log("Start training Forward Projection ...")
+        self.abort_flag = [False]
         try:
             train.train(
                 fp_path=None,
@@ -483,6 +484,7 @@ class WidgetKLDeconvTrainFP(WidgetBase):
 
         params_dict = self.get_params()
         self.print_params(params_dict)
+        self.progress_bar.setMaximum(params_dict['num_epoch'])
 
         self._worker.set_params(params_dict)
         self._thread.start()
@@ -536,6 +538,7 @@ class WorkerKLDeconvTrainBP(WorkerBase):
     def run(self):
         self.log("-" * 80)
         self.log("start training Backward Projection ...")
+        self.abort_flag = [False]
         try:
             train.train(
                 model_name="kernet",

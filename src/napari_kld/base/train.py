@@ -99,7 +99,7 @@ def train(
         notify(f"Use {FP_type} forward projection.")
 
     # --------------------------------------------------------------------------
-    optimizer_type, start_learning_rate = optimizer, learning_rate
+    optimizer_type, start_learning_rate = str(optimizer), learning_rate
     # optimizer_type, start_learning_rate = 'LBFGS', 1
 
     warm_up = 0
@@ -358,6 +358,7 @@ def train(
     # --------------------------------------------------------------------------
     # OPTIMIZATION
     # --------------------------------------------------------------------------
+    notify(f'use {optimizer_type} optimizer.')
     if optimizer_type == "Adam":
         optimizer = torch.optim.Adam(
             model.parameters(), lr=start_learning_rate
@@ -559,9 +560,9 @@ def train(
 
     # save parameters
     parameters_dict = {
-        "data_path": data_path,
-        "psf_path": psf_path,
-        "fp_path": fp_path,
+        "data_path": str(data_path),
+        "psf_path": str(psf_path),
+        "fp_path": str(fp_path),
         "num_channel": num_channel,
         "data_dim": data_dim,
         "num_iter": num_iter,
@@ -572,7 +573,7 @@ def train(
         "batch_size": batch_size,
         "self_supervised": self_supervised,
         "learning_rate": learning_rate,  # start learning rate
-        "optimizer": optimizer,
+        "optimizer": optimizer_type,
         "decay_step": decay_step,
         "decay_rate": decay_rate,
         "preprocess": preprocess,
