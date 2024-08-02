@@ -7,6 +7,7 @@ import numpy as np
 import skimage.io as io
 import torch
 from fft_conv_pytorch import fft_conv
+from napari.utils.notifications import show_info
 from napari_kld.base.models import kernelnet
 from napari_kld.base.utils import dataset_utils
 from napari_kld.base.utils import evaluation as eva
@@ -54,6 +55,13 @@ def train(
     checkpoint_path = os.path.join(output_path, "checkpoints")
     if not os.path.exists(checkpoint_path):
         os.makedirs(checkpoint_path, exist_ok=True)
+
+    if self_supervised and psf_path == "":
+        self_supervised = False
+        show_info(
+            "ERROR : can not use self-supervised training, a PSF is required."
+        )
+
     # --------------------------------------------------------------------------
     # kernel size setting
     if data_dim == 2:
@@ -127,6 +135,8 @@ def train(
 
     hr_data_path = pathlib.Path(data_path, "gt")
     lr_data_path = pathlib.Path(data_path, "raw")
+    if self_supervised:
+        hr_data_path = lr_data_path
     hr_txt_file_path = pathlib.Path(data_path, "train.txt")
     lr_txt_file_path = hr_txt_file_path
 

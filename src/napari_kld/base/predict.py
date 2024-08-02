@@ -46,6 +46,7 @@ def predict(
     # --------------------------------------------------------------------------
     # load parameters
     # forward projection model
+    kernel_size_fp = None
     if FP_type == "pre-trained":
         parent_fp = pathlib.Path(fp_path).parent
 

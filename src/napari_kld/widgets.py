@@ -639,6 +639,7 @@ class WidgetKLDeconvTrainBP(WidgetBase):
 
         params_dict = self.get_params()
         self.print_params(params_dict)
+        self.progress_bar.setMaximum(params_dict["num_epoch"])
 
         self._worker.set_params(params_dict)
         self._thread.start()
@@ -940,7 +941,7 @@ class WidgetKLDeconvSimulation(WidgetBase):
         grid_layout = QGridLayout()
         self.setLayout(grid_layout)
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Output directory"), 0, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Output Directory"), 0, 0, 1, 1)
         self.output_path_box = DirectorySelectWidget()
         self.output_path_box.path_edit.textChanged.connect(
             self._on_change_path
@@ -948,13 +949,13 @@ class WidgetKLDeconvSimulation(WidgetBase):
         grid_layout.addWidget(self.output_path_box, 0, 1, 1, 3)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("PSF directory"), 1, 0, 1, 1)
+        grid_layout.addWidget(QLabel("PSF Directory"), 1, 0, 1, 1)
         self.psf_path_box = FileSelectWidget()
         self.psf_path_box.path_edit.textChanged.connect(self._on_change_path)
         grid_layout.addWidget(self.psf_path_box, 1, 1, 1, 3)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Image shape (z,x,y)"), 2, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Image Shape (z,x,y)"), 2, 0, 1, 1)
         self.shape_z_box = SpinBox(vmin=1, vmax=999, vinit=128)
         self.shape_y_box = SpinBox(vmin=32, vmax=999, vinit=128)
         self.shape_x_box = SpinBox(vmin=32, vmax=999, vinit=128)
@@ -966,7 +967,7 @@ class WidgetKLDeconvSimulation(WidgetBase):
         grid_layout.addWidget(self.shape_x_box, 2, 3, 1, 1)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("PSF crop (z,x,y)"), 3, 0, 1, 1)
+        grid_layout.addWidget(QLabel("PSF Crop (z,x,y)"), 3, 0, 1, 1)
         self.crop_z_box = SpinBox(vmin=1, vmax=999, vinit=0)
         self.crop_y_box = SpinBox(vmin=3, vmax=999, vinit=0)
         self.crop_x_box = SpinBox(vmin=3, vmax=999, vinit=0)
@@ -981,7 +982,7 @@ class WidgetKLDeconvSimulation(WidgetBase):
         grid_layout.addWidget(self.crop_x_box, 3, 3, 1, 1)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Num of simulation"), 4, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Num of Simulations"), 4, 0, 1, 1)
         self.num_simu_box = SpinBox(vmin=1, vmax=999, vinit=1)
         grid_layout.addWidget(self.num_simu_box, 4, 1, 1, 1)
 
@@ -1000,7 +1001,7 @@ class WidgetKLDeconvSimulation(WidgetBase):
         self.ratio_box = DoubleSpinBox(vmin=0, vmax=99, vinit=1)
         grid_layout.addWidget(self.ratio_box, 6, 1, 1, 1)
 
-        grid_layout.addWidget(QLabel("Scale factor"), 6, 2, 1, 1)
+        grid_layout.addWidget(QLabel("Scale Factor"), 6, 2, 1, 1)
         self.sf_box = SpinBox(vmin=1, vmax=10, vinit=1)
         grid_layout.addWidget(self.sf_box, 6, 3, 1, 1)
 

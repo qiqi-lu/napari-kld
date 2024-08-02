@@ -1,6 +1,6 @@
 [project]
 name = "napari-kld"
-version = "1.0.0"
+version = "1.0.1"
 description = "Kernel learning deconvolution (KLD) is a rapid deconvolution algorithm for fluorescence microscopic image, which learns the forward and backward kernels in Richardson-Lucy Deconvolution (KLD) from paired low-/high-resolution images. "
 readme = "README.md"
 license = {file = "LICENSE"}
