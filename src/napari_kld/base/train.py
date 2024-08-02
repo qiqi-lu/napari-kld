@@ -107,13 +107,15 @@ def train(
     scheduler_cus["lr"] = start_learning_rate
 
     if decay_step > 0:
-        notify(f'use learning rate scheduler, start learning rate = {start_learning_rate}, decay step = {decay_step}, decay_rate = {decay_rate}')
+        notify(
+            f"use learning rate scheduler, start learning rate = {start_learning_rate}, decay step = {decay_step}, decay_rate = {decay_rate}"
+        )
         use_lr_schedule = True
         scheduler_cus["every"] = decay_step  # 300
         scheduler_cus["rate"] = decay_rate
         scheduler_cus["min"] = 0.00000001
     else:
-        notify(f'use fixed learning rate = {learning_rate}')
+        notify(f"use fixed learning rate = {learning_rate}")
         use_lr_schedule = False
 
     # --------------------------------------------------------------------------
