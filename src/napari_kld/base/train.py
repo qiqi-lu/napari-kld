@@ -29,6 +29,9 @@ def train(
     batch_size=1,
     self_supervised=False,
     learning_rate=0.001,  # start learning rate
+    optimizer = 'Adam',
+    decay_step=0,
+    decay_rate=0,
     observer=None,
     abort_flag=None,
     preprocess=0,
@@ -83,34 +86,33 @@ def train(
     # forward projection
     if model_name == "kernet_fp":
         model_suffix = f"_ks_{ks_z}_{ks_xy}"
-        multi_out = False
-        self_supervised = False
+        multi_out, self_supervised = False, False
         loss_main = torch.nn.MSELoss()
-
-        optimizer_type, start_learning_rate = "adam", learning_rate
-        # optimizer_type, start_learning_rate = 'lbfgs', 1
 
     # backward projection
     if model_name == "kernet":
         lam, multi_out, shared_bp = 0.0, False, True
         ss_marker = "_ss" if self_supervised else ""
         model_suffix = f"_iter_{num_iter}_ks_{ks_z}_{ks_xy}{ss_marker}"
-
         loss_main = torch.nn.MSELoss()
-
-        optimizer_type = "adam"
-        start_learning_rate = learning_rate
 
         notify(f"Use {FP_type} forward projection.")
 
     # --------------------------------------------------------------------------
+    optimizer_type, start_learning_rate = optimizer, learning_rate
+    # optimizer_type, start_learning_rate = 'LBFGS', 1
+
     warm_up = 0
-    use_lr_schedule = True
     scheduler_cus = {}
     scheduler_cus["lr"] = start_learning_rate
-    scheduler_cus["every"] = 2000  # 300
-    scheduler_cus["rate"] = 0.5
-    scheduler_cus["min"] = 0.00000001
+
+    if decay_step > 0:
+        use_lr_schedule = True
+        scheduler_cus["every"] = decay_step  # 300
+        scheduler_cus["rate"] = decay_rate
+        scheduler_cus["min"] = 0.00000001
+    else:
+        use_lr_schedule = False
 
     # --------------------------------------------------------------------------
     # Data
@@ -352,11 +354,11 @@ def train(
     # --------------------------------------------------------------------------
     # OPTIMIZATION
     # --------------------------------------------------------------------------
-    if optimizer_type == "adam":
+    if optimizer_type == "Adam":
         optimizer = torch.optim.Adam(
             model.parameters(), lr=start_learning_rate
         )
-    if optimizer_type == "lbfgs":
+    if optimizer_type == "LBFGS":
         optimizer = torch.optim.LBFGS(
             model.parameters(),
             lr=start_learning_rate,
@@ -438,7 +440,7 @@ def train(
 
             # ------------------------------------------------------------------
             # optimize
-            if optimizer_type == "lbfgs":
+            if optimizer_type == "LBFGS":
                 # L-BFGS optimization
                 loss, pred = 0.0, 0.0
 
@@ -553,6 +555,9 @@ def train(
 
     # save parameters
     parameters_dict = {
+        "data_path": data_path,
+        "psf_path":psf_path,
+        "fp_path":fp_path,
         "num_channel": num_channel,
         "data_dim": data_dim,
         "num_iter": num_iter,
@@ -563,6 +568,10 @@ def train(
         "batch_size": batch_size,
         "self_supervised": self_supervised,
         "learning_rate": learning_rate,  # start learning rate
+        "optimizer":optimizer,
+        "decay_step":decay_step,
+        "decay_rate":decay_rate,
+        "preprocess":preprocess,
     }
     with open(os.path.join(path_model, "parameters.json"), "w") as f:
         f.write(json.dumps(parameters_dict))

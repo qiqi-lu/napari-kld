@@ -391,6 +391,7 @@ class WorkerKLDeconvTrainFP(WorkerBase):
         self.abort_flag = [False]
 
     def run(self):
+        self.log('-'*80)
         self.log("Start training Forward Projection ...")
         try:
             train.train(
@@ -406,6 +407,7 @@ class WorkerKLDeconvTrainFP(WorkerBase):
             print(str(e))
             self.log("Run failed.")
         self.finish_signal.emit()
+        self.log('-'*80)
 
     def stop(self):
         self.abort_flag[0] = True
@@ -439,16 +441,29 @@ class WidgetKLDeconvTrainFP(WidgetBase):
         grid_layout.addWidget(self.ks_box_xy, 2, 2, 1, 1)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Learning Rate"), 3, 0, 1, 1)
+        grid_layout.addWidget(QLabel("Optimizer | Learning Rate"), 3, 0, 1, 1)
+        self.optim_box = QComboBox()
+        self.optim_box.addItems(["Adam", "LBFGS"])
         self.lr_box = DoubleSpinBox(vmin=0, vmax=10, vinit=0.001, decimals=7)
         self.lr_box.setSingleStep(0.001)
-        grid_layout.addWidget(self.lr_box, 3, 1, 1, 2)
+        grid_layout.addWidget(self.optim_box, 3, 1, 1, 1)
+        grid_layout.addWidget(self.lr_box, 3, 2, 1, 1)
+
+        grid_layout.addWidget(QLabel("Decay Step | Decay Rate"), 4, 0, 1, 1)
+        self.decay_step_box = SpinBox(vmin=0, vmax=100000, vinit=0)
+        self.decay_step_box.setSingleStep(1000)
+        self.decay_rate_box = DoubleSpinBox(
+            vmin=0, vmax=1, vinit=0, decimals=2
+        )
+        self.decay_rate_box.setSingleStep(0.1)
+        grid_layout.addWidget(self.decay_step_box, 4, 1, 1, 1)
+        grid_layout.addWidget(self.decay_rate_box, 4, 2, 1, 1)
 
         # ----------------------------------------------------------------------
         self.stop_btn = QPushButton("stop")
-        grid_layout.addWidget(self.run_btn, 4, 0, 1, 2)
-        grid_layout.addWidget(self.stop_btn, 4, 2, 1, 1)
-        grid_layout.addWidget(self.progress_bar, 5, 0, 1, 3)
+        grid_layout.addWidget(self.run_btn, 5, 0, 1, 2)
+        grid_layout.addWidget(self.stop_btn, 5, 2, 1, 1)
+        grid_layout.addWidget(self.progress_bar, 6, 0, 1, 3)
 
         # ----------------------------------------------------------------------
         # init
@@ -480,6 +495,9 @@ class WidgetKLDeconvTrainFP(WidgetBase):
         num_epoch = self.epoch_box.value()
         batch_size = self.bs_box.value()
         learning_rate = self.lr_box.value()
+        optimizer = self.optim_box.currentText()
+        decay_step = self.decay_step_box.value()
+        decay_rate = self.decay_rate_box.value()
 
         params_dict = {
             "num_epoch": num_epoch,
@@ -487,6 +505,9 @@ class WidgetKLDeconvTrainFP(WidgetBase):
             "ks_z": ks_z,
             "ks_xy": ks_xy,
             "learning_rate": learning_rate,
+            "optimizer":optimizer,
+            "decay_step": decay_step,
+            "decay_rate": decay_rate,
         }
 
         return params_dict
@@ -509,6 +530,7 @@ class WorkerKLDeconvTrainBP(WorkerBase):
         self.abort_flag = [False]
 
     def run(self):
+        self.log('-'*80)
         self.log("start training Backward Projection ...")
         try:
             train.train(
@@ -521,6 +543,7 @@ class WorkerKLDeconvTrainBP(WorkerBase):
             print(str(e))
             self.log("Run failed.")
         self.finish_signal.emit()
+        self.log('-'*80)
 
     def stop(self):
         self.abort_flag[0] = True
@@ -570,17 +593,31 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         grid_layout.addWidget(self.fp_path_box, 4, 1, 1, 2)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(QLabel("Learning Rate"), 5, 0, 1, 1)
-        self.learning_rate_box = DoubleSpinBox(vmin=0, vmax=10, vinit=0.000001)
+        grid_layout.addWidget(QLabel("Optimizer | Learning Rate"), 5, 0, 1, 1)
+        self.optim_box = QComboBox()
+        self.optim_box.addItems(["Adam", "LBFGS"])
+        self.learning_rate_box = DoubleSpinBox(
+            vmin=0, vmax=10, vinit=0.000001, decimals=9
+        )
         self.learning_rate_box.setSingleStep(0.000001)
-        self.learning_rate_box.setDecimals(9)
-        grid_layout.addWidget(self.learning_rate_box, 5, 1, 1, 2)
+        grid_layout.addWidget(self.optim_box, 5, 1, 1, 1)
+        grid_layout.addWidget(self.learning_rate_box, 5, 2, 1, 1)
+
+        grid_layout.addWidget(QLabel("Decay Step | Decay Rate"), 6, 0, 1, 1)
+        self.decay_step_box = SpinBox(vmin=0, vmax=100000, vinit=2000)
+        self.decay_step_box.setSingleStep(1000)
+        self.decay_rate_box = DoubleSpinBox(
+            vmin=0, vmax=1, vinit=0.5, decimals=2
+        )
+        self.decay_rate_box.setSingleStep(0.1)
+        grid_layout.addWidget(self.decay_step_box, 6, 1, 1, 1)
+        grid_layout.addWidget(self.decay_rate_box, 6, 2, 1, 1)
 
         # ----------------------------------------------------------------------
-        grid_layout.addWidget(self.run_btn, 6, 0, 1, 2)
+        grid_layout.addWidget(self.run_btn, 7, 0, 1, 2)
         self.stop_btn = QPushButton("stop")
-        grid_layout.addWidget(self.stop_btn, 6, 2, 1, 1)
-        grid_layout.addWidget(self.progress_bar, 7, 0, 1, 3)
+        grid_layout.addWidget(self.stop_btn, 7, 2, 1, 1)
+        grid_layout.addWidget(self.progress_bar, 8, 0, 1, 3)
 
         # ----------------------------------------------------------------------
         # init
@@ -621,6 +658,9 @@ class WidgetKLDeconvTrainBP(WidgetBase):
             self_supervised = False
 
         learning_rate = self.learning_rate_box.value()
+        decay_step = self.decay_step_box.value()
+        decay_rate = self.decay_rate_box.value()
+        optimizer = self.optim_box.currentText()
 
         params_dict = {
             "fp_path": fp_path,
@@ -631,6 +671,9 @@ class WidgetKLDeconvTrainBP(WidgetBase):
             "batch_size": batch_size,
             "self_supervised": self_supervised,
             "learning_rate": learning_rate,
+            "optimizer":optimizer,
+            "decay_step": decay_step,
+            "decay_rate": decay_rate,
         }
 
         return params_dict
