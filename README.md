@@ -5,24 +5,15 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-kld.svg?color=green)](https://python.org)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-kld)](https://napari-hub.org/plugins/napari-kld)
 
-----
-### Kernel Learning Deconvolution (KLD)
+`napari-kld` is a `napari` plugin that implements kernel learning deconvolution algrotihm.
 
-Kernel learning deconvolution  is a rapid deconvolution algorithm for fluorescence microscopic image, which learns the forward and backward kernels in Richardson-Lucy Deconvolution (KLD) from paired low-/high-resolution images.
+## Kernel Learning Deconvolution (KLD)
 
-It only requires one sample to training the model, and two iteration to achieve a superior deconvolution perfromance compared to RLD and its variants using unmatched backward projection.
+KLD is a rapid deconvolution algorithm for fluorescence microscopic image, which learns the forward and backward kernels in Richardson-Lucy Deconvolution (KLD) from paired low-/high-resolution images.
 
-----------------------------------
+It only requires **one sample** to training the model, and **two iterations** to achieve a superior deconvolution performance compared to RLD and its variants using unmatched backward projection.
 
-This [napari] plugin was generated with [copier] using the [napari-plugin-template].
-
-<!--
-Don't miss the full getting started guide to set up your new package:
-https://github.com/napari/napari-plugin-template#getting-started
-
-and review the napari docs for plugin developers:
-https://napari.org/stable/plugins/index.html
--->
+**This [napari] plugin was generated with [copier] using the [napari-plugin-template].*
 
 ## Installation
 
@@ -30,18 +21,43 @@ You can install `napari-kld` via [pip]:
 
     pip install napari-kld
 
-
 ## Instruction
 This plugin includes two part:
 
-- `RL Deconvolution` : Conventional RLD algorithm using different type of backward kernels (including matched backward kernel [`Traditional`] and unmatched backward kernels [`Guassian`, `Butterworth`, `Wiener-Butterworth`]). The forward kernel (i.e., PSF) must to be known.
+- `RL Deconvolution` : Conventional RLD algorithm using different type of backward kernels (including matched backward kernel [`Traditional`] and unmatched backward kernels [`Guassian`, `Butterworth`, `Wiener-Butterworth (WB)`]). The forward kernel, i.e., point spread function (PSF), is required.
 
 - `KL Deconvolution` : KLD using learned forward/backward kernels.
 
 ## RL Deconvolution
-The conventional Richardson-Lucy deconvolution using different type of backward kernels.
 
-1. load raw input low-resolution image through `napari`: `File` > `Open File(s)` > `[choose the image to be deconvolved]` > `[the image will appear in the layer list of napari]`, such as `"F:\Datasets\BioSR\F-actin_Nonlinear\raw_noise_9\16.tif"`.
+The conventional RLD using different type of backward kernels.
+
+1. Open `napari`.
+
+2. Load input low-resolution (LR) image: `File` > `Open File(s)` > `[choose the image to be deconvolved]` > `[the image will appear in the layer list of napari]`, such as the simulated image `"test\data\simulation\data_128_128_128_gauss_0.0_poiss_0_ratio_1.0\train\raw\.0.tif"`.
+
+3. Choose the name of loaded image in `Input RAW data`, such as `"0"`.
+
+4. Press `Choose` to choose a `PSF` correspongding to the loaded image, such as `"test/data/simulation/data_128_128_128_gauss_0.0_poiss_0_ratio_1.0/train/psf.tif"`.
+
+5. Choose the type of backward kernel in `Method` combo box:
+
+    - Traditional : the backward kernel is just the flip of forward kernel (i.e., PSF).
+    - Guassian : Guassian-shaped backward kernel, thw FWHM of which is same as the forward kernel.
+    - Butterworth : Butterworth-shaped backward kernel, which is constructed using Butterworth filter.
+    - WB : WB-shaped backward kernel, which is constructed by combining Wiener and Butterworth filter.
+
+6. Set the number of RL iterations `Iterations` and parameters of backward kernel*.
+
+7. Press `run` button to do deconvolution.
+
+8. Wait the progress bar to reach 100%.
+
+9. The deconved image will appear in the layer list named as `{name of input image}_`
+
+
+**The adjustment of parameters of backward kernels should refer to the paper : Guo, M. et al. Rapid image deconvolution and multiview fusion for optical microscopy. Nat Biotechnol 38, 1337–1346 (2020).*
+
 
 ## KL Deconvolution
 

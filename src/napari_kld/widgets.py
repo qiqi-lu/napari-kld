@@ -80,8 +80,10 @@ class WorkerRLDeconvTraditional(QObject):
         self._out = None
         self.image = None
         self.psf_path = None
+        self.image_name = ""
 
-    def set_image(self, image):
+    def set_image(self, image, image_name):
+        self.image_name = image_name
         self.image = image
 
     def set_psf_path(self, psf_path):
@@ -98,10 +100,11 @@ class WorkerRLDeconvTraditional(QObject):
         )
 
     def set_outputs(self):
-        self.viewer.add_image(
-            self._out,
-            name=f"deconv_{self.widget.label.lower()}_iter_{self.widget.iteration_box.value()}",
-        )
+        if not isinstance(self._out, int):
+            self.viewer.add_image(
+                self._out,
+                name=f"{self.input_name}_deconv_{self.widget.label.lower()}_iter_{self.widget.iteration_box.value()}",
+            )
 
 
 # RLD using Guassian kernel

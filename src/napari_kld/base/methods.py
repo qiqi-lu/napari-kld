@@ -1,6 +1,8 @@
 import napari_kld.base.deconvolution as dcv
 import numpy as np
 import skimage.io as skio
+from napari.utils.notifications import show_info
+from napari_kld.base.utils.dataset_utils import even2odd
 
 
 def test_func(num_iter=1, observer=None):
@@ -22,6 +24,17 @@ def rl_deconv(
 ):
     psf = skio.imread(psf_path).astype(np.float32)
     img = img.astype(np.float32)
+
+    dim_psf = len(psf.shape)
+    dim_img = len(img.shape)
+
+    if dim_psf != dim_img:
+        show_info(
+            f"ERROR: the input is a {dim_img}D image, but the PSF is {dim_psf}D."
+        )
+        return 0
+
+    psf = even2odd(psf)
 
     # --------------------------------------------------------------------------
     if kernel_type == "Traditional":
