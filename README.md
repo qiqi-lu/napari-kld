@@ -42,22 +42,20 @@ The conventional RLD using different type of backward kernels.
 
 5. Choose the type of backward kernel in `Method` combo box:
 
-    - Traditional : the backward kernel is just the flip of forward kernel (i.e., PSF).
-    - Guassian : Guassian-shaped backward kernel, thw FWHM of which is same as the forward kernel.
-    - Butterworth : Butterworth-shaped backward kernel, which is constructed using Butterworth filter.
-    - WB : WB-shaped backward kernel, which is constructed by combining Wiener and Butterworth filter.
+    - `Traditional` : the backward kernel is just the flip of forward kernel (i.e., PSF).
+    - `Guassian` : Guassian-shaped backward kernel, thw FWHM of which is same as the forward kernel.
+    - `Butterworth` : Butterworth-shaped backward kernel, which is constructed using Butterworth filter.
+    - `WB` : WB-shaped backward kernel, which is constructed by combining Wiener and Butterworth filter.
 
 6. Set the number of RL iterations `Iterations` and parameters of backward kernel*.
 
 7. Press `run` button to do deconvolution.
 
-8. Wait the progress bar to reach 100%.
+8. Wait the `progress bar` to reach 100%.
 
-9. The deconved image will appear in the layer list named as `{name of input image}_`
-
+9. The output deconved image will appear in the layer list named as `{name of input image}_deconv_{Method}_iter_{Iterations}`, such as `"0_deconv_traditional_iter_30"`.
 
 **The adjustment of parameters of backward kernels should refer to the paper : Guo, M. et al. Rapid image deconvolution and multiview fusion for optical microscopy. Nat Biotechnol 38, 1337–1346 (2020).*
-
 
 ## KL Deconvolution
 

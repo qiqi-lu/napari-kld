@@ -82,9 +82,9 @@ class WorkerRLDeconvTraditional(QObject):
         self.psf_path = None
         self.image_name = ""
 
-    def set_image(self, image, image_name):
-        self.image_name = image_name
-        self.image = image
+    def set_image(self, image):
+        self.image_name = image.name
+        self.image = image.data
 
     def set_psf_path(self, psf_path):
         self.psf_path = psf_path
@@ -103,7 +103,7 @@ class WorkerRLDeconvTraditional(QObject):
         if not isinstance(self._out, int):
             self.viewer.add_image(
                 self._out,
-                name=f"{self.input_name}_deconv_{self.widget.label.lower()}_iter_{self.widget.iteration_box.value()}",
+                name=f"{self.image_name}_deconv_{self.widget.label.lower()}_iter_{self.widget.iteration_box.value()}",
             )
 
 

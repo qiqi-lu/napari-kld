@@ -155,8 +155,7 @@ class RLDwidget(WidgetBase):
         # widget = self._widgets[self.method_box.currentIndex()]
         self._worker.set_method(self.method_box.currentText())
         self._worker.set_image(
-            self.viewer.layers[self.input_raw_data_box.currentText()].data,
-            self.input_raw_data_box.currentText(),
+            self.viewer.layers[self.input_raw_data_box.currentText()],
         )
         self._worker.set_psf_path(self.paf_path_box.get_path())
         self._thread.start()
