@@ -39,6 +39,9 @@ This plugin includes two part:
 - `KL Deconvolution` : KLD using learned forward/backward kernels.
 
 ## RL Deconvolution
+The conventional Richardson-Lucy deconvolution using different type of backward kernels.
+
+1. load raw input low-resolution image through `napari`: `File` > `Open File(s)` > `[choose the image to be deconvolved]` > `[the image will appear in the layer list of napari]`, such as `"F:\Datasets\BioSR\F-actin_Nonlinear\raw_noise_9\16.tif"`.
 
 ## KL Deconvolution
 

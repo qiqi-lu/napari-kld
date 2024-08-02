@@ -1,11 +1,10 @@
 import napari
-from qtpy.QtCore import QObject, QThread, Signal
+import qtpy.QtCore
+from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import (
     QComboBox,
     QGridLayout,
     QLabel,
-    QProgressBar,
-    QPushButton,
     QTabWidget,
     QVBoxLayout,
     QWidget,
@@ -13,9 +12,8 @@ from qtpy.QtWidgets import (
 
 from napari_kld.baseww import (
     FileSelectWidget,
-    GaussianWidget,
     LogBox,
-    ProgressObserver,
+    WidgetBase,
 )
 from napari_kld.widgets import (
     WidgetKLDeconvPredict,
@@ -67,62 +65,36 @@ class RLDworker(QObject):
         return self._piplines[self._current_method]["worker"]
 
 
-class RLDwidget(QWidget):
+class RLDwidget(WidgetBase):
     def __init__(self, viewer: napari.Viewer):
         super().__init__()
         self.viewer = viewer
         self.viewer.layers.events.inserted.connect(self._on_change_layer)
         self.viewer.layers.events.removed.connect(self._on_change_layer)
 
-        self._thread = QThread()
         self._worker = RLDworker()
-        self._observer = ProgressObserver()
         self._widgets = {}
 
-        self.setLayout(QGridLayout())
+        grid_layout = QGridLayout()
+        self.setLayout(grid_layout)
+        # ----------------------------------------------------------------------
+        # RAW data box
+        grid_layout.addWidget(QLabel("Input RAW data"), 0, 0, 1, 1)
+        self.input_raw_data_box = QComboBox()
+        grid_layout.addWidget(self.input_raw_data_box, 0, 1, 1, 1)
 
         # ----------------------------------------------------------------------
-        # head widget (including input, PSF, and method selection)
-        head_widget = QWidget()
-        head_layout = QGridLayout()
-        head_widget.setLayout(head_layout)
-        head_layout.setContentsMargins(0, 0, 0, 0)
-
-        # RAW data box
-        head_layout.addWidget(QLabel("Input RAW data"), 0, 0)
-        self.input_raw_data_box = QComboBox()
-        head_layout.addWidget(self.input_raw_data_box, 0, 1)
-
         # PSF box
-        psf_widget = QWidget()
-        psf_layout = QGridLayout()
-        psf_layout.setContentsMargins(0, 0, 0, 0)
+        grid_layout.addWidget(QLabel("PSF"), 1, 0, 1, 1)
+        self.paf_path_box = FileSelectWidget()
+        grid_layout.addWidget(self.paf_path_box, 1, 1, 1, 1)
 
-        psf_layout.addWidget(QLabel("PSF"), 0, 0)
-        self.psf_mode_box = QComboBox()
-        self.psf_mode_box.addItems(["Gaussian", "File", "Blind"])
-        self.psf_mode_box.setCurrentText("File")
-        self.psf_mode_box.currentTextChanged.connect(self._on_mode_psf_change)
-        psf_layout.addWidget(self.psf_mode_box, 0, 1)
-
-        self.psf_select = FileSelectWidget()
-        psf_layout.addWidget(self.psf_select, 1, 0, 1, 2)
-
-        self.gauss_widget = GaussianWidget()
-        psf_layout.addWidget(self.gauss_widget, 2, 0, 1, 2)
-
-        psf_widget.setLayout(psf_layout)
-        head_layout.addWidget(psf_widget, 1, 0, 1, 2)
-
-        self._on_mode_psf_change("File")
-
+        # ----------------------------------------------------------------------
         # method
-        head_layout.addWidget(QLabel("Method"), 2, 0)
+        grid_layout.addWidget(QLabel("Method"), 2, 0, 1, 1)
         self.method_box = QComboBox()
-        head_layout.addWidget(self.method_box, 2, 1)
+        grid_layout.addWidget(self.method_box, 2, 1, 1, 1)
         self.method_box.currentTextChanged.connect(self._on_change_method)
-
-        self.layout().addWidget(head_widget, 0, 0, 1, 2)
 
         # ----------------------------------------------------------------------
         # method parameters
@@ -130,17 +102,13 @@ class RLDwidget(QWidget):
         self.parameters_layout = QVBoxLayout()
         self.parameters_layout.setContentsMargins(0, 0, 0, 0)
         parameters_widget.setLayout(self.parameters_layout)
-        self.layout().addWidget(parameters_widget, 1, 0, 1, 2)
+        grid_layout.addWidget(parameters_widget, 3, 0, 1, 2)
 
         # ----------------------------------------------------------------------
-        # run button
-        self.run_btn = QPushButton("run")
-        self.layout().addWidget(self.run_btn, 2, 0, 1, 2)
-        self.run_btn.clicked.connect(self._on_click_run)
+        self.layout().addWidget(self.run_btn, 4, 0, 1, 2)
+        self.layout().addWidget(self.progress_bar, 5, 0, 1, 2)
 
-        # progress bar
-        self.progress_bar = QProgressBar()
-        self.layout().addWidget(self.progress_bar, 3, 0, 1, 2)
+        grid_layout.setAlignment(qtpy.QtCore.Qt.AlignTop)
 
         # ----------------------------------------------------------------------
         # load piplines
@@ -175,12 +143,8 @@ class RLDwidget(QWidget):
 
         # ----------------------------------------------------------------------
         # connect thread
-        self._worker.moveToThread(self._thread)
-        self._thread.started.connect(self._worker.run)
-        self._worker.finish_signal.connect(self._thread.quit)
+        self.reconnect()
         self._worker.finish_signal.connect(self.set_outputs)
-
-        self._observer.progress_signal.connect(self._on_progress)
 
     def set_outputs(self):
         worker = self._worker.current_worker()
@@ -193,7 +157,7 @@ class RLDwidget(QWidget):
         self._worker.set_image(
             self.viewer.layers[self.input_raw_data_box.currentText()].data
         )
-        self._worker.set_psf_path(self.psf_select.path_edit.text())
+        self._worker.set_psf_path(self.paf_path_box.get_path())
         self._thread.start()
 
     def _on_change_layer(self):
@@ -232,17 +196,6 @@ class RLDwidget(QWidget):
 
     def _on_progress(self, value):
         self.progress_bar.setValue(value)
-
-    def _on_mode_psf_change(self, mode):
-        if mode == "File":
-            self.psf_select.setVisible(True)
-            self.gauss_widget.setVisible(False)
-        if mode == "Gaussian":
-            self.psf_select.setVisible(False)
-            self.gauss_widget.setVisible(True)
-        if mode == "Blind":
-            self.psf_select.setVisible(False)
-            self.gauss_widget.setVisible(False)
 
 
 class KLDwidget(QWidget):

@@ -59,7 +59,8 @@ class WidgetRLDeconvTraditional(QWidget):
 
         self.params_group.setLayout(self.layout_grid)
         self.layout.addWidget(self.params_group)
-        self.layout.addWidget(QWidget(), 1, qtpy.QtCore.Qt.AlignTop)
+
+        self.layout.setAlignment(qtpy.QtCore.Qt.AlignTop)
 
         # init view
         self._on_num_iter_change()
@@ -295,7 +296,7 @@ class WidgetKLDeconvTrain(QGroupBox):
             if os.path.exists(psf_path):
                 self.bp_widget.fp_path_box.set_enabled(False)
             else:
-                show_info("ERROR: PSF does not exist.")
+                show_info(f'ERROR: "{psf_path}" does not exist.')
                 self.enable_run(False)
         else:
             self.fp_widget.setVisible(True)
@@ -306,10 +307,10 @@ class WidgetKLDeconvTrain(QGroupBox):
 
         # check path exist
         if path_data != "" and not os.path.exists(path_data):
-            show_info("ERROR: Data directory does not exist.")
+            show_info(f'ERROR: "{path_data}" does not exist.')
 
         if path_output != "" and not os.path.exists(path_output):
-            show_info("ERROR: Output directory does not exist.")
+            show_info(f'ERROR: "{path_output}" does not exist.')
 
         # enable run
         if (

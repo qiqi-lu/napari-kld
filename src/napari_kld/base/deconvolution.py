@@ -198,7 +198,6 @@ class Deconvolution:
             # observe iterations
             if observer is not None:
                 observer.progress(i + 1)
-                observer.notify("Iteration")
             pbar.update(1)
         pbar.close()
         return stack_estimate
