@@ -29,7 +29,7 @@ def train(
     batch_size=1,
     self_supervised=False,
     learning_rate=0.001,  # start learning rate
-    optimizer = 'Adam',
+    optimizer="Adam",
     decay_step=0,
     decay_rate=0,
     observer=None,
@@ -107,11 +107,13 @@ def train(
     scheduler_cus["lr"] = start_learning_rate
 
     if decay_step > 0:
+        notify(f'use learning rate scheduler, start learning rate = {start_learning_rate}, decay step = {decay_step}, decay_rate = {decay_rate}')
         use_lr_schedule = True
         scheduler_cus["every"] = decay_step  # 300
         scheduler_cus["rate"] = decay_rate
         scheduler_cus["min"] = 0.00000001
     else:
+        notify(f'use fixed learning rate = {learning_rate}')
         use_lr_schedule = False
 
     # --------------------------------------------------------------------------
@@ -556,8 +558,8 @@ def train(
     # save parameters
     parameters_dict = {
         "data_path": data_path,
-        "psf_path":psf_path,
-        "fp_path":fp_path,
+        "psf_path": psf_path,
+        "fp_path": fp_path,
         "num_channel": num_channel,
         "data_dim": data_dim,
         "num_iter": num_iter,
@@ -568,10 +570,10 @@ def train(
         "batch_size": batch_size,
         "self_supervised": self_supervised,
         "learning_rate": learning_rate,  # start learning rate
-        "optimizer":optimizer,
-        "decay_step":decay_step,
-        "decay_rate":decay_rate,
-        "preprocess":preprocess,
+        "optimizer": optimizer,
+        "decay_step": decay_step,
+        "decay_rate": decay_rate,
+        "preprocess": preprocess,
     }
     with open(os.path.join(path_model, "parameters.json"), "w") as f:
         f.write(json.dumps(parameters_dict))

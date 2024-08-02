@@ -391,7 +391,7 @@ class WorkerKLDeconvTrainFP(WorkerBase):
         self.abort_flag = [False]
 
     def run(self):
-        self.log('-'*80)
+        self.log("-" * 80)
         self.log("Start training Forward Projection ...")
         try:
             train.train(
@@ -407,7 +407,7 @@ class WorkerKLDeconvTrainFP(WorkerBase):
             print(str(e))
             self.log("Run failed.")
         self.finish_signal.emit()
-        self.log('-'*80)
+        self.log("-" * 80)
 
     def stop(self):
         self.abort_flag[0] = True
@@ -505,7 +505,7 @@ class WidgetKLDeconvTrainFP(WidgetBase):
             "ks_z": ks_z,
             "ks_xy": ks_xy,
             "learning_rate": learning_rate,
-            "optimizer":optimizer,
+            "optimizer": optimizer,
             "decay_step": decay_step,
             "decay_rate": decay_rate,
         }
@@ -530,7 +530,7 @@ class WorkerKLDeconvTrainBP(WorkerBase):
         self.abort_flag = [False]
 
     def run(self):
-        self.log('-'*80)
+        self.log("-" * 80)
         self.log("start training Backward Projection ...")
         try:
             train.train(
@@ -543,7 +543,7 @@ class WorkerKLDeconvTrainBP(WorkerBase):
             print(str(e))
             self.log("Run failed.")
         self.finish_signal.emit()
-        self.log('-'*80)
+        self.log("-" * 80)
 
     def stop(self):
         self.abort_flag[0] = True
@@ -671,7 +671,7 @@ class WidgetKLDeconvTrainBP(WidgetBase):
             "batch_size": batch_size,
             "self_supervised": self_supervised,
             "learning_rate": learning_rate,
-            "optimizer":optimizer,
+            "optimizer": optimizer,
             "decay_step": decay_step,
             "decay_rate": decay_rate,
         }
