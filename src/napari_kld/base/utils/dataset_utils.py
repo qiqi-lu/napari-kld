@@ -407,9 +407,34 @@ def tensor2gray(x):
         x = np.transpose(x, axes=(0, 1, 3, 4, 2))
     return x
 
+def fft_conv_direct(signal, kernel):
+    input_size = signal.shape[2:]
+    output_size = input_size
 
-def fft_conv3d(x, kernel, padding_mode="reflect"):
-    kernel_size = kernel.shape
+    signal_fr = torch.fft.fftn(signal.float(),  s =output_size,  dim=(2, 3, 4))
+    kernel_fr = torch.fft.fftn(kernel.float(),  s =output_size,  dim=(2, 3, 4))
+
+    kernel_fr.imag *= -1
+    output_fr = signal_fr*kernel_fr
+    output = torch.fft.ifftn(output_fr,  dim=(2, 3, 4))
+    output = torch.abs(output)
+    # output = output.real
+
+    return output
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    from fft_conv_pytorch import fft_conv
+
+    img_path = "D:/GitHub/napari-kld/test/data/real/3D/train/raw/0_0_0.tif"
+    img = skio.imread(img_path)
+    kernel = gauss_kernel_3d(shape=(3, 31, 31), std=(1, 4, 4))
+
+    img = torch.Tensor(img)[None, None]
+    kernel = torch.Tensor(kernel)[None, None]
+
+    kernel_size = kernel.shape[2:]
+    img_size = img.shape
 
     pad_size = (
         kernel_size[2] // 2,
@@ -420,22 +445,28 @@ def fft_conv3d(x, kernel, padding_mode="reflect"):
         kernel_size[0] // 2,
     )
 
-    x_pad = torch.nn.functional.pad(input=x, pad=pad_size, mode=padding_mode)
-    x_pad_size = x_pad.shape
+    img_pad = torch.nn.functional.pad(input=img, pad=pad_size, mode="reflect")
 
-    kernel_fft = torch.fft.fftn(kernel, s=x_pad_size, dim=(2, 3, 4))
-    x_pad_fft = torch.fft.fftn(x_pad, s=x_pad_size, dim=(2, 3, 4))
+    print(img.shape)
+    print(img_pad.shape)
+    print(kernel.shape)
 
-    out = torch.fft.ifftn(x_pad_fft * kernel_fft, s=x_pad_size, dim=(2, 3, 4))
-    out = torch.real(torch.fft.fftshift(out))
-    out = out[
-        pad_size[4] : pad_size[4] + x_pad_size[2],
-        pad_size[2] : pad_size[2] + x_pad_size[3],
-        pad_size[0] : pad_size[0] + x_pad_size[4],
-    ]
+    img_conv = fft_conv_direct(img_pad, kernel=kernel)
+    # img_conv = img_conv[:,:, 1:1+6, 15:15+512, 15:15+512]
+    img_conv = img_conv[:,:, 0:6, 0:512, 0:512]
+    print("1:", img_conv.shape)
 
-    return out
+    # img_conv2 = fft_conv(img_pad, kernel)
+    img_conv2 = fft_conv_direct(img_pad, kernel)
+    print("2:", img_conv2.shape)
 
+    print(img_conv[0, 0, 3, 250, 200:225])
+    print(img_conv2[0, 0, 3, 250, 200:225])
 
-if __name__ == "__main__":
-    img_path = "D:/GitHub/napari-kld/test/data/real/3D/train/0_0_0.tif"
+    fig, axes = plt.subplots(dpi=300, nrows=1, ncols=3, figsize=(6, 2))
+    [ax.set_axis_off() for ax in axes.ravel()]
+    axes[0].imshow(img[0, 0, 3], vmin=0, vmax=300)
+    axes[1].imshow(img_conv[0, 0, 3], vmin=0, vmax=300)
+    axes[2].imshow(img_conv2[0, 0, 3], vmin=0, vmax=300)
+    print('save image')
+    plt.savefig("tmp.png")
