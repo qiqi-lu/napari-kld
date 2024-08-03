@@ -112,6 +112,7 @@ class WidgetRLDeconvGaussian(WidgetRLDeconvTraditional):
     def __init__(self, progress_bar):
         super().__init__(progress_bar)
         self.label = "Gaussian"
+        self.params_group.setTitle(self.label)
         self.iteration_box.setValue(30)
         self.progress_bar.setMaximum(30)
 
@@ -136,6 +137,7 @@ class WidgetRLDeconvButterworth(WidgetRLDeconvTraditional):
     def __init__(self, progress_bar):
         super().__init__(progress_bar)
         self.label = "Butterworth"
+        self.params_group.setTitle(self.label)
 
         self.iteration_box.setValue(30)
         self.progress_bar.setMaximum(30)
@@ -182,6 +184,7 @@ class WidgetRLDeconvWB(WidgetRLDeconvButterworth):
     def __init__(self, progress_bar):
         super().__init__(progress_bar)
         self.label = "WB"
+        self.params_group.setTitle(self.label)
 
         # alpha box
         self.layout_grid.addWidget(QLabel("alpha"), 3, 0)
