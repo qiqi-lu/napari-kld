@@ -408,10 +408,34 @@ def tensor2gray(x):
     return x
 
 
-if __name__ == "__main__":
-    import pathlib
+def fft_conv3d(x, kernel, padding_mode="reflect"):
+    kernel_size = kernel.shape
 
-    path = pathlib.Path(
-        "D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\simulation\\PSF.tif"
+    pad_size = (
+        kernel_size[2] // 2,
+        kernel_size[2] // 2,
+        kernel_size[1] // 2,
+        kernel_size[1] // 2,
+        kernel_size[0] // 2,
+        kernel_size[0] // 2,
     )
-    print(get_image_shape(path))
+
+    x_pad = torch.nn.functional.pad(input=x, pad=pad_size, mode=padding_mode)
+    x_pad_size = x_pad.shape
+
+    kernel_fft = torch.fft.fftn(kernel, s=x_pad_size, dim=(2, 3, 4))
+    x_pad_fft = torch.fft.fftn(x_pad, s=x_pad_size, dim=(2, 3, 4))
+
+    out = torch.fft.ifftn(x_pad_fft * kernel_fft, s=x_pad_size, dim=(2, 3, 4))
+    out = torch.real(torch.fft.fftshift(out))
+    out = out[
+        pad_size[4] : pad_size[4] + x_pad_size[2],
+        pad_size[2] : pad_size[2] + x_pad_size[3],
+        pad_size[0] : pad_size[0] + x_pad_size[4],
+    ]
+
+    return out
+
+
+if __name__ == "__main__":
+    img_path = "D:/GitHub/napari-kld/test/data/real/3D/train/0_0_0.tif"
