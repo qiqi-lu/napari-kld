@@ -472,7 +472,9 @@ def train(
 
             else:
                 optimizer.zero_grad()
+                print('=')
                 pred = model(inpt)
+                print('=')
                 loss = loss_main(pred, gt)
                 loss.backward()
                 optimizer.step()
@@ -600,14 +602,14 @@ def train(
 if __name__ == "__main__":
     # forward projection training
     train(
-        data_path="D:/GitHub/napari-kld/test/data/simulation/data_128_128_128_gauss_0.5_poiss_1_ratio_0.1/train",
-        output_path="D:/GitHub/napari-kld/test/data/simulation/data_128_128_128_gauss_0.5_poiss_1_ratio_0.1",
+        data_path="D:/GitHub/napari-kld/test/data/real/3D/train",
+        output_path="D:/GitHub/napari-kld/test/data/real/3D",
         psf_path="",
         fp_path="",
         num_channel=1,
         data_dim=3,
         num_iter=2,
-        ks_z=31,
+        ks_z=3,
         ks_xy=31,
         model_name="kernet_fp",  # "kernet" or "kernet_fp"
         num_epoch=100,
@@ -619,8 +621,8 @@ if __name__ == "__main__":
 
     # backward projection training
     # train(
-    #     data_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\data\\train",
-    #     output_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory",
+    #     data_path="D:/GitHub/napari-kld/test/data/real/3D/train",
+    #     output_path="D:/GitHub/napari-kld/test/data/real/3D",
     #     psf_path="",
     #     fp_path="D:\\GitHub\\napari-kld\\src\\napari_kld\\_tests\\work_directory\\checkpoints\\forward_bs_1_lr_0.001_ks_1_31\\epoch_100.pt",
     #     num_channel=1,
