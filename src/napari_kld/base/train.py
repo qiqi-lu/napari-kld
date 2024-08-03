@@ -472,9 +472,9 @@ def train(
 
             else:
                 optimizer.zero_grad()
-                print('=')
+                print("=")
                 pred = model(inpt)
-                print('=')
+                print("=")
                 loss = loss_main(pred, gt)
                 loss.backward()
                 optimizer.step()
