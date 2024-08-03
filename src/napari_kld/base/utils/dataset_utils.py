@@ -407,24 +407,25 @@ def tensor2gray(x):
         x = np.transpose(x, axes=(0, 1, 3, 4, 2))
     return x
 
+
 def fft_conv_direct(signal, kernel):
     input_size = signal.shape[2:]
     output_size = input_size
 
-    signal_fr = torch.fft.fftn(signal.float(),  s =output_size,  dim=(2, 3, 4))
-    kernel_fr = torch.fft.fftn(kernel.float(),  s =output_size,  dim=(2, 3, 4))
+    signal_fr = torch.fft.fftn(signal.float(), s=output_size, dim=(2, 3, 4))
+    kernel_fr = torch.fft.fftn(kernel.float(), s=output_size, dim=(2, 3, 4))
 
     kernel_fr.imag *= -1
-    output_fr = signal_fr*kernel_fr
-    output = torch.fft.ifftn(output_fr,  dim=(2, 3, 4))
+    output_fr = signal_fr * kernel_fr
+    output = torch.fft.ifftn(output_fr, dim=(2, 3, 4))
     output = torch.abs(output)
     # output = output.real
 
     return output
 
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    from fft_conv_pytorch import fft_conv
 
     img_path = "D:/GitHub/napari-kld/test/data/real/3D/train/raw/0_0_0.tif"
     img = skio.imread(img_path)
@@ -453,7 +454,7 @@ if __name__ == "__main__":
 
     img_conv = fft_conv_direct(img_pad, kernel=kernel)
     # img_conv = img_conv[:,:, 1:1+6, 15:15+512, 15:15+512]
-    img_conv = img_conv[:,:, 0:6, 0:512, 0:512]
+    img_conv = img_conv[:, :, 0:6, 0:512, 0:512]
     print("1:", img_conv.shape)
 
     # img_conv2 = fft_conv(img_pad, kernel)
@@ -468,5 +469,5 @@ if __name__ == "__main__":
     axes[0].imshow(img[0, 0, 3], vmin=0, vmax=300)
     axes[1].imshow(img_conv[0, 0, 3], vmin=0, vmax=300)
     axes[2].imshow(img_conv2[0, 0, 3], vmin=0, vmax=300)
-    print('save image')
+    print("save image")
     plt.savefig("tmp.png")
