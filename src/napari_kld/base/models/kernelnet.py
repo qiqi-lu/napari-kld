@@ -2,8 +2,10 @@ import time
 
 import torch
 import torch.nn as nn
-from fft_conv_pytorch import fft_conv
 from napari_kld.base.utils import dataset_utils as utils_data
+
+# from fft_conv_pytorch import fft_conv
+from napari_kld.base.utils.dataset_utils import fftn_conv as fft_conv
 
 
 class TV_grad(nn.Module):

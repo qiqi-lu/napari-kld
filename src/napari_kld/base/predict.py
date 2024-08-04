@@ -5,8 +5,10 @@ import time
 import numpy as np
 import skimage.io as io
 import torch
-from fft_conv_pytorch import fft_conv
 from napari_kld.base.models import kernelnet
+
+# from fft_conv_pytorch import fft_conv
+from napari_kld.base.utils.dataset_utils import fftn_conv as fft_conv
 
 
 def predict(

@@ -6,11 +6,13 @@ import time
 import numpy as np
 import skimage.io as io
 import torch
-from fft_conv_pytorch import fft_conv
 from napari.utils.notifications import show_info
 from napari_kld.base.models import kernelnet
 from napari_kld.base.utils import dataset_utils
 from napari_kld.base.utils import evaluation as eva
+
+# from fft_conv_pytorch import fft_conv
+from napari_kld.base.utils.dataset_utils import fftn_conv as fft_conv
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 

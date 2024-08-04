@@ -409,7 +409,7 @@ def tensor2gray(x):
     return x
 
 
-def fftn_conv(signal, kernel):
+def fftn_conv(signal, kernel, *args, **kwargs):
     signal_shape = signal.shape[2:]
     kernel_shape = kernel.shape[2:]
 
@@ -421,15 +421,24 @@ def fftn_conv(signal, kernel):
     kernel_fr.imag *= -1
     output_fr = signal_fr * kernel_fr
     output = torch.fft.ifftn(output_fr, dim=dim_fft)
-    # output = torch.abs(output)
     output = output.real
-    output = output[
-        :,
-        :,
-        0 : signal_shape[0] - kernel_shape[0] + 1,
-        0 : signal_shape[1] - kernel_shape[1] + 1,
-        0 : signal_shape[2] - kernel_shape[2] + 1,
-    ]
+
+    if signal.ndim == 5:
+        output = output[
+            :,
+            :,
+            0 : signal_shape[0] - kernel_shape[0] + 1,
+            0 : signal_shape[1] - kernel_shape[1] + 1,
+            0 : signal_shape[2] - kernel_shape[2] + 1,
+        ]
+
+    if signal.ndim == 4:
+        output = output[
+            :,
+            :,
+            0 : signal_shape[0] - kernel_shape[0] + 1,
+            0 : signal_shape[1] - kernel_shape[1] + 1,
+        ]
 
     return output
 
@@ -437,23 +446,39 @@ def fftn_conv(signal, kernel):
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    img_path = "D:/GitHub/napari-kld/test/data/real/3D/train/raw/0_0_0.tif"
+    # img_path = "D:/GitHub/napari-kld/test/data/real/3D/train/raw/0_0_0.tif"
+    img_path = "D:/GitHub/napari-kld/test/data/real/2D/test/raw/2.tif"
     img = skio.imread(img_path)
-    kernel = gauss_kernel_3d(shape=(3, 31, 31), std=(2, 4, 4))
+
+    dim_img = len(img.shape)
+
+    if dim_img == 3:
+        kernel = gauss_kernel_3d(shape=(3, 31, 31), std=(2, 4, 4))
+    if dim_img == 2:
+        kernel = gauss_kernel_2d(shape=(31, 31), std=(4, 4))
 
     img = torch.Tensor(img)[None, None]
     kernel = torch.Tensor(kernel)[None, None]
     kernel_size = kernel.shape[2:]
     img_size = img.shape[2:]
 
-    pad_size = (
-        kernel_size[2] // 2,
-        kernel_size[2] // 2,
-        kernel_size[1] // 2,
-        kernel_size[1] // 2,
-        kernel_size[0] // 2,
-        kernel_size[0] // 2,
-    )
+    if dim_img == 3:
+        pad_size = (
+            kernel_size[2] // 2,
+            kernel_size[2] // 2,
+            kernel_size[1] // 2,
+            kernel_size[1] // 2,
+            kernel_size[0] // 2,
+            kernel_size[0] // 2,
+        )
+
+    if dim_img == 2:
+        pad_size = (
+            kernel_size[1] // 2,
+            kernel_size[1] // 2,
+            kernel_size[0] // 2,
+            kernel_size[0] // 2,
+        )
 
     img_pad = torch.nn.functional.pad(input=img, pad=pad_size, mode="reflect")
 
@@ -462,22 +487,30 @@ if __name__ == "__main__":
     print("kernel shape :", kernel.shape)
 
     img_conv = fftn_conv(img_pad, kernel=kernel)
-    img_conv = img_conv[
-        :, :, 0 : img_size[0], 0 : img_size[1], 0 : img_size[2]
-    ]
     print("image shape (fftn) :", img_conv.shape)
 
     img_conv2 = fft_conv(img_pad, kernel)
-    # img_conv2 = fft_conv_direct(img_pad, kernel)
+    # img_conv2 = fftn_conv(img_pad, kernel)
     print("image shape (rfftn) :", img_conv2.shape)
 
-    print(img_conv[0, 0, 3, 250, 205:210])
-    print(img_conv2[0, 0, 3, 250, 205:210])
+    if dim_img == 3:
+        print(img_conv[0, 0, 3, 250, 205:210])
+        print(img_conv2[0, 0, 3, 250, 205:210])
 
+    if dim_img == 2:
+        print(img_conv[0, 0, 250, 205:210])
+        print(img_conv2[0, 0, 250, 205:210])
+
+    # plot image
     fig, axes = plt.subplots(dpi=300, nrows=1, ncols=3, figsize=(6, 2))
     [ax.set_axis_off() for ax in axes.ravel()]
-    axes[0].imshow(img[0, 0, 3], vmin=0, vmax=300)
-    axes[1].imshow(img_conv[0, 0, 3], vmin=0, vmax=300)
-    axes[2].imshow(img_conv2[0, 0, 3], vmin=0, vmax=300)
+    if dim_img == 3:
+        axes[0].imshow(img[0, 0, 3], vmin=0, vmax=300)
+        axes[1].imshow(img_conv[0, 0, 3], vmin=0, vmax=300)
+        axes[2].imshow(img_conv2[0, 0, 3], vmin=0, vmax=300)
+    if dim_img == 2:
+        axes[0].imshow(img[0, 0], vmin=0)
+        axes[1].imshow(img_conv[0, 0], vmin=0)
+        axes[2].imshow(img_conv2[0, 0], vmin=0)
     print("save image")
     plt.savefig("tmp.png")

@@ -2,7 +2,9 @@ import napari_kld.base.back_projector as back_projector
 import numpy as np
 import torch
 import tqdm
-from fft_conv_pytorch import fft_conv
+
+# from fft_conv_pytorch import fft_conv
+from napari_kld.base.utils.dataset_utils import fftn_conv as fft_conv
 
 
 # ------------------------------------------------------------------------------
