@@ -59,6 +59,14 @@ The conventional RLD using different type of backward kernels.
 
 ## **KL Deconvolution**
 
+### **Training data preparation**
+
+The data used for training must be prepared in a folder consisting of:
+
+- A folder named `"gt"` (optional) , such as `"test/data/real/2D/train/gt"`, which saves all the GT images (only support .tif file).
+- A folder named `"raw"`, such as `"test/data/real/2D/train/raw"`, which saves all the LR images.
+- A file named `"train.txt"`, such as `"test/data/real/2D/train/train.txt"`, which saves the name of each image in `"gt"/"raw"` filder in each line.
+
 ### **When yuo have paired LR image and HR image**
 
 When we have paired LR image and HR image, we can treat LR image as **raw input** and HR image as **ground truth** (GT). We can first learn the forward kernel and then learn the backward kernel in a **supervised strategy**.
