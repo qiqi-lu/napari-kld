@@ -6,6 +6,7 @@ import skimage.io as skio
 import torch
 from skimage import io, transform
 from torch.utils.data import Dataset
+from fft_conv_pytorch import fft_conv
 
 
 def read_txt(path):
@@ -349,21 +350,21 @@ class Rescale:
     Rescale the image in a sample to a given size.
     """
 
-    def __init__(self, output_size):
-        assert isinstance(output_size, (int, tuple))
-        self.output_size = output_size
+    def __init__(self, signal_shape):
+        assert isinstance(signal_shape, (int, tuple))
+        self.signal_shape = signal_shape
 
     def __call__(self, sample):
         image_lr, image_hr = sample["lr"], sample["hr"]
 
         h, w = image_lr.shape[:2]
-        if isinstance(self.output_size, int):
+        if isinstance(self.signal_shape, int):
             if h > w:
-                new_h, new_w = self.output_size * h / w, self.output_size
+                new_h, new_w = self.signal_shape * h / w, self.signal_shape
             else:
-                new_h, new_w = self.output_size, self.output_size * w / h
+                new_h, new_w = self.signal_shape, self.signal_shape * w / h
         else:
-            new_h, new_w = self.output_size
+            new_h, new_w = self.signal_shape
 
         new_h, new_w = int(new_h), int(new_w)
         image_lr_new = transform.resize(image_lr, (new_h, new_w))
@@ -408,18 +409,21 @@ def tensor2gray(x):
     return x
 
 
-def fft_conv_direct(signal, kernel):
-    input_size = signal.shape[2:]
-    output_size = input_size
+def fftn_conv(signal, kernel):
+    signal_shape = signal.shape[2:]
+    kernel_shape = kernel.shape[2:]
 
-    signal_fr = torch.fft.fftn(signal.float(), s=output_size, dim=(2, 3, 4))
-    kernel_fr = torch.fft.fftn(kernel.float(), s=output_size, dim=(2, 3, 4))
+    dim_fft = tuple(range(2, signal.ndim))
+
+    signal_fr = torch.fft.fftn(signal.float(), s=signal_shape, dim=dim_fft)
+    kernel_fr = torch.fft.fftn(kernel.float(), s=signal_shape, dim=dim_fft)
 
     kernel_fr.imag *= -1
     output_fr = signal_fr * kernel_fr
-    output = torch.fft.ifftn(output_fr, dim=(2, 3, 4))
-    output = torch.abs(output)
-    # output = output.real
+    output = torch.fft.ifftn(output_fr, dim=dim_fft)
+    # output = torch.abs(output)
+    output = output.real
+    output = output[:,:, 0:signal_shape[0]-kernel_shape[0]+1,0:signal_shape[1]-kernel_shape[1]+1, 0:signal_shape[2]-kernel_shape[2]+1 ]
 
     return output
 
@@ -429,13 +433,12 @@ if __name__ == "__main__":
 
     img_path = "D:/GitHub/napari-kld/test/data/real/3D/train/raw/0_0_0.tif"
     img = skio.imread(img_path)
-    kernel = gauss_kernel_3d(shape=(3, 31, 31), std=(1, 4, 4))
+    kernel = gauss_kernel_3d(shape=(3, 31, 31), std=(2, 4, 4))
 
     img = torch.Tensor(img)[None, None]
     kernel = torch.Tensor(kernel)[None, None]
-
     kernel_size = kernel.shape[2:]
-    img_size = img.shape
+    img_size = img.shape[2:]
 
     pad_size = (
         kernel_size[2] // 2,
@@ -448,21 +451,20 @@ if __name__ == "__main__":
 
     img_pad = torch.nn.functional.pad(input=img, pad=pad_size, mode="reflect")
 
-    print(img.shape)
-    print(img_pad.shape)
-    print(kernel.shape)
+    print('image shape :', img.shape)
+    print('image shape (padding) :', img_pad.shape)
+    print('kernel shape :', kernel.shape)
 
-    img_conv = fft_conv_direct(img_pad, kernel=kernel)
-    # img_conv = img_conv[:,:, 1:1+6, 15:15+512, 15:15+512]
-    img_conv = img_conv[:, :, 0:6, 0:512, 0:512]
-    print("1:", img_conv.shape)
+    img_conv = fftn_conv(img_pad, kernel=kernel)
+    img_conv = img_conv[:, :, 0:img_size[0], 0:img_size[1], 0:img_size[2]]
+    print("image shape (fftn) :", img_conv.shape)
 
-    # img_conv2 = fft_conv(img_pad, kernel)
-    img_conv2 = fft_conv_direct(img_pad, kernel)
-    print("2:", img_conv2.shape)
+    img_conv2 = fft_conv(img_pad, kernel)
+    # img_conv2 = fft_conv_direct(img_pad, kernel)
+    print("image shape (rfftn) :", img_conv2.shape)
 
-    print(img_conv[0, 0, 3, 250, 200:225])
-    print(img_conv2[0, 0, 3, 250, 200:225])
+    print(img_conv[0, 0, 3, 250, 205:210])
+    print(img_conv2[0, 0, 3, 250, 205:210])
 
     fig, axes = plt.subplots(dpi=300, nrows=1, ncols=3, figsize=(6, 2))
     [ax.set_axis_off() for ax in axes.ravel()]
