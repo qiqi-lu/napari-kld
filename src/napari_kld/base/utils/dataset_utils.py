@@ -4,9 +4,9 @@ import numpy as np
 import pydicom
 import skimage.io as skio
 import torch
+from fft_conv_pytorch import fft_conv
 from skimage import io, transform
 from torch.utils.data import Dataset
-from fft_conv_pytorch import fft_conv
 
 
 def read_txt(path):
@@ -423,7 +423,13 @@ def fftn_conv(signal, kernel):
     output = torch.fft.ifftn(output_fr, dim=dim_fft)
     # output = torch.abs(output)
     output = output.real
-    output = output[:,:, 0:signal_shape[0]-kernel_shape[0]+1,0:signal_shape[1]-kernel_shape[1]+1, 0:signal_shape[2]-kernel_shape[2]+1 ]
+    output = output[
+        :,
+        :,
+        0 : signal_shape[0] - kernel_shape[0] + 1,
+        0 : signal_shape[1] - kernel_shape[1] + 1,
+        0 : signal_shape[2] - kernel_shape[2] + 1,
+    ]
 
     return output
 
@@ -451,12 +457,14 @@ if __name__ == "__main__":
 
     img_pad = torch.nn.functional.pad(input=img, pad=pad_size, mode="reflect")
 
-    print('image shape :', img.shape)
-    print('image shape (padding) :', img_pad.shape)
-    print('kernel shape :', kernel.shape)
+    print("image shape :", img.shape)
+    print("image shape (padding) :", img_pad.shape)
+    print("kernel shape :", kernel.shape)
 
     img_conv = fftn_conv(img_pad, kernel=kernel)
-    img_conv = img_conv[:, :, 0:img_size[0], 0:img_size[1], 0:img_size[2]]
+    img_conv = img_conv[
+        :, :, 0 : img_size[0], 0 : img_size[1], 0 : img_size[2]
+    ]
     print("image shape (fftn) :", img_conv.shape)
 
     img_conv2 = fft_conv(img_pad, kernel)
