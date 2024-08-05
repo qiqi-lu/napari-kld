@@ -122,7 +122,7 @@ Train the forward projection to learn forward kernel.
     - `Decay Rate` : the decay rate of learning rate.
 
     *You can refer to the Supplementary Table 1 in the Supplementary Information of our manuscript for a proper parameter setting.*
-    ![alt text](image.png)
+    ![alt text](imges/image.png)
 
 8. Press `run` button. You can press the `stop` button to end the training.
 
