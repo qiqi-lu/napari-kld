@@ -7,7 +7,7 @@
 
 `napari-kld` is a `napari` plugin that implements kernel learning deconvolution algrotihm.
 
-## Kernel Learning Deconvolution (KLD)
+## **Kernel Learning Deconvolution (KLD)**
 
 KLD is a rapid deconvolution algorithm for fluorescence microscopic image, which learns the forward and backward kernels in Richardson-Lucy Deconvolution (RLD) from paired low-resolution (LR) and high-resolution (HR) images.
 
@@ -15,13 +15,35 @@ It only requires **one sample** to training the model, and **two iterations** to
 
 **This [napari] plugin was generated with [copier] using the [napari-plugin-template].*
 
-## Installation
+## **Installation**
+
+You must install `napari` firstly and then install `napari-kld`.
+
+### **Install `napari`**
+
+You can download the `napari` bundled app for a simple installation via https://napari.org/stable/tutorials/fundamentals/quick_start.html#installation.
+
+Or, you can install `napari` with Python using pip:
+
+```
+conda create -y -n napari-env -c conda-forge python=3.10
+conda activate napari-env
+python -m pip install 'napari[all]'
+```
+
+Refer to https://napari.org/stable/tutorials/fundamentals/quick_start.html#installation.
+
+#### **Install `napari-kld`**
+
+You can install napari-kld plugin with napari:
+
+`Plugins` > `Install/Uninstall Plugins…` > [search napari-kld] > `install`
 
 You can install `napari-kld` via [pip]:
 
     pip install napari-kld
 
-## Instruction
+## **Instruction**
 This plugin includes two part:
 
 - `RL Deconvolution` : Conventional RLD algorithm using different type of backward kernels (including matched backward kernel [`Traditional`] and unmatched backward kernels [`Guassian`, `Butterworth`, `Wiener-Butterworth (WB)`]). The forward kernel, i.e., point spread function (PSF), is required.
