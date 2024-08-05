@@ -51,7 +51,7 @@ This plugin includes two part:
 
 - `KL Deconvolution` : KLD using learned forward/backward kernels.
 
-**You can download the `"test"` folder  at https://github.com/qiqi-lu/napari-kld for testing, which save some 2D/3D images used for training and testing.**
+**You can download the `"test"` folder  at https://github.com/qiqi-lu/kernel-learning-deconvolution for testing, which save some 2D/3D images used for training and testing.**
 
 ## **RL Deconvolution**
 
