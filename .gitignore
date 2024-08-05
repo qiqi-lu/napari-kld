@@ -23,8 +23,6 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
-test/
-README.pdf
 token.txt
 
 # PyInstaller
