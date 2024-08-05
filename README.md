@@ -121,6 +121,9 @@ Train the forward projection to learn forward kernel.
     - `Decay Step` ： the decay step of learning rate. Note: `0` for no decay.
     - `Decay Rate` : the decay rate of learning rate.
 
+    *You can refer to the Supplementary Table 1 in the Supplementary Information of our manuscript for a proper parameter setting.*
+    ![alt text](image.png)
+
 8. Press `run` button. You can press the `stop` button to end the training.
 
 9. Wait the `progress bar` to reach 100% and training finished.
@@ -158,6 +161,8 @@ After training of forward projeciton, we can freeze the forward projeciton and t
     - `Learning Rate` : The learning rate used to trianing the model.
     - `Decay Step` : the decay step of learning rate.
     - `Decay Rate` : the decay rate of learning rate.
+
+    *You can refer to the Supplementary Table 1 in the Supplementary Information of our manuscript for a proper parameter setting.*
 
 8. Press `run` button. You can press the `stop` button to end the training.
 
@@ -253,6 +258,8 @@ The simulated data should be those generated using the known PSF.
     - `Decay Step` : the decay step of learning rate.
     - `Decay Rate` : the decay rate of learning rate.
 
+    *You can refer to the Supplementary Table 1 in the Supplementary Information of our manuscript for a proper parameter setting.*
+
 8. Press `run` button. You can press the `stop` button to end the training.
 
 9. Wait the `progress bar` to reach 100% and the training finishes.
@@ -292,6 +299,8 @@ When we only have LR image and its PSF, we can traing the backward projection th
     - `Learning Rate` : the learning rate used to trianing the model.
     - `Decay Step` : the decay step of learning rate.
     - `Decay Rate` : the decay rate of learning rate.
+
+    *You can refer to the Supplementary Table 1 in the Supplementary Information of our manuscript for a proper parameter setting.*
 
 8. Press `run` button. You can press the `stop` button to end the training.
 
