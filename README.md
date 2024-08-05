@@ -33,13 +33,14 @@ python -m pip install 'napari[all]'
 
 Refer to https://napari.org/stable/tutorials/fundamentals/quick_start.html#installation.
 
-#### **Install `napari-kld`**
+### **Install `napari-kld`**
 
-You can install napari-kld plugin with napari:
+You can install `napari-kld` plugin with `napari`:
 
-`Plugins` > `Install/Uninstall Plugins…` > [search napari-kld] > `install`
+`Plugins` > `Install/Uninstall Plugins…` > [search napari-kld] > `install`.
 
-You can install `napari-kld` via [pip]:
+
+Or you can install `napari-kld` via [pip]:
 
     pip install napari-kld
 
@@ -49,6 +50,8 @@ This plugin includes two part:
 - `RL Deconvolution` : Conventional RLD algorithm using different type of backward kernels (including matched backward kernel [`Traditional`] and unmatched backward kernels [`Guassian`, `Butterworth`, `Wiener-Butterworth (WB)`]). The forward kernel, i.e., point spread function (PSF), is required.
 
 - `KL Deconvolution` : KLD using learned forward/backward kernels.
+
+**You can download the `"test"` folder  at https://github.com/qiqi-lu/napari-kld for testing, which save some 2D/3D images used for training and testing.**
 
 ## **RL Deconvolution**
 
@@ -86,7 +89,7 @@ The conventional RLD using different type of backward kernels.
 The data used for training must be prepared in a folder consisting of:
 
 - A folder named `"gt"` (optional) , such as `"test/data/real/2D/train/gt"`, which saves all the GT images (only support .tif file).
-- A folder named `"raw"`, such as `"test/data/real/2D/train/raw"`, which saves all the LR images.
+- A folder named `"raw"`, such as `"test/data/real/2D/train/raw"`, which saves all the LR images (only support .tif file). The file names must be the same as those in `"gt"` folder.
 - A file named `"train.txt"`, such as `"test/data/real/2D/train/train.txt"`, which saves the name of each image in `"gt"/"raw"` filder in each line.
 
 ### **When yuo have paired LR image and HR image**
@@ -150,7 +153,7 @@ After training of forward projeciton, we can freeze the forward projeciton and t
     - `Epoch` : The number fo epochs used to traing the model.
     - `Batch Size` : The batch size used to training the model.
     - `Kernel Size (z, xy)`: The size of backward kernel, `x` and `y` have the same size.
-    - `FP directory` : the directory of the pre-trained forward projeciton model, such as `"test/data/real/2D/checkpoints/forward_bs_1_lr_0.001_ks_1_31/epoch_500.pt"`
+    - `FP directory` : the directory of the pre-trained forward projeciton model, such as `"test/data/real/2D/checkpoints/forward_bs_1_lr_0.001_ks_1_31/epoch_500_final.pt"` (commonly the model labeled with `"_final"` is used).
     - `Optimizer` : Optimization algorithm. Default: Adam.
     - `Learning Rate` : The learning rate used to trianing the model.
     - `Decay Step` : the decay step of learning rate.
@@ -311,13 +314,13 @@ Use the learned forward/backward kernel to do deconvolution.
 
 3. Load raw input low-resolution image through `napari`: `File` > `Open File(s)` > `[choose the image to be deconvolved]` > `[the image will appear in the layer list of napari]`, such as `"test/data/real/2D/test/raw/2.tif"`.
 
-4. Choose the loaded image in `Input RAW data` box, e.g., `16`.
+4. Choose the loaded image in `Input RAW data` box, e.g., `2`.
 
 5. If the PSF is known, choose the `PSF directory`.
 
-6. If the PSF is unknown, choose the `Forward Projection` directory. If both the directories of PSF and Forward Projeciton is choosen, KLD will directly use the PSF selected.
+6. If the PSF is unknown, choose the `Forward Projection` directory, such as `"test/data/real/2D/checkpoints/forward_bs_1_lr_0.001_ks_1_31/epoch_500_final.pt"` (commonly the model labeled with `"_final"` is used). If both the directories of PSF and Forward Projeciton is choosen, KLD will directly use the PSF selected.
 
-7. Choose the `Backward Projeciton` directory.
+7. Choose the `Backward Projeciton` directory, such as `"test/data/real/2D/checkpoints/backward_bs_1_lr_1e-05_iter_2_ks_1_31/epoch_1000_final.pt"`  (commonly the model labeled with `"_final"` is used).
 
 8. Set the number of RL iterations at `Iterations (RL)`. Default: 2.
 
@@ -335,7 +338,7 @@ Press `clean` button will clean all the text in the `log` box.
 
 - *Currently, the plugin is runned on CPU. We have tried to run the training on GPU, but the training time did not decrease (maybe it is because the FFT-based covnlution was not optimized on GPU). We are trying to make improvements.*
 
-- *The training time may be very long if we set the kernel size or the number of epoches too large, especially for 3D images.*
+- *The training time may be very long if we set the kernel size or the number of epoches too large, especially for 3D images. Besides, it also depends on the  computation capability of your device.*
 
 ## Contributing
 

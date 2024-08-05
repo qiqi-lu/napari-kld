@@ -78,9 +78,14 @@ def train(
     scale_factor = 1
     data_range = None
     id_range = None
+
     device, num_workers = torch.device("cpu"), 0
-    # device, num_workers = torch.device("cpu"), 6
-    # device, num_workers = torch.device("cuda"), 6
+
+    # if torch.cuda.is_available():
+    #     device, num_workers = torch.device("cuda"), 6
+    # else:
+    #     device, num_workers = torch.device("cpu"), 0
+
     conv_mode, padding_mode, kernel_init = "fft", "reflect", "gauss"
     interpolation = True
     kernel_norm_fp = False
@@ -568,7 +573,9 @@ def train(
     # save the last one model
     notify(f"Save model ... (Epoch: {i_epoch}, Iteration: {i_iter+1})")
     model_dict = {"model_state_dict": model.state_dict()}
-    torch.save(model_dict, os.path.join(path_model, f"epoch_{i_iter + 1}.pt"))
+    torch.save(
+        model_dict, os.path.join(path_model, f"epoch_{i_iter + 1}_final.pt")
+    )
 
     # save parameters
     parameters_dict = {

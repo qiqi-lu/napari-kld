@@ -329,6 +329,12 @@ class WidgetKLDeconvTrain(QGroupBox):
             if self.img_shape is not None:
                 dim = len(self.img_shape)
                 self.dim_box.setText(str(dim))
+                if dim == 2:
+                    self.fp_widget.ks_box_z.setValue(1)
+                    self.bp_widget.ks_box_z.setValue(1)
+                if dim == 3:
+                    self.fp_widget.ks_box_z.setValue(3)
+                    self.bp_widget.ks_box_z.setValue(3)
         else:
             self.enable_run(False)
 
@@ -581,7 +587,7 @@ class WidgetKLDeconvTrainBP(WidgetBase):
 
         # ----------------------------------------------------------------------
         grid_layout.addWidget(QLabel("Epoch | Batch Size"), 2, 0, 1, 1)
-        self.epoch_box = SpinBox(vmin=1, vmax=20000, vinit=100)
+        self.epoch_box = SpinBox(vmin=1, vmax=20000, vinit=1000)
         self.bs_box = SpinBox(vmin=1, vmax=1000, vinit=1)
         grid_layout.addWidget(self.epoch_box, 2, 1, 1, 1)
         grid_layout.addWidget(self.bs_box, 2, 2, 1, 1)
@@ -609,7 +615,7 @@ class WidgetKLDeconvTrainBP(WidgetBase):
         self.learning_rate_box = DoubleSpinBox(
             vmin=0, vmax=10, vinit=0.000001, decimals=9
         )
-        self.learning_rate_box.setSingleStep(0.000001)
+        self.learning_rate_box.setSingleStep(0.00001)
         grid_layout.addWidget(self.optim_box, 5, 1, 1, 1)
         grid_layout.addWidget(self.learning_rate_box, 5, 2, 1, 1)
 
@@ -863,7 +869,7 @@ class WidgetKLDeconvPredict(WidgetBase):
                         'ERROR: the backward projection should be a model with a ".pt" extension.'
                     )
             else:
-                show_info(f'WARNING: "{bp_path}" does not exist.')
+                show_info(f'ERROR: "{bp_path}" does not exist.')
                 self.enable_run(False)
         else:
             self.enable_run(False)
