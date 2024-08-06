@@ -17,6 +17,8 @@ It only requires **one sample** to training the model, and **two iterations** to
 
 ## **Installation**
 
+An instruciton video is also available at https://www.bilibili.com/video/BV164YMeAEXv/.
+
 You must install `napari` firstly and then install `napari-kld`.
 
 ### **Install `napari`**
