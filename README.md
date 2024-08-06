@@ -17,7 +17,7 @@ It only requires **one sample** to training the model, and **two iterations** to
 
 ## **Installation**
 
-An **instruciton video** is also available at https://www.bilibili.com/video/BV164YMeAEXv/ or can be downloaded from https://github.com/qiqi-lu/napari-kld/blob/main/video/napari-kld%20instruction.mp4.
+An **instruction video** is also available at https://www.bilibili.com/video/BV164YMeAEXv/ or can be downloaded from https://github.com/qiqi-lu/napari-kld/blob/main/video/napari-kld%20instruction.mp4.
 
 You must install `napari` firstly and then install `napari-kld`.
 
