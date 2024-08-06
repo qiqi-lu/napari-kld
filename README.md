@@ -51,7 +51,7 @@ This plugin includes two part:
 
 - `KL Deconvolution` : KLD using learned forward/backward kernels.
 
-**You can download the `"test"` folder  at https://github.com/qiqi-lu/kernel-learning-deconvolution for testing, which save some 2D/3D images used for training and testing.**
+**You can download the `"test"` folder  at https://github.com/qiqi-lu/kernel-learning-deconvolution for testing, which saves some 2D/3D images used for training and testing.**
 
 ## **RL Deconvolution**
 
@@ -132,6 +132,8 @@ After the training of forward projection, the results will be save in the `/chec
 - a `log` folder saved the `Tensorboard` log, which can be opened with `Tensorboard`.
 - many model checkpoints, named as `epoch_{epoch}.pt`.
 - a `parameters.json` file saving the parameters used to training the model.
+
+**The provided folders ended with `"_example"` in the `"/checkpoint"` folder are just for showing how the trained models are saved.*
 
 #### **Training of Backward Projection**
 
@@ -349,16 +351,16 @@ Press `clean` button will clean all the text in the `log` box.
 
 - *The training time may be very long if we set the kernel size or the number of epoches too large, especially for 3D images. Besides, it also depends on the  computation capability of your device.*
 
-## Contributing
+## **Contributing**
 
 Contributions are very welcome. Tests can be run with [tox], please ensure
 the coverage at least stays the same before you submit a pull request.
 
-## License
+## **License**
 
 MIT LICENSE
 
-## Issues
+## **Issues**
 
 If you encounter any problems, please [file an issue] along with a detailed description.
 
